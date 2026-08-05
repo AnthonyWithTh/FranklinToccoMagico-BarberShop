@@ -135,17 +135,30 @@
 
     // Carica asincronamente il nome utente e aggiorna la sidebar
     async function initSidebarUser() {
-        if (window.FranklinApp && window.FranklinApp.Storage) {
-            const sb = window.FranklinApp.Storage.supabase;
-            if (sb) {
-                const { data: { user } } = await sb.auth.getUser();
-                if (user) {
+        try {
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const sb = window.FranklinApp.Storage.supabase;
+                if (sb) {
+                    const { data: { user }, error } = await sb.auth.getUser();
                     const span = document.getElementById('sidebar-username');
-                    if (span) {
-                        span.textContent = user.user_metadata?.display_name || user.email || 'Utente';
+                    
+                    if (error) {
+                        console.error("Errore getUser sidebar:", error);
+                        if (span) span.textContent = 'Errore sessione';
+                        return;
+                    }
+                    
+                    if (user) {
+                        if (span) {
+                            span.textContent = user.user_metadata?.display_name || user.email || 'Utente';
+                        }
+                    } else {
+                        if (span) span.textContent = 'Non loggato';
                     }
                 }
             }
+        } catch (e) {
+            console.error("Eccezione in initSidebarUser:", e);
         }
     }
     function initSidebar() {
