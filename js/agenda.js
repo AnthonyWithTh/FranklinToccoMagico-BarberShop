@@ -575,13 +575,9 @@ window.Agenda = (function() {
             } else {
                 const payload = { stato: nuovoStato };
                 if (nuovoStato === 'Confermato') {
-                    const appuntamenti = await window.FranklinApp.Storage.ottieniAppuntamenti();
-                    const app = appuntamenti.find(a => a.id === id);
-                    if (app && app.inseritoDa === 'Cliente') {
-                        const u = await window.FranklinApp.Auth.getUtenteLoggato();
-                        const nomeUtente = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
-                        payload.confermatoDa = nomeUtente;
-                    }
+                    const u = await window.FranklinApp.Auth.getUtenteLoggato();
+                    const nomeUtente = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
+                    payload.confermatoDa = nomeUtente;
                 }
                 await window.FranklinApp.Storage.aggiornaAppuntamento(id, payload);
                 if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
