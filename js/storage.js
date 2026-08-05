@@ -130,17 +130,60 @@ FranklinApp.Storage = {
   async ottieniAppuntamenti() {
     const { data, error } = await sbClient.from('appuntamenti').select('*').order('data', { ascending: true }).order('ora', { ascending: true });
     if (error) console.error("Errore fetch appuntamenti:", error);
-    return data || [];
+    if (!data) return [];
+    
+    return data.map(app => ({
+      id: app.id.toString(),
+      barbiereId: app.barbiere_id ? app.barbiere_id.toString() : null,
+      servizioNome: app.servizio_nome,
+      servizioDurata: app.servizio_durata,
+      servizioCosto: app.servizio_costo,
+      data: app.data,
+      ora: app.ora ? app.ora.substring(0, 5) : '', // '14:30:00' -> '14:30'
+      clienteNome: app.cliente_nome,
+      clienteTelefono: app.cliente_telefono,
+      note: app.note,
+      stato: app.stato,
+      confermatoDa: app.confermato_da,
+      inseritoDa: app.inserito_da
+    }));
   },
   
   async aggiungiAppuntamento(datiApp) {
-    const { data, error } = await sbClient.from('appuntamenti').insert([datiApp]).select();
+    const payload = {
+      barbiere_id: datiApp.barbiereId,
+      servizio_nome: datiApp.servizioNome,
+      servizio_durata: datiApp.servizioDurata,
+      servizio_costo: datiApp.servizioCosto,
+      data: datiApp.data,
+      ora: datiApp.ora,
+      cliente_nome: datiApp.clienteNome,
+      cliente_telefono: datiApp.clienteTelefono || null,
+      note: datiApp.note || '',
+      stato: datiApp.stato || 'Richiesto',
+      confermato_da: datiApp.confermatoDa || null,
+      inserito_da: datiApp.inseritoDa || 'Cliente'
+    };
+    const { data, error } = await sbClient.from('appuntamenti').insert([payload]).select();
     if (error) { console.error("Errore aggiunta appuntamento:", error); return null; }
     return data[0].id;
   },
   
   async aggiornaAppuntamento(id, datiAggiornati) {
-    const { error } = await sbClient.from('appuntamenti').update(datiAggiornati).eq('id', id);
+    const payload = {};
+    if (datiAggiornati.barbiereId !== undefined) payload.barbiere_id = datiAggiornati.barbiereId;
+    if (datiAggiornati.servizioNome !== undefined) payload.servizio_nome = datiAggiornati.servizioNome;
+    if (datiAggiornati.servizioDurata !== undefined) payload.servizio_durata = datiAggiornati.servizioDurata;
+    if (datiAggiornati.servizioCosto !== undefined) payload.servizio_costo = datiAggiornati.servizioCosto;
+    if (datiAggiornati.data !== undefined) payload.data = datiAggiornati.data;
+    if (datiAggiornati.ora !== undefined) payload.ora = datiAggiornati.ora;
+    if (datiAggiornati.clienteNome !== undefined) payload.cliente_nome = datiAggiornati.clienteNome;
+    if (datiAggiornati.clienteTelefono !== undefined) payload.cliente_telefono = datiAggiornati.clienteTelefono;
+    if (datiAggiornati.note !== undefined) payload.note = datiAggiornati.note;
+    if (datiAggiornati.stato !== undefined) payload.stato = datiAggiornati.stato;
+    if (datiAggiornati.confermatoDa !== undefined) payload.confermato_da = datiAggiornati.confermatoDa;
+    
+    const { error } = await sbClient.from('appuntamenti').update(payload).eq('id', id);
     return !error;
   },
   

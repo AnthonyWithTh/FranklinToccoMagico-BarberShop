@@ -19,8 +19,7 @@ window.FranklinApp.Admin = {
     
     let ricaviStimati = 0;
     appOggi.forEach(a => {
-      const serv = servizi.find(s => s.id === a.servizioId);
-      if (serv) ricaviStimati += serv.prezzo;
+      ricaviStimati += a.servizioCosto ? parseFloat(a.servizioCosto) : 0;
     });
 
     
@@ -94,19 +93,21 @@ window.FranklinApp.Admin = {
         const serviziData = await window.FranklinApp.Storage.ottieniServizi();
         const servizio = serviziData.find(s => s.id === servizioId);
         
+        let utenteLoggato = window.FranklinApp.Auth ? window.FranklinApp.Auth.getUtenteLoggato() : null;
+        let nomeAdmin = utenteLoggato ? (`${utenteLoggato.nome || ''} ${utenteLoggato.cognome || ''}`.trim() || utenteLoggato.username) : 'Admin';
+        
         const nuovoApp = {
-            id: 'app_' + Date.now(),
             clienteNome: nomeCliente,
             clienteTelefono: telCliente,
-            clienteEmail: '',
-            servizioId: servizioId,
-            servizioNome: servizio ? servizio.nome : '',
             barbiereId: barbiereId,
+            servizioNome: servizio ? servizio.nome : 'Servizio',
+            servizioDurata: servizio ? servizio.durata : 30,
+            servizioCosto: servizio ? servizio.prezzo : 0,
             data: dataStr,
             ora: oraStr,
-            stato: 'confermato',
-            inseritoDa: 'Admin',
-            creatoIl: new Date().toISOString()
+            stato: 'Confermato',
+            inseritoDa: nomeAdmin,
+            confermatoDa: nomeAdmin
         };
         
         await window.FranklinApp.Storage.aggiungiAppuntamento(nuovoApp);
@@ -169,10 +170,9 @@ window.FranklinApp.Admin = {
 
     let html = '';
     appuntamenti.forEach(app => {
-      const serv = servizi.find(s => s.id === app.servizioId);
       const barb = barbieri.find(b => b.id === app.barbiereId);
       
-      const isRichiesta = (app.stato === 'richiesto' || app.stato === 'in_attesa');
+      const isRichiesta = (app.stato === 'Richiesto' || app.stato === 'in_attesa');
       const rowStyle = isRichiesta 
         ? 'background: rgba(215, 145, 20, 0.15); border-left: 4px solid #f57c00;'
         : 'background: rgba(45, 120, 55, 0.15); border-left: 4px solid #4caf50;';
@@ -186,8 +186,8 @@ window.FranklinApp.Admin = {
       let azioniBtns = '';
       if (isRichiesta) {
         azioniBtns = `
-          <button class="btn-primary" style="background:#2e7d32; border-color:#4caf50; padding:4px 8px; font-size:1.05rem;" onclick="window.FranklinApp.Admin.cambiaStatoAppuntamento('${app.id}', 'confermato')" title="Accetta e Conferma">✅</button>
-          <button class="btn-danger" style="padding:4px 8px; font-size:1.05rem;" onclick="window.FranklinApp.Admin.cambiaStatoAppuntamento('${app.id}', 'cancellato')" title="Rifiuta e Cancella">❌</button>
+          <button class="btn-primary" style="background:#2e7d32; border-color:#4caf50; padding:4px 8px; font-size:1.05rem;" onclick="window.FranklinApp.Admin.cambiaStatoAppuntamento('${app.id}', 'Confermato')" title="Accetta e Conferma">✅</button>
+          <button class="btn-danger" style="padding:4px 8px; font-size:1.05rem;" onclick="window.FranklinApp.Admin.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" title="Rifiuta e Cancella">❌</button>
         `;
       } else {
         azioniBtns = `
@@ -199,7 +199,7 @@ window.FranklinApp.Admin = {
       html += `<tr style="${rowStyle}">
         <td>${window.FranklinApp.DateHelpers.formattaDataBreve(app.data)} ${app.ora}</td>
         <td><strong>${app.clienteNome}</strong>${noteIcon}</td>
-        <td>${serv ? serv.nome : 'N/A'}</td>
+        <td>${app.servizioNome || 'N/A'}</td>
         <td>${barb ? barb.nome : 'N/A'}</td>
         <td>
           <span style="font-weight:bold; color: ${isRichiesta ? '#ffd700' : '#81c784'};">${isRichiesta ? 'Richiesta' : 'Confermato'}</span>
@@ -791,37 +791,39 @@ window.FranklinApp.Admin = {
             const appuntamenti = await window.FranklinApp.Storage.ottieniAppuntamenti();
             const appIndex = appuntamenti.findIndex(a => a.id === editingId);
             if (appIndex > -1) {
-                appuntamenti[appIndex].servizioId = servizioId;
-                appuntamenti[appIndex].servizioNome = servizio ? servizio.nome : 'Sconosciuto';
-                appuntamenti[appIndex].barbiereId = barbiereId;
-                appuntamenti[appIndex].data = dataStr;
-                appuntamenti[appIndex].ora = oraStr;
-                appuntamenti[appIndex].clienteNome = nomeCliente;
-                appuntamenti[appIndex].clienteTelefono = telCliente;
-                await window.FranklinApp.Storage.salvaAppuntamenti(appuntamenti);
+                const appAggiornato = {
+                    servizioNome: servizio ? servizio.nome : 'Sconosciuto',
+                    servizioDurata: servizio ? servizio.durata : 30,
+                    servizioCosto: servizio ? servizio.prezzo : 0,
+                    barbiereId: barbiereId,
+                    data: dataStr,
+                    ora: oraStr,
+                    clienteNome: nomeCliente,
+                    clienteTelefono: telCliente
+                };
+                await window.FranklinApp.Storage.aggiornaAppuntamento(editingId, appAggiornato);
                 this.mostraToast('Appuntamento modificato con successo!', 'successo');
             }
             // Puliamo l'attributo di modifica
             delete modal.dataset.editingId;
         } else {
             // NUOVO: creiamo un nuovo appuntamento
+            const utenteLoggato = window.FranklinApp.Auth ? window.FranklinApp.Auth.getUtenteLoggato() : null;
+            const nomeAdmin = utenteLoggato ? (`${utenteLoggato.nome || ''} ${utenteLoggato.cognome || ''}`.trim() || utenteLoggato.username) : 'Admin';
+            
             const nuovoApp = {
-                id: 'app_' + Date.now(),
                 clienteNome: nomeCliente,
                 clienteTelefono: telCliente,
-                servizioId: servizioId,
                 servizioNome: servizio ? servizio.nome : 'Sconosciuto',
+                servizioDurata: servizio ? servizio.durata : 30,
+                servizioCosto: servizio ? servizio.prezzo : 0,
                 barbiereId: barbiereId,
                 data: dataStr,
                 ora: oraStr,
-                stato: document.getElementById('nuovo-appuntamento-stato') ? document.getElementById('nuovo-appuntamento-stato').value : 'confermato',
-                creatoIl: new Date().toISOString(),
-                inseritoDa: (() => {
-                    const u = window.FranklinApp.Auth.getUtenteLoggato();
-                    return u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
-                })()
+                stato: document.getElementById('nuovo-appuntamento-stato') ? document.getElementById('nuovo-appuntamento-stato').value : 'Confermato',
+                inseritoDa: nomeAdmin,
+                confermatoDa: nomeAdmin
             };
-            
             await window.FranklinApp.Storage.aggiungiAppuntamento(nuovoApp);
             this.mostraToast('Appuntamento salvato con successo!', 'successo');
         }

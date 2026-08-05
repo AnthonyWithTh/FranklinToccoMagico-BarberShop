@@ -246,8 +246,7 @@ window.Agenda = (function() {
         ];
         
         appuntamenti.forEach(app => {
-            const srv = servizi.find(s => s.id === app.servizioId);
-            const durata = srv ? parseInt(srv.durata) : 30; // Minuti
+            const durata = app.servizioDurata ? parseInt(app.servizioDurata) : 30; // Minuti
             const barbiere = barbieri.find(b => b.id === app.barbiereId);
             const nomeBarbiere = barbiere ? barbiere.nome.split(' ')[0] : 'Barbiere';
             
@@ -321,7 +320,7 @@ window.Agenda = (function() {
                                       title="Clicca per leggere le note">❗</span>`;
                 }
                 
-                const nomeServizio = srv ? srv.nome : (app.servizioNome || 'Servizio');
+                const nomeServizio = app.servizioNome || 'Servizio';
                 const cardHtml = `
                     <div class="vintage-card appointment-card stato-${statoStr}" style="
                         background: ${bg};
@@ -585,7 +584,11 @@ window.Agenda = (function() {
             var titoloModale = document.querySelector('#modale-nuovo-appuntamento h2, #modale-nuovo-appuntamento .vintage-title');
             if (titoloModale) titoloModale.textContent = 'Modifica Appuntamento';
             
-            if (selectServizio) selectServizio.value = app.servizioId;
+            if (selectServizio) {
+                const srv = window.FranklinApp.Cache ? 
+                    (window.FranklinApp.Cache.servizi || []).find(s => s.nome === app.servizioNome) : null;
+                if (srv) selectServizio.value = srv.id;
+            }
             if (selectBarbiere) selectBarbiere.value = app.barbiereId;
             if (dateInput) dateInput.value = app.data;
             if (nomeInput) nomeInput.value = app.clienteNome;

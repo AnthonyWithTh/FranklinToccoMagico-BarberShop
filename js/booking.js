@@ -394,22 +394,33 @@ FranklinApp.Prenotazione = {
     }
     
     const isAdmin = this.stato.adminMode;
-    let nomeInseritoDa = 'Cliente';
-    if (isAdmin) {
-      const u = window.FranklinApp.Auth ? window.FranklinApp.Auth.getUtenteLoggato() : null;
-      nomeInseritoDa = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
+    let utenteLoggato = null;
+    let nomeAdmin = 'Admin';
+    
+    if (isAdmin && window.FranklinApp.Auth) {
+      utenteLoggato = window.FranklinApp.Auth.getUtenteLoggato();
+      if (utenteLoggato) {
+        nomeAdmin = `${utenteLoggato.nome || ''} ${utenteLoggato.cognome || ''}`.trim() || utenteLoggato.username || 'Admin';
+      }
     }
+    
+    // Recuperiamo il servizio per storicizzarlo
+    const servizi = await window.FranklinApp.Storage.ottieniServizi();
+    const servizioObj = servizi.find(s => s.id === this.stato.servizioId);
+    
     const nuovoApp = {
       clienteNome: this.stato.clienteNome,
       clienteTelefono: this.stato.clienteTelefono,
-      clienteEmail: '',
       data: this.stato.data,
       ora: this.stato.ora,
-      servizioId: this.stato.servizioId,
       barbiereId: this.stato.barbiereId,
-      stato: isAdmin ? 'confermato' : 'richiesto',
+      servizioNome: servizioObj ? servizioObj.nome : 'Servizio Sconosciuto',
+      servizioDurata: servizioObj ? servizioObj.durata : 30,
+      servizioCosto: servizioObj ? servizioObj.prezzo : 0,
+      stato: isAdmin ? 'Confermato' : 'Richiesto',
       note: this.stato.note,
-      inseritoDa: nomeInseritoDa
+      inseritoDa: isAdmin ? nomeAdmin : 'Cliente',
+      confermatoDa: isAdmin ? nomeAdmin : null
     };
     
     await window.FranklinApp.Storage.aggiungiAppuntamento(nuovoApp);
