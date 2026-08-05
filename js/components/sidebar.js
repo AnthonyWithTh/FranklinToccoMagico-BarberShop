@@ -2,25 +2,13 @@
 (function() {
     // Genera l'HTML della sidebar dinamicamente in base ai permessi
     function generaSidebar() {
-        // Fallback per mostrare tutto se Auth non è ancora caricato
-        let utente = null;
-        let canView = (page) => true; 
-        
-        if (window.FranklinApp && window.FranklinApp.Auth) {
-            utente = window.FranklinApp.Auth.getUtenteLoggato();
-            if (utente) {
-                canView = (page) => window.FranklinApp.Auth.hasPermission(page);
-            }
-        }
-        
-        let usernameDisplay = '';
-        if (utente) {
-            usernameDisplay = `
-                <div class="nav-link" style="cursor: default;">
-                    <span class="icon">👤</span><span class="text" style="color: var(--color-brass-light);">${utente.username}</span>
-                </div>
-            `;
-        }
+        let canView = (page) => true; // Momentaneamente mostriamo tutto finché Auth non gestisce RBAC client-side (o si può implementare un controllo asincrono successivo)
+
+        let usernameDisplay = `
+            <div class="nav-link" style="cursor: default;">
+                <span class="icon">👤</span><span class="text" id="sidebar-username" style="color: var(--color-brass-light);">Caricamento...</span>
+            </div>
+        `;
 
         const links = [
             { id: 'nav-appointments', url: 'appointments.html', icon: '📅', text: 'Agenda', perm: 'appointments' },
@@ -145,12 +133,25 @@
         }
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // Rendi la sidebar definitiva ora che storage.js e auth.js sono stati caricati
-        const currentSidebar = document.getElementById('admin-sidebar');
-        if (currentSidebar) {
-            currentSidebar.outerHTML = generaSidebar();
+    // Carica asincronamente il nome utente e aggiorna la sidebar
+    async function initSidebarUser() {
+        if (window.FranklinApp && window.FranklinApp.Storage) {
+            const sb = window.FranklinApp.Storage.supabase;
+            if (sb) {
+                const { data: { user } } = await sb.auth.getUser();
+                if (user) {
+                    const span = document.getElementById('sidebar-username');
+                    if (span) {
+                        span.textContent = user.user_metadata?.display_name || user.email || 'Utente';
+                    }
+                }
+            }
         }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
         bindSidebarEvents();
+        impostaLinkAttivo();
+        initSidebarUser();
     });
 })();
