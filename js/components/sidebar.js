@@ -148,10 +148,15 @@
             }
         }
     }
-
-    document.addEventListener('DOMContentLoaded', () => {
+    function initSidebar() {
         bindSidebarEvents();
         impostaLinkAttivo();
         initSidebarUser();
-    });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initSidebar);
+    } else {
+        initSidebar();
+    }
 })();
