@@ -11,21 +11,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/variables.css?v=639214781941194254">
-    <link rel="stylesheet" href="../css/global.css?v=639214781941194254">
-    <link rel="stylesheet" href="../css/vintage-theme.css?v=639214781941194254">
-    <link rel="stylesheet" href="../css/admin.css?v=639214781941194254">
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/vintage-theme.css">
+    <link rel="stylesheet" href="../css/admin.css">
     <!-- Blocco anti-fouc e Auth -->
     <style id="anti-fouc">html { display: none !important; }</style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/storage.js?v=639214781941194254"></script>
-    <script src="../js/auth.js?v=639214781941194254"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         if (window.FranklinApp && window.FranklinApp.Auth) {
             if (!window.FranklinApp.Auth.isAutenticato()) {
                 window.location.href = 'login.html';
             } else {
-                document.getElementById('anti-fouc').remove();
                 window.FranklinApp.Auth.verificaAccesso();
             }
         }
@@ -34,7 +33,7 @@
 <body>
     <div class="admin-layout">
         <!-- Sidebar -->
-        <script src="../js/components/sidebar.js?v=639214781941194254"></script>
+        <script src="../js/components/sidebar.js"></script>
 
         <!-- Main Content -->
         <main class="main-content" style="padding: 2rem; overflow-y: auto;">
@@ -160,11 +159,11 @@
     </div>
 
     <!-- Scripts -->
-    <script src="../js/mock-data.js?v=639214781941194254"></script>
-    <script src="../js/utils/date-helpers.js?v=639214781941194254"></script>
-    <script src="../js/utils/validators.js?v=639214781941194254"></script>
-    <script src="../js/public.js?v=639214781941194254"></script>
-    <script src="../js/admin.js?v=639214781941194254"></script>
+    <script src="../js/mock-data.js"></script>
+    <script src="../js/utils/date-helpers.js"></script>
+    <script src="../js/utils/validators.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/admin.js"></script>
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {

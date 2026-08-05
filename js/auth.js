@@ -62,10 +62,18 @@ FranklinApp.Auth = {
                 <button onclick="window.history.back()" style="background-color: var(--color-brass-base); color: var(--color-black-100); border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: var(--font-body);">Torna Indietro</button>
               </div>
             `;
+            const fouc = document.getElementById('anti-fouc');
+            if (fouc) fouc.remove();
+            return;
           }
         }
       }
     }
+    
+    // Se siamo arrivati qui, l'utente è loggato e autorizzato.
+    // Possiamo rimuovere il blocco anti-fouc in sicurezza.
+    const fouc = document.getElementById('anti-fouc');
+    if (fouc) fouc.remove();
   },
 
   async login(usernameOrEmail, password) {

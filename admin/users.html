@@ -25,7 +25,6 @@
             if (!window.FranklinApp.Auth.isAutenticato()) {
                 window.location.href = 'login.html';
             } else {
-                document.getElementById('anti-fouc').remove();
                 window.FranklinApp.Auth.verificaAccesso();
             }
         }
