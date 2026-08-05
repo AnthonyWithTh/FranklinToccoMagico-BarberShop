@@ -808,7 +808,7 @@ window.FranklinApp.Admin = {
             delete modal.dataset.editingId;
         } else {
             // NUOVO: creiamo un nuovo appuntamento
-            const utenteLoggato = window.FranklinApp.Auth ? window.FranklinApp.Auth.getUtenteLoggato() : null;
+            const utenteLoggato = window.FranklinApp.Auth ? await window.FranklinApp.Auth.getUtenteLoggato() : null;
             const nomeAdmin = utenteLoggato ? (`${utenteLoggato.nome || ''} ${utenteLoggato.cognome || ''}`.trim() || utenteLoggato.username) : 'Admin';
             
             const nuovoApp = {

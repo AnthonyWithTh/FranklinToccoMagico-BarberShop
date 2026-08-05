@@ -144,6 +144,57 @@
         </div>
     </div>
     
+    <!-- Modale Modifica / Rapido Admin -->
+    <div id="modale-nuovo-appuntamento" class="modal-overlay" style="display: none;">
+        <div class="modal-content vintage-card" style="max-width: 500px;">
+            <button class="close-btn" onclick="if(window.FranklinApp && window.FranklinApp.Admin) window.FranklinApp.Admin.chiudiModaleNuovoAppuntamento()" 
+                    style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 2rem; color: var(--color-brass-light); cursor: pointer; z-index: 10;">
+                &times;
+            </button>
+            <h3 class="vintage-title" style="font-size: 1.5rem; text-align: center; margin-bottom: 1rem;">Inserisci Appuntamento</h3>
+            
+            <form id="form-nuovo-appuntamento" onsubmit="window.FranklinApp.Admin.salvaNuovoAppuntamento(event)">
+                <div style="margin-bottom: 1rem;">
+                    <label class="vintage-label">Servizio</label>
+                    <select id="nuovo-appuntamento-servizio" class="vintage-select" style="width: 100%;" required onchange="window.FranklinApp.Admin.ricalcolaOrari()">
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label class="vintage-label">Barbiere</label>
+                    <select id="nuovo-appuntamento-barbiere" class="vintage-select" style="width: 100%;" required onchange="window.FranklinApp.Admin.ricalcolaOrari()" disabled>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem; display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label class="vintage-label">Data</label>
+                        <input type="date" id="nuovo-appuntamento-data" class="vintage-input" style="width: 100%;" required onchange="window.FranklinApp.Admin.ricalcolaOrari()" disabled>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="vintage-label">Ora</label>
+                        <select id="nuovo-appuntamento-ora" class="vintage-select" style="width: 100%;" required disabled>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label class="vintage-label">Nome Cliente</label>
+                    <input type="text" id="nuovo-appuntamento-cliente" class="vintage-input" style="width: 100%;" required>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="vintage-label">Telefono Cliente</label>
+                    <input type="tel" id="nuovo-appuntamento-telefono" class="vintage-input" style="width: 100%;" required>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button type="submit" class="btn-primary" style="width: 100%;">Salva Appuntamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <div id="toast-container"></div>
     <script src="../js/booking.js"></script>
     <script src="../js/admin.js"></script>
