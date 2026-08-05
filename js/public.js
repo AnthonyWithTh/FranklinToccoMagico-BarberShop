@@ -45,14 +45,13 @@ FranklinApp.Pubblico = {
         images = await window.FranklinApp.Storage.listaImmagini('images_vetrina');
     }
     
-    if (!images || images.length === 0) {
-        images = ['assets/images/hero-bg.jpg'];
-    } else {
+    if (images && images.length > 0) {
         images = images.filter(url => url && !url.includes('.emptyFolderPlaceholder'));
     }
     
-    if (images.length > 0) {
+    if (images && images.length > 0) {
         layer1.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${images[0]}')`;
+        layer1.style.opacity = 1;
     }
     
     if (images.length <= 1) return;
