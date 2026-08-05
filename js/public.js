@@ -52,6 +52,10 @@ FranklinApp.Pubblico = {
         images = images.filter(url => url && !url.includes('.emptyFolderPlaceholder'));
     }
     
+    if (images.length > 0) {
+        hero.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${images[0]}')`;
+    }
+    
     if (images.length <= 1) return;
     
     let currentIndex = 0;
