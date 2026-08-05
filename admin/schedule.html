@@ -86,7 +86,6 @@
                                 <th>Giornata Intera</th>
                                 <th>Dalle</th>
                                 <th>Alle</th>
-                                <th>Azioni</th>
                             </tr>
                         </thead>
                         <tbody id="eccezionali-tbody">
@@ -413,7 +412,7 @@
             if (selectAll) selectAll.checked = false;
             
             if (!eccezionali || eccezionali.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--color-text-muted);">Nessuna eccezione impostata</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--color-text-muted);">Nessuna eccezione impostata</td></tr>';
                 return;
             }
             
@@ -442,10 +441,6 @@
                         <td>${intera}</td>
                         <td>${dalle}</td>
                         <td>${alle}</td>
-                        <td>
-                            <button class="azioni-btn" title="Modifica" onclick="modificaGiornoEccezionale('${exc.data}')">✏️</button>
-                            <button class="azioni-btn" style="color: var(--color-danger);" title="Elimina" onclick="eliminaGiornoEccezionale('${exc.data}')">🗑️</button>
-                        </td>
                     </tr>
                 `;
             });
