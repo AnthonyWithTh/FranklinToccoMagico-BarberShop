@@ -464,14 +464,24 @@ window.Agenda = (function() {
             if (!orario || orario.chiuso) {
                 helperRenderCard(dateStr, '00:00', '23:59', '🔒 CHIUSO', 'Chiusura Settimanale', bgGrey, '#cccccc', '1px solid #555555', true);
             } else {
-                if (orario.mattinaApertura && '00:00' < orario.mattinaApertura) {
-                    helperRenderCard(dateStr, '00:00', orario.mattinaApertura, '🔒 CHIUSO', 'Fuori Orario', bgGrey, '#cccccc', '1px solid #555555', false);
+                let ma = '', mc = '', pa = '', pc = '';
+                if (orario.orarioMattina && orario.orarioMattina.includes('-')) {
+                    const parts = orario.orarioMattina.split('-');
+                    ma = parts[0]; mc = parts[1];
                 }
-                if (orario.mattinaChiusura && orario.pomeriggioApertura && orario.mattinaChiusura < orario.pomeriggioApertura) {
-                    helperRenderCard(dateStr, orario.mattinaChiusura, orario.pomeriggioApertura, '🔒 CHIUSO', 'Pausa Pranzo', bgGrey, '#cccccc', '1px solid #555555', false);
+                if (orario.orarioPomeriggio && orario.orarioPomeriggio.includes('-')) {
+                    const parts = orario.orarioPomeriggio.split('-');
+                    pa = parts[0]; pc = parts[1];
                 }
-                if (orario.pomeriggioChiusura && orario.pomeriggioChiusura < '23:59') {
-                    helperRenderCard(dateStr, orario.pomeriggioChiusura, '23:59', '🔒 CHIUSO', 'Fuori Orario', bgGrey, '#cccccc', '1px solid #555555', false);
+
+                if (ma && '00:00' < ma) {
+                    helperRenderCard(dateStr, '00:00', ma, '🔒 CHIUSO', 'Fuori Orario', bgGrey, '#cccccc', '1px solid #555555', false);
+                }
+                if (mc && pa && mc < pa) {
+                    helperRenderCard(dateStr, mc, pa, '🔒 CHIUSO', 'Pausa Pranzo', bgGrey, '#cccccc', '1px solid #555555', false);
+                }
+                if (pc && pc < '23:59') {
+                    helperRenderCard(dateStr, pc, '23:59', '🔒 CHIUSO', 'Fuori Orario', bgGrey, '#cccccc', '1px solid #555555', false);
                 }
             }
         });

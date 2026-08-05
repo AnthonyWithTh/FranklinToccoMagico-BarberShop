@@ -665,8 +665,18 @@ window.FranklinApp.Admin = {
         };
 
         // Genera tutti gli slot della giornata
-        let slotMattina = generaSlot(orariNegozio.mattinaApertura, orariNegozio.mattinaChiusura);
-        let slotPomeriggio = generaSlot(orariNegozio.pomeriggioApertura, orariNegozio.pomeriggioChiusura);
+        let slotMattina = [];
+        if (orariNegozio.orarioMattina && orariNegozio.orarioMattina.includes('-')) {
+            const parts = orariNegozio.orarioMattina.split('-');
+            slotMattina = generaSlot(parts[0], parts[1]);
+        }
+        
+        let slotPomeriggio = [];
+        if (orariNegozio.orarioPomeriggio && orariNegozio.orarioPomeriggio.includes('-')) {
+            const parts = orariNegozio.orarioPomeriggio.split('-');
+            slotPomeriggio = generaSlot(parts[0], parts[1]);
+        }
+        
         let tuttiSlot = [...slotMattina, ...slotPomeriggio];
         
         // Filtra in base agli imprevisti parziali

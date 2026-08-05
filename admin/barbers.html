@@ -906,9 +906,14 @@
                             const mm = (t % 60).toString().padStart(2, '0');
                             slotPermessi.push(`${hh}:${mm}`);
                         }
-                    };
-                    genera(orarioNormale.mattinaApertura, orarioNormale.mattinaChiusura);
-                    genera(orarioNormale.pomeriggioApertura, orarioNormale.pomeriggioChiusura);
+                    if (orarioNormale.orarioMattina && orarioNormale.orarioMattina.includes('-')) {
+                        const parts = orarioNormale.orarioMattina.split('-');
+                        genera(parts[0], parts[1]);
+                    }
+                    if (orarioNormale.orarioPomeriggio && orarioNormale.orarioPomeriggio.includes('-')) {
+                        const parts = orarioNormale.orarioPomeriggio.split('-');
+                        genera(parts[0], parts[1]);
+                    }
                 }
             }
             

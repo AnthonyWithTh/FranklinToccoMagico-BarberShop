@@ -410,12 +410,12 @@ FranklinApp.Pubblico = {
           htmlOrari += `<li style="margin-bottom: 0.4rem; font-family: var(--font-body); font-size: 0.9rem;"><strong style="color: var(--color-brass-light);">${nomeGiorno}:</strong> <span style="color: var(--color-danger);">Chiuso</span></li>`;
         } else {
           let orarioStr = '';
-          if (o.mattinaApertura && o.mattinaChiusura) {
-            orarioStr += `${o.mattinaApertura}-${o.mattinaChiusura}`;
+          if (o.orarioMattina) {
+            orarioStr += o.orarioMattina;
           }
-          if (o.pomeriggioApertura && o.pomeriggioChiusura) {
+          if (o.orarioPomeriggio) {
             if (orarioStr) orarioStr += ' | ';
-            orarioStr += `${o.pomeriggioApertura}-${o.pomeriggioChiusura}`;
+            orarioStr += o.orarioPomeriggio;
           }
           htmlOrari += `<li style="margin-bottom: 0.4rem; font-family: var(--font-body); font-size: 0.9rem;"><strong style="color: var(--color-brass-light);">${nomeGiorno}:</strong> ${orarioStr || 'Aperto'}</li>`;
         }

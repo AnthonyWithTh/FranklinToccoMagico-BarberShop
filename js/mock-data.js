@@ -29,13 +29,13 @@ window.FranklinApp.DatiIniziali = {
     telefono: "+39 02 1234567",
     email: "info@franklinbarbershop.it",
     orariLavoro: {
-      lunedi: { chiuso: true, mattinaApertura: "", mattinaChiusura: "", pomeriggioApertura: "", pomeriggioChiusura: "" },
-      martedi: { chiuso: false, mattinaApertura: "09:00", mattinaChiusura: "13:00", pomeriggioApertura: "14:00", pomeriggioChiusura: "18:00" },
-      mercoledi: { chiuso: false, mattinaApertura: "09:00", mattinaChiusura: "13:00", pomeriggioApertura: "14:00", pomeriggioChiusura: "18:00" },
-      giovedi: { chiuso: false, mattinaApertura: "09:00", mattinaChiusura: "13:00", pomeriggioApertura: "14:00", pomeriggioChiusura: "18:00" },
-      venerdi: { chiuso: false, mattinaApertura: "09:00", mattinaChiusura: "13:00", pomeriggioApertura: "14:00", pomeriggioChiusura: "18:00" },
-      sabato: { chiuso: false, mattinaApertura: "09:00", mattinaChiusura: "13:00", pomeriggioApertura: "14:00", pomeriggioChiusura: "18:00" },
-      domenica: { chiuso: true, mattinaApertura: "", mattinaChiusura: "", pomeriggioApertura: "", pomeriggioChiusura: "" }
+      lunedi: { chiuso: true, orarioMattina: "", orarioPomeriggio: "" },
+      martedi: { chiuso: false, orarioMattina: "09:00-13:00", orarioPomeriggio: "14:00-18:00" },
+      mercoledi: { chiuso: false, orarioMattina: "09:00-13:00", orarioPomeriggio: "14:00-18:00" },
+      giovedi: { chiuso: false, orarioMattina: "09:00-13:00", orarioPomeriggio: "14:00-18:00" },
+      venerdi: { chiuso: false, orarioMattina: "09:00-13:00", orarioPomeriggio: "14:00-18:00" },
+      sabato: { chiuso: false, orarioMattina: "09:00-13:00", orarioPomeriggio: "14:00-18:00" },
+      domenica: { chiuso: true, orarioMattina: "", orarioPomeriggio: "" }
     },
     giorniEccezionali: [
       { id: 'exc_1', data: "2026-12-25", interaGiornata: true, dalle: "", alle: "", motivo: "Natale" }
