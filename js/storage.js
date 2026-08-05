@@ -109,13 +109,31 @@ FranklinApp.Storage = {
     const { data, error } = await sbClient.from('impostazioni').select('*').eq('id', 1).single();
     if (error) {
         console.error("Errore fetch impostazioni:", error);
-        return { nomeNegozio: 'Franklin Barber Shop', indirizzo: '', telefono: '', email: '', orari: {}, chiusureEccezionali: [] };
+        return { nomeNegozio: 'Franklin Barber Shop', indirizzo: '', telefono: '', email: '', orariLavoro: {}, giorniEccezionali: [] };
+    }
+    
+    // Mappatura nomi colonne DB a proprietà JS
+    if (data) {
+        data.orariLavoro = data.orari || {};
+        data.giorniEccezionali = data.chiusureEccezionali || [];
     }
     return data;
   },
   
   async salvaImpostazioni(impostazioni) {
-    const { error } = await sbClient.from('impostazioni').update(impostazioni).eq('id', 1);
+    // Rimappatura proprietà JS a nomi colonne DB prima del salvataggio
+    const dbData = {
+        ...impostazioni,
+        orari: impostazioni.orariLavoro || {},
+        chiusureEccezionali: impostazioni.giorniEccezionali || []
+    };
+    
+    // Rimuoviamo le chiavi JS pure dal payload per Supabase per evitare errori
+    delete dbData.orariLavoro;
+    delete dbData.giorniEccezionali;
+    
+    const { error } = await sbClient.from('impostazioni').update(dbData).eq('id', 1);
+    if (error) console.error("Errore salva impostazioni:", error);
     return !error;
   },
   async inizializza() {
