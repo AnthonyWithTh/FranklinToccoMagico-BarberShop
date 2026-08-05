@@ -148,9 +148,12 @@
                         return;
                     }
                     
+                    
                     if (user) {
                         if (span) {
-                            span.textContent = user.user_metadata?.display_name || user.email || 'Utente';
+                            // Recupera il vero username dalla tabella utenti
+                            const { data: profilo } = await sb.from('utenti').select('username').eq('id', user.id).single();
+                            span.textContent = (profilo && profilo.username) ? profilo.username : (user.user_metadata?.display_name || user.email);
                         }
                     } else {
                         if (span) span.textContent = 'Non loggato';
