@@ -193,10 +193,10 @@ FranklinApp.Storage = {
   },
 
   async ottieniImpostazioni() {
-    // 1. Impostazioni Base
-    const { data: imp, error } = await sbClient.from('impostazioni').select('*').eq('id', 1).single();
-    if (error) console.error("Errore fetch impostazioni:", error);
-    const result = imp || { nomeNegozio: 'Franklin Barber Shop', indirizzo: '', telefono: '', email: '' };
+    // 1. Impostazioni Base da Vetrina
+    const { data: imp, error } = await sbClient.from('vetrina').select('*').eq('id', 1).single();
+    if (error) console.error("Errore fetch vetrina:", error);
+    const result = imp || {};
     
     // 2. Orari di Lavoro
     const { data: orari, error: errOrari } = await sbClient.from('orari_lavoro').select('*');
@@ -247,15 +247,19 @@ FranklinApp.Storage = {
     return result;
   },
   
+  async salvaVetrina(vetrinaData) {
+    const { error } = await sbClient.from('vetrina').update(vetrinaData).eq('id', 1);
+    if (error) {
+        console.error("Errore salvataggio vetrina:", error);
+        alert("Errore salvataggio vetrina: " + error.message);
+        return false;
+    }
+    return true;
+  },
+
   async salvaImpostazioni(impostazioni) {
-    // 1. Salva Impostazioni Base
-    const baseData = {
-        nomeNegozio: impostazioni.nomeNegozio,
-        indirizzo: impostazioni.indirizzo,
-        telefono: impostazioni.telefono,
-        email: impostazioni.email
-    };
-    await sbClient.from('impostazioni').update(baseData).eq('id', 1);
+    // 1. (Le impostazioni base ora sono gestite da salvaVetrina)
+
     
     // 2. Salva Orari di Lavoro (Upsert)
     if (impostazioni.orariLavoro) {
@@ -342,6 +346,24 @@ FranklinApp.Storage = {
     }
 
     return this.getPublicUrl(cartella, nomeUnico);
+  },
+  
+  async eliminaImmagine(cartella, nomeFile) {
+    if (!nomeFile) return false;
+    
+    // Assicuriamoci di passare solo il nome del file e non tutto l'URL
+    const fileName = nomeFile.split('/').pop();
+    
+    const { error } = await sbClient.storage
+      .from(cartella)
+      .remove([fileName]);
+      
+    if (error) {
+      console.error(`Errore eliminazione immagine ${fileName} in ${cartella}:`, error);
+      alert("Errore durante l'eliminazione: " + error.message);
+      return false;
+    }
+    return true;
   },
 
   async listaImmagini(cartella) {

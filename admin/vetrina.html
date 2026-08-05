@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vetrina - Franklin Admin</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/vintage-theme.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <!-- Blocco anti-fouc e Auth -->
+    <style id="anti-fouc">html { display: none !important; }</style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (window.FranklinApp && window.FranklinApp.Auth) {
+            if (!window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+            } else {
+                window.FranklinApp.Auth.verificaAccesso();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <script src="../js/components/sidebar.js"></script>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 2rem; overflow-y: auto;">
+            <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 class="vintage-title" style="font-size: 2rem; color: var(--color-text-cream); margin-bottom: 0.2rem;">Gestione Vetrina</h1>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                
+                <!-- Section 1: Header / Logo -->
+                <div class="vintage-card admin-form">
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Header & Logo 🎩</h3>
+                    <form id="form-header" onsubmit="event.preventDefault(); salvaVetrina();">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Titolo Logo</label>
+                                <input type="text" id="logo-titolo" class="vintage-input" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Sottotitolo Logo</label>
+                                <input type="text" id="logo-sottotitolo" class="vintage-input" style="width: 100%;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Section 2: Immagini Hero -->
+                <div class="vintage-card admin-form">
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Immagini Sfondo Hero 🖼️</h3>
+                    
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center;">
+                        <input type="file" id="hero-image-upload" style="display: none;" accept="image/jpeg, image/png, image/webp" onchange="gestisciUploadImmagine(this)">
+                        <button class="btn-primary" onclick="document.getElementById('hero-image-upload').click()">Carica Nuova Immagine</button>
+                        <span id="upload-status" style="color: var(--color-brass-base); font-size: 0.9rem;"></span>
+                    </div>
+
+                    <details style="margin-bottom: 1rem;">
+                        <summary style="font-family: var(--font-admin); color: var(--color-brass-light); cursor: pointer; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: var(--border-radius-sm);">Mostra Immagini Caricate</summary>
+                        <div class="admin-tabella-container" style="margin-top: 1rem;">
+                            <table class="admin-tabella">
+                                <thead>
+                                    <tr>
+                                        <th>Anteprima</th>
+                                        <th>URL Immagine</th>
+                                        <th>Azioni</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabella-immagini">
+                                    <!-- Immagini generate via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Section 3: Testi Hero -->
+                <div class="vintage-card admin-form">
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Testi Hero 🖋️</h3>
+                    <form id="form-hero" onsubmit="event.preventDefault(); salvaVetrina();">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Titolo Principale</label>
+                                <input type="text" id="hero-titolo" class="vintage-input" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Sottotitolo</label>
+                                <input type="text" id="hero-sottotitolo" class="vintage-input" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Sottotitoletto</label>
+                                <input type="text" id="hero-sottotitoletto" class="vintage-input" style="width: 100%;">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Sottotitolo Promozionale</label>
+                            <input type="text" id="hero-promo" class="vintage-input" style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Testo Descrittivo</label>
+                            <textarea id="hero-descrizione" class="vintage-textarea" rows="3" style="width: 100%;"></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Section 4: Informazioni & Contatti (Footer) -->
+                <div class="vintage-card admin-form">
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Contatti & Social (Footer) 📍</h3>
+                    <form id="form-contatti" onsubmit="event.preventDefault(); salvaVetrina();">
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group" style="flex: 2;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Indirizzo Completo</label>
+                                <input type="text" id="info-indirizzo" class="vintage-input" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Telefono</label>
+                                <input type="text" id="info-telefono" class="vintage-input" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Email</label>
+                                <input type="email" id="info-email" class="vintage-input" style="width: 100%;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Link Instagram</label>
+                                <input type="text" id="social-instagram" class="vintage-input" style="width: 100%;">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Link Facebook</label>
+                                <input type="text" id="social-facebook" class="vintage-input" style="width: 100%;">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end;">
+                    <button class="btn-primary" style="font-size: 1.2rem; padding: 1rem 3rem;" onclick="salvaVetrina()">Salva Tutto</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/mock-data.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/admin.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.FranklinApp && window.FranklinApp.Auth && !window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            caricaVetrina();
+            caricaImmagini();
+        });
+
+        async function caricaVetrina() {
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                // Sfruttiamo ottieniImpostazioni() che ora legge dalla tabella vetrina
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
+                if (imp) {
+                    document.getElementById('logo-titolo').value = imp.logo_titolo || '';
+                    document.getElementById('logo-sottotitolo').value = imp.logo_sottotitolo || '';
+                    document.getElementById('hero-titolo').value = imp.hero_titolo || '';
+                    document.getElementById('hero-sottotitolo').value = imp.hero_sottotitolo || '';
+                    document.getElementById('hero-sottotitoletto').value = imp.hero_sottotitoletto || '';
+                    document.getElementById('hero-promo').value = imp.hero_promo || '';
+                    document.getElementById('hero-descrizione').value = imp.hero_descrizione || '';
+                    document.getElementById('info-indirizzo').value = imp.info_indirizzo || '';
+                    document.getElementById('info-telefono').value = imp.info_telefono || '';
+                    document.getElementById('info-email').value = imp.info_email || '';
+                    document.getElementById('social-instagram').value = imp.social_instagram || '';
+                    document.getElementById('social-facebook').value = imp.social_facebook || '';
+                }
+            }
+        }
+
+        async function salvaVetrina() {
+            const data = {
+                logo_titolo: document.getElementById('logo-titolo').value,
+                logo_sottotitolo: document.getElementById('logo-sottotitolo').value,
+                hero_titolo: document.getElementById('hero-titolo').value,
+                hero_sottotitolo: document.getElementById('hero-sottotitolo').value,
+                hero_sottotitoletto: document.getElementById('hero-sottotitoletto').value,
+                hero_promo: document.getElementById('hero-promo').value,
+                hero_descrizione: document.getElementById('hero-descrizione').value,
+                info_indirizzo: document.getElementById('info-indirizzo').value,
+                info_telefono: document.getElementById('info-telefono').value,
+                info_email: document.getElementById('info-email').value,
+                social_instagram: document.getElementById('social-instagram').value,
+                social_facebook: document.getElementById('social-facebook').value
+            };
+            
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const res = await window.FranklinApp.Storage.salvaVetrina(data);
+                if (res && window.FranklinApp.Admin) {
+                    window.FranklinApp.Admin.mostraToast("Vetrina aggiornata con successo!", "successo");
+                }
+            }
+        }
+
+        async function caricaImmagini() {
+            const tbody = document.getElementById('tabella-immagini');
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Caricamento immagini...</td></tr>';
+            
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const immagini = await window.FranklinApp.Storage.listaImmagini('immagini_vetrina');
+                if (!immagini || immagini.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nessuna immagine presente.</td></tr>';
+                    return;
+                }
+                
+                let html = '';
+                immagini.forEach(url => {
+                    if (url.includes('.emptyFolderPlaceholder')) return;
+                    html += `
+                        <tr>
+                            <td><img src="${url}" alt="Anteprima" style="width: 100px; height: 60px; object-fit: cover; border-radius: 4px;"></td>
+                            <td style="font-family: monospace; font-size: 0.85rem; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${url}</td>
+                            <td>
+                                <button class="btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="eliminaImg('${url}')">Elimina</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html || '<tr><td colspan="3" style="text-align: center;">Nessuna immagine valida.</td></tr>';
+            }
+        }
+
+        async function gestisciUploadImmagine(input) {
+            const status = document.getElementById('upload-status');
+            if (input.files && input.files[0]) {
+                status.textContent = 'Caricamento in corso...';
+                if (window.FranklinApp && window.FranklinApp.Storage) {
+                    const url = await window.FranklinApp.Storage.uploadImmagine(input.files[0], 'immagini_vetrina');
+                    if (url) {
+                        status.textContent = 'Caricamento completato!';
+                        setTimeout(() => { status.textContent = ''; }, 3000);
+                        caricaImmagini();
+                    } else {
+                        status.textContent = 'Errore durante il caricamento.';
+                    }
+                }
+            }
+            input.value = '';
+        }
+
+        async function eliminaImg(url) {
+            if (confirm("Vuoi eliminare questa immagine?")) {
+                if (window.FranklinApp && window.FranklinApp.Storage) {
+                    const res = await window.FranklinApp.Storage.eliminaImmagine('immagini_vetrina', url);
+                    if (res) {
+                        if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Immagine eliminata", "successo");
+                        caricaImmagini();
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

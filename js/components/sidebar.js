@@ -16,7 +16,7 @@
             { id: 'nav-schedule', url: 'schedule.html', icon: '🕒', text: 'Orario di Lavoro', perm: 'schedule' },
             { id: 'nav-barbers', url: 'barbers.html', icon: '💈', text: 'Staff', perm: 'barbers' },
             { id: 'nav-users', url: 'users.html', icon: '👤', text: 'Amministrazione', perm: 'users' },
-            { id: 'nav-vetrina', url: '#', icon: '🌐', text: 'Vetrina', perm: 'vetrina' },
+            { id: 'nav-vetrina', url: 'vetrina.html', icon: '🌐', text: 'Vetrina', perm: 'vetrina' },
             { id: 'nav-settings', url: 'settings.html', icon: '⚙️', text: 'Impostazioni', perm: 'settings' }
         ];
 
@@ -120,7 +120,8 @@
             'barbers.html': 'nav-barbers',
             'settings.html': 'nav-settings',
             'users.html': 'nav-users',
-            'personale.html': 'nav-personale'
+            'personale.html': 'nav-personale',
+            'vetrina.html': 'nav-vetrina'
         };
         
         const activeId = pageIdMap[currentPage];

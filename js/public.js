@@ -18,6 +18,7 @@ FranklinApp.Pubblico = {
 
   async inizializza() {
     await window.FranklinApp.Storage.inizializza();
+    await this.renderTestiVetrina();
     await this.renderServizi();
     await this.renderFooter();
     this.setupNavbar();
@@ -33,6 +34,29 @@ FranklinApp.Pubblico = {
         }
       });
     });
+  },
+
+  async renderTestiVetrina() {
+    const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
+    if (!imp) return;
+    
+    // Aggiorna Logo
+    const logoTitolo = document.getElementById('ui-logo-titolo');
+    if (logoTitolo && imp.logo_titolo) logoTitolo.textContent = imp.logo_titolo;
+    const logoSub = document.getElementById('ui-logo-sottotitolo');
+    if (logoSub && imp.logo_sottotitolo) logoSub.textContent = imp.logo_sottotitolo;
+    
+    // Aggiorna Hero
+    const heroTitolo = document.getElementById('ui-hero-titolo');
+    if (heroTitolo && imp.hero_titolo) heroTitolo.textContent = imp.hero_titolo;
+    const heroSub = document.getElementById('ui-hero-sottotitolo');
+    if (heroSub && imp.hero_sottotitolo) heroSub.textContent = imp.hero_sottotitolo;
+    const heroSub2 = document.getElementById('ui-hero-sottotitoletto');
+    if (heroSub2 && imp.hero_sottotitoletto) heroSub2.textContent = imp.hero_sottotitoletto;
+    const heroPromo = document.getElementById('ui-hero-promo');
+    if (heroPromo && imp.hero_promo) heroPromo.textContent = imp.hero_promo;
+    const heroDesc = document.getElementById('ui-hero-descrizione');
+    if (heroDesc && imp.hero_descrizione) heroDesc.textContent = imp.hero_descrizione;
   },
 
   async setupHeroBackgroundCarousel() {
@@ -480,14 +504,14 @@ FranklinApp.Pubblico = {
       colContattiLink.innerHTML = `
         <h3 style="font-family: var(--font-heading); color: var(--color-brass-light); font-size: 1.3rem; margin-bottom: 1rem;">Dove siamo</h3>
         <ul style="list-style: none; padding: 0; margin-bottom: 1.2rem;">
-          <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">📍 ${imp.indirizzo || 'Via Roma 12, Milano'}</li>
-          <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">📞 ${imp.telefono || '+39 02 1234567'}</li>
-          <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">✉️ ${imp.email || 'info@franklinbarber.it'}</li>
+          <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">📍 ${imp.info_indirizzo || 'Via Roma 12, Milano'}</li>
+          <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">📞 ${imp.info_telefono || '+39 02 1234567'}</li>
+          <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">✉️ ${imp.info_email || 'info@franklinbarber.it'}</li>
         </ul>
         <h3 style="font-family: var(--font-heading); color: var(--color-brass-light); font-size: 1.3rem; margin-bottom: 1rem; margin-top: 1.5rem;">Social</h3>
         <ul style="list-style: none; padding: 0;">
-          <li style="margin-bottom: 0.4rem;"><a href="${(imp.social && imp.social.instagram) || '#'}" target="_blank" style="color: var(--color-text-cream); text-decoration: none;">📷 Instagram</a></li>
-          <li style="margin-bottom: 0.4rem;"><a href="${(imp.social && imp.social.facebook) || '#'}" target="_blank" style="color: var(--color-text-cream); text-decoration: none;">📘 Facebook</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="${imp.social_instagram || '#'}" target="_blank" style="color: var(--color-text-cream); text-decoration: none;">📷 Instagram</a></li>
+          <li style="margin-bottom: 0.4rem;"><a href="${imp.social_facebook || '#'}" target="_blank" style="color: var(--color-text-cream); text-decoration: none;">📘 Facebook</a></li>
         </ul>
       `;
     }

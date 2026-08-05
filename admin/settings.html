@@ -45,33 +45,7 @@
             
             <div style="display: flex; flex-direction: column; gap: 2rem;">
                 
-                <!-- Section 1: Informazioni Negozio -->
-                <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Informazioni Negozio 💈</h3>
-                    <form id="form-info-negozio" onsubmit="event.preventDefault(); salvaInfoNegozio();">
-                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                            <div class="form-group" style="flex: 1;">
-                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Nome Negozio</label>
-                                <input type="text" id="info-nome" class="vintage-input" style="width: 100%;">
-                            </div>
-                            <div class="form-group" style="flex: 1;">
-                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Telefono</label>
-                                <input type="text" id="info-telefono" class="vintage-input" style="width: 100%;">
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                            <div class="form-group" style="flex: 1;">
-                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Indirizzo</label>
-                                <input type="text" id="info-indirizzo" class="vintage-input" style="width: 100%;">
-                            </div>
-                            <div class="form-group" style="flex: 1;">
-                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Email</label>
-                                <input type="email" id="info-email" class="vintage-input" style="width: 100%;">
-                            </div>
-                        </div>
-                        <button type="submit" class="btn-primary">Salva Informazioni</button>
-                    </form>
-                </div>
+
 
                 <!-- Section 4: Sicurezza -->
                 <div class="vintage-card admin-form">
@@ -131,33 +105,9 @@
                 window.location.href = 'login.html';
                 return;
             }
-            
-            popolaImpostazioni();
         });
 
-        function popolaImpostazioni() {
-            if(window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
-                if(imp) {
-                    document.getElementById('info-nome').value = imp.nomeNegozio || '';
-                    document.getElementById('info-telefono').value = imp.telefono || '';
-                    document.getElementById('info-indirizzo').value = imp.indirizzo || '';
-                    document.getElementById('info-email').value = imp.email || '';
-                }
-            }
-        }
 
-        function salvaInfoNegozio() {
-            if(window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
-                imp.nomeNegozio = document.getElementById('info-nome').value;
-                imp.telefono = document.getElementById('info-telefono').value;
-                imp.indirizzo = document.getElementById('info-indirizzo').value;
-                imp.email = document.getElementById('info-email').value;
-                window.FranklinApp.Storage.salvaImpostazioni(imp);
-                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Informazioni salvate", "successo");
-            }
-        }
 
         function cambiaPassword() {
             const v = document.getElementById('pass-vecchia').value;
