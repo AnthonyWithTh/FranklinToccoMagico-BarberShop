@@ -169,9 +169,11 @@ FranklinApp.Storage = {
     
     // 2. Salva Orari di Lavoro (Upsert)
     if (impostazioni.orariLavoro) {
+        const dayIds = { lunedi: 1, martedi: 2, mercoledi: 3, giovedi: 4, venerdi: 5, sabato: 6, domenica: 7 };
         const orariRows = Object.keys(impostazioni.orariLavoro).map(giorno => {
             const o = impostazioni.orariLavoro[giorno];
             return {
+                id: dayIds[giorno] || 0,
                 giorno: giorno,
                 chiuso: o.chiuso,
                 mattina_apertura: o.mattinaApertura || '',
@@ -181,7 +183,7 @@ FranklinApp.Storage = {
             };
         });
         if (orariRows.length > 0) {
-            const { error: errOrari } = await sbClient.from('orari_lavoro').upsert(orariRows, { onConflict: 'giorno' });
+            const { error: errOrari } = await sbClient.from('orari_lavoro').upsert(orariRows, { onConflict: 'id' });
             if (errOrari) {
                 console.error("Errore salvataggio orari:", errOrari);
                 alert("Errore salvataggio orari: " + (errOrari.message || JSON.stringify(errOrari)));
