@@ -112,7 +112,7 @@ FranklinApp.Storage = {
     const result = imp || { nomeNegozio: 'Franklin Barber Shop', indirizzo: '', telefono: '', email: '' };
     
     // 2. Orari di Lavoro
-    const { data: orari } = await sbClient.from('orari_lavoro').select('*');
+    const { data: orari } = await sbClient.from('orari_lavoro').select('*').order('id');
     const orariMap = {};
     if (orari) {
         orari.forEach(o => {
@@ -159,9 +159,11 @@ FranklinApp.Storage = {
     
     // 2. Salva Orari di Lavoro (Upsert)
     if (impostazioni.orariLavoro) {
+        const dayIds = { lunedi: 1, martedi: 2, mercoledi: 3, giovedi: 4, venerdi: 5, sabato: 6, domenica: 7 };
         const orariRows = Object.keys(impostazioni.orariLavoro).map(giorno => {
             const o = impostazioni.orariLavoro[giorno];
             return {
+                id: dayIds[giorno] || 0,
                 giorno: giorno,
                 chiuso: o.chiuso,
                 mattina_apertura: o.mattinaApertura || '',
