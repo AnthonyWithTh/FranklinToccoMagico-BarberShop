@@ -306,19 +306,12 @@
             const select = document.getElementById('barbiere-immagine-esistente');
             if (!select) return;
 
-            let opzioni = [
-                { val: '../assets/images/barbiere-marco.jpg', label: 'Avatar Marco (Default)' },
-                { val: '../assets/images/barbiere-luca.jpg', label: 'Avatar Luca (Default)' },
-                { val: '../assets/images/barbiere-alessandro.jpg', label: 'Avatar Alessandro (Default)' }
-            ];
-
             // Ottieni lista immagini dal bucket Supabase!
+            let opzioni = [];
             const storageImmagini = await window.FranklinApp.Storage.listaImmagini('immagini_barbieri') || [];
             storageImmagini.forEach(imgUrl => {
                 const nomeFile = imgUrl.split('/').pop().split('?')[0] || imgUrl;
-                if (!opzioni.find(o => o.val === imgUrl)) {
-                    opzioni.push({ val: imgUrl, label: `☁️ ${nomeFile}` });
-                }
+                opzioni.push({ val: imgUrl, label: `☁️ ${nomeFile}` });
             });
 
             const valAttuale = document.getElementById('barbiere-foto').value;

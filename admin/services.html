@@ -198,19 +198,12 @@
             const select = document.getElementById('servizio-immagine-esistente');
             if (!select) return;
 
-            let opzioni = [
-                { val: '../assets/images/hero-bg.jpg', label: 'Immagine Sfondo Default' },
-                { val: '../assets/images/taglio-capelli.jpg', label: 'Taglio Capelli Default' },
-                { val: '../assets/images/taglio-barba.jpg', label: 'Taglio Barba Default' }
-            ];
-
             // Ottieni lista immagini dal bucket Supabase!
+            let opzioni = [];
             const storageImmagini = await window.FranklinApp.Storage.listaImmagini('immagini_servizi') || [];
             storageImmagini.forEach(imgUrl => {
                 const nomeFile = imgUrl.split('/').pop().split('?')[0] || imgUrl;
-                if (!opzioni.find(o => o.val === imgUrl)) {
-                    opzioni.push({ val: imgUrl, label: `☁️ ${nomeFile}` });
-                }
+                opzioni.push({ val: imgUrl, label: `☁️ ${nomeFile}` });
             });
 
             const valAttuale = document.getElementById('servizio-immagine').value;
