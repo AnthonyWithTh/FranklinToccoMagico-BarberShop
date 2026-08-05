@@ -36,10 +36,9 @@ FranklinApp.Pubblico = {
   },
 
   async setupHeroBackgroundCarousel() {
-    const hero = document.getElementById('home');
-    if (!hero) return;
-    
-    hero.style.transition = 'background-image 1.5s ease-in-out';
+    const layer1 = document.getElementById('hero-bg-layer1');
+    const layer2 = document.getElementById('hero-bg-layer2');
+    if (!layer1 || !layer2) return;
     
     let images = [];
     if (window.FranklinApp.Storage.listaImmagini) {
@@ -53,16 +52,29 @@ FranklinApp.Pubblico = {
     }
     
     if (images.length > 0) {
-        hero.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${images[0]}')`;
+        layer1.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${images[0]}')`;
     }
     
     if (images.length <= 1) return;
     
     let currentIndex = 0;
+    let activeLayer = 1;
+    
     setInterval(() => {
         currentIndex = (currentIndex + 1) % images.length;
         const newBg = images[currentIndex];
-        hero.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${newBg}')`;
+        
+        if (activeLayer === 1) {
+            layer2.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${newBg}')`;
+            layer2.style.opacity = 1;
+            layer1.style.opacity = 0;
+            activeLayer = 2;
+        } else {
+            layer1.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${newBg}')`;
+            layer1.style.opacity = 1;
+            layer2.style.opacity = 0;
+            activeLayer = 1;
+        }
     }, 40000);
   },
 
@@ -499,7 +511,17 @@ FranklinApp.Pubblico = {
       c = parti.slice(1).join(' ');
     }
     const nomeCompleto = (n + ' ' + c).trim();
-    const etaStr = b.eta ? ` (${b.eta})` : '';
+    let etaStr = '';
+    if (b.dataDiNascita) {
+      const birth = new Date(b.dataDiNascita);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
+        age--;
+      }
+      etaStr = `${age} anni`;
+    }
     const fotoUrl = (b.foto && b.foto.trim()) ? b.foto : (b.ritratto && b.ritratto.trim()) ? b.ritratto : 'assets/images/barbiere-marco.jpg';
 
     const buildHTML = () => `
@@ -508,12 +530,12 @@ FranklinApp.Pubblico = {
         <!-- Testo a sinistra (giustificato a sinistra) -->
         <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; text-align: left;">
           <h4 style="font-family: var(--font-heading); color: var(--color-brass-light); font-size: 1.15rem; margin: 0 0 2px 0; line-height: 1.25;">
-            ${nomeCompleto}${etaStr}
+            ${nomeCompleto}
           </h4>
           <div style="font-family: var(--font-admin); font-size: 0.82rem; text-transform: uppercase; color: var(--color-brass-base); letter-spacing: 0.08em; margin-bottom: 0.5rem; font-weight: 600;">
-            ${b.ruolo || 'Barbiere'}
+            ${b.ruolo || 'Barbiere'}${etaStr ? ' • <span style="text-transform: none;">' + etaStr + '</span>' : ''}
           </div>
-          <p style="font-family: var(--font-body); font-size: 0.85rem; color: var(--color-text-cream); margin: 0; line-height: 1.45; text-align: left; display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;">
+          <p style="font-family: var(--font-body); font-size: 0.85rem; color: var(--color-text-cream); margin: 0; line-height: 1.45; text-align: left;">
             ${b.descrizione || 'Esperto barbiere e stilista del nostro salone.'}
           </p>
         </div>
