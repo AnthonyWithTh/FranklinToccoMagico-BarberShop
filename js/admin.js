@@ -769,9 +769,6 @@ window.FranklinApp.Admin = {
             delete modal.dataset.editingId;
         } else {
             // NUOVO: creiamo un nuovo appuntamento
-            const u = await window.FranklinApp.Auth.getUtenteLoggato();
-            const inseritoDa = u && u.email ? u.email : 'Admin';
-            
             const nuovoApp = {
                 id: 'app_' + Date.now(),
                 clienteNome: nomeCliente,
@@ -783,7 +780,10 @@ window.FranklinApp.Admin = {
                 ora: oraStr,
                 stato: document.getElementById('nuovo-appuntamento-stato') ? document.getElementById('nuovo-appuntamento-stato').value : 'confermato',
                 creatoIl: new Date().toISOString(),
-                inseritoDa: inseritoDa
+                inseritoDa: (() => {
+                    const u = window.FranklinApp.Auth.getUtenteLoggato();
+                    return u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
+                })()
             };
             
             await window.FranklinApp.Storage.aggiungiAppuntamento(nuovoApp);

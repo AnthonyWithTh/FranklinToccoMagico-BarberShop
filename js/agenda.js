@@ -531,8 +531,8 @@ window.Agenda = (function() {
             
             // Se confermato e originariamente inserito dal cliente, sovrascrivi con l'admin loggato
             if (nuovoStato === 'confermato' && appuntamenti[appIndex].inseritoDa === 'Cliente') {
-                const u = await window.FranklinApp.Auth.getUtenteLoggato();
-                const nomeUtente = u && u.email ? u.email : 'Admin';
+                const u = window.FranklinApp.Auth.getUtenteLoggato();
+                const nomeUtente = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
                 appuntamenti[appIndex].inseritoDa = nomeUtente;
             }
             

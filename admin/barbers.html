@@ -56,7 +56,7 @@
                                 <tr>
                                     <th style="width: 14%;">Nome</th>
                                     <th style="width: 14%;">Cognome</th>
-                                    <th style="width: 8%;">Età</th>
+                                    <th style="width: 12%;">Data di nascita</th>
                                     <th style="width: 13%;">Ruolo</th>
                                     <th style="width: 10%;">Ritratto</th>
                                     <th style="width: 25%;">Descrizione</th>
@@ -212,8 +212,8 @@
                                 <input type="text" id="barbiere-ruolo" class="vintage-input" required placeholder="es. Barbiere Senior" style="width: 100%;">
                             </div>
                             <div style="flex: 1;">
-                                <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Età *</label>
-                                <input type="number" id="barbiere-eta" class="vintage-input" required min="16" max="99" placeholder="es. 32" style="width: 100%;">
+                                <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Data di nascita *</label>
+                                <input type="date" id="barbiere-data-nascita" class="vintage-input" required style="width: 100%;">
                             </div>
                         </div>
 
@@ -300,10 +300,11 @@
                 boxUpload.style.display = 'none';
                 boxEsistente.style.display = 'block';
                 caricaListaImmaginiEsistentiBarbieri();
+                mostraSelezioneImmagine();
             }
         }
 
-        async function caricaListaImmaginiEsistentiBarbieri() {
+        async function mostraSelezioneImmagine() {
             const select = document.getElementById('barbiere-immagine-esistente');
             if (!select) return;
 
@@ -318,7 +319,7 @@
                 listaImmaginiBarbieri = [];
             }
 
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
             barbieri.forEach(b => {
                 const img = b.foto || b.ritratto;
                 if (img && img.startsWith('assets/images/barbieri/') && !listaImmaginiBarbieri.includes(img)) {
@@ -382,9 +383,9 @@
             }
         }
 
-        function caricaBarbieri() {
+        async function caricaBarbieri() {
             if(window.FranklinApp && window.FranklinApp.Storage) {
-                const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+                const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
                 const tbody = document.getElementById('barbieri-tbody');
                 
                 if (barbieri.length === 0) {
@@ -407,6 +408,17 @@
                         c = parti.slice(1).join(' ');
                     }
 
+                    // Calcolo età dalla data di nascita
+                    let etaDisplay = '-';
+                    if (b.data_nascita) {
+                        const dob = new Date(b.data_nascita);
+                        if (!isNaN(dob.getTime())) {
+                            const diff = Date.now() - dob.getTime();
+                            const ageDt = new Date(diff); 
+                            etaDisplay = Math.abs(ageDt.getUTCFullYear() - 1970) + ' anni';
+                        }
+                    }
+
                     const selectStato = `
                         <select class="vintage-select" style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; height: auto;" onchange="cambiaStatoBarbiere('${b.id}', this.value)">
                             <option value="true" ${b.attivo !== false ? 'selected' : ''}>Disponibile</option>
@@ -417,7 +429,7 @@
                     <tr style="${opacity}">
                         <td><strong>${n}</strong></td>
                         <td><strong>${c || '-'}</strong></td>
-                        <td>${b.eta ? b.eta + ' anni' : '-'}</td>
+                        <td>${etaDisplay}</td>
                         <td>${b.ruolo || 'Barbiere'}</td>
                         <td>
                             <div style="display: flex; align-items: center; justify-content: center;">
@@ -444,47 +456,54 @@
             }
         }
 
-        function duplicaBarbiere(id) {
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+        async function duplicaBarbiere(id) {
+            const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
             const barbiereOriginale = barbieri.find(b => b.id === id);
             
             if (!barbiereOriginale) return;
             
-            const barbiereClonato = JSON.parse(JSON.stringify(barbiereOriginale));
-            barbiereClonato.id = 'bar_' + Date.now();
-            barbiereClonato.nome = (barbiereClonato.nome || '') + ' (Copia)';
+            const payload = {
+                nome: (barbiereOriginale.nome || '') + ' (Copia)',
+                cognome: barbiereOriginale.cognome,
+                data_nascita: barbiereOriginale.data_nascita,
+                ruolo: barbiereOriginale.ruolo,
+                foto: barbiereOriginale.foto,
+                descrizione: barbiereOriginale.descrizione
+            };
             
-            barbieri.push(barbiereClonato);
-            window.FranklinApp.Storage.salvaBarbieri(barbieri);
+            const newId = await window.FranklinApp.Storage.aggiungiBarbiere(payload);
             
-            if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
-                window.FranklinApp.Admin.mostraToast("Barbiere duplicato con successo", "successo");
+            if (newId) {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Barbiere duplicato con successo", "successo");
+                }
+                caricaBarbieri();
+            } else {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Errore durante la duplicazione", "errore");
+                }
             }
-            caricaBarbieri();
         }
 
-        function eliminaBarbiere(id) {
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+        async function eliminaBarbiere(id) {
+            const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
             const barbiere = barbieri.find(b => b.id === id);
             const nome = barbiere ? (barbiere.nome + (barbiere.cognome ? ' ' + barbiere.cognome : '')) : 'Sconosciuto';
             
-            if (!confirm('Sei sicuro di voler eliminare "' + nome + '"?\n\nVerranno eliminati anche tutti i suoi appuntamenti e dati correlati.\nQuesta azione è irreversibile.')) return;
+            if (!confirm('Sei sicuro di voler eliminare "' + nome + '"?\n\nVerranno eliminati anche tutti i suoi permessi (Supabase ON DELETE CASCADE).\nQuesta azione è irreversibile.')) return;
             
-            const nuoviBarbieri = barbieri.filter(b => b.id !== id);
-            window.FranklinApp.Storage.salvaBarbieri(nuoviBarbieri);
+            const success = await window.FranklinApp.Storage.eliminaBarbiere(id);
             
-            const appuntamenti = window.FranklinApp.Storage.ottieniAppuntamenti() || [];
-            const nuoviAppuntamenti = appuntamenti.filter(a => a.barbiereId !== id);
-            window.FranklinApp.Storage.salvaAppuntamenti(nuoviAppuntamenti);
-            
-            const appEliminati = appuntamenti.length - nuoviAppuntamenti.length;
-            
-            if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
-                let msg = 'Barbiere eliminato';
-                if (appEliminati > 0) msg += ' (+ ' + appEliminati + ' appuntamenti rimossi)';
-                window.FranklinApp.Admin.mostraToast(msg, 'successo');
+            if (success) {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Barbiere eliminato", "successo");
+                }
+                caricaBarbieri();
+            } else {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Errore durante l'eliminazione", "errore");
+                }
             }
-            caricaBarbieri();
         }
 
         function aggiornaContatoreDescrizione(val = '') {
@@ -500,7 +519,7 @@
             }
         }
 
-        function apriModaleBarbiere(id = null) {
+        async function apriModaleBarbiere(id = null) {
             const modale = document.getElementById('modale-barbiere');
             const form = document.getElementById('form-barbiere');
             const titolo = document.getElementById('modale-barbiere-titolo');
@@ -516,7 +535,7 @@
             
             if (id) {
                 titolo.textContent = "Modifica Barbiere";
-                const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+                const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
                 const b = barbieri.find(x => x.id === id);
                 if (b) {
                     let n = b.nome || '';
@@ -529,7 +548,7 @@
                     document.getElementById('barbiere-id').value = b.id;
                     document.getElementById('barbiere-nome').value = n;
                     document.getElementById('barbiere-cognome').value = c;
-                    document.getElementById('barbiere-eta').value = b.eta || '';
+                    document.getElementById('barbiere-data-nascita').value = b.data_nascita || '';
                     document.getElementById('barbiere-ruolo').value = b.ruolo || '';
                     const fotoVal = b.foto || b.ritratto || '';
                     document.getElementById('barbiere-foto').value = fotoVal;
@@ -539,7 +558,7 @@
                         anteprimaImg.src = window.FranklinApp.Storage.fixImagePath(fotoVal, true);
                     }
                     if (display) {
-                        const nomeFile = fotoVal.split('/').pop() || 'Nessuna immagine';
+                        const nomeFile = fotoVal.length > 100 ? "Immagine caricata" : (fotoVal.split('/').pop() || 'Nessuna immagine');
                         display.textContent = nomeFile;
                     }
                     aggiornaContatoreDescrizione(b.descrizione || '');
@@ -549,7 +568,7 @@
                 document.getElementById('barbiere-id').value = '';
                 document.getElementById('barbiere-nome').value = '';
                 document.getElementById('barbiere-cognome').value = '';
-                document.getElementById('barbiere-eta').value = '';
+                document.getElementById('barbiere-data-nascita').value = '';
                 document.getElementById('barbiere-ruolo').value = '';
                 document.getElementById('barbiere-foto').value = '';
                 document.getElementById('barbiere-descrizione').value = '';
@@ -571,15 +590,14 @@
             const id = document.getElementById('barbiere-id').value;
             const nome = (document.getElementById('barbiere-nome').value || '').trim();
             const cognome = (document.getElementById('barbiere-cognome').value || '').trim();
-            const etaVal = document.getElementById('barbiere-eta').value;
-            const eta = parseInt(etaVal, 10);
+            const dataNascita = document.getElementById('barbiere-data-nascita').value;
             const ruolo = (document.getElementById('barbiere-ruolo').value || '').trim();
             const foto = (document.getElementById('barbiere-foto').value || '').trim();
             const descrizione = (document.getElementById('barbiere-descrizione').value || '').trim();
             
-            if (!nome || !cognome || !etaVal || isNaN(eta) || !ruolo || !descrizione) {
+            if (!nome || !cognome || !dataNascita || !ruolo || !descrizione) {
                 if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
-                    window.FranklinApp.Admin.mostraToast("Tutti i campi (Nome, Cognome, Età, Ruolo, Descrizione) sono obbligatori!", "errore");
+                    window.FranklinApp.Admin.mostraToast("Tutti i campi (Nome, Cognome, Data Nascita, Ruolo, Descrizione) sono obbligatori!", "errore");
                 } else {
                     alert("Tutti i campi sono obbligatori!");
                 }
@@ -604,71 +622,54 @@
                 return;
             }
 
-            if (barbiereFileCaricatoDataUrl && barbiereFileCaricatoNome) {
-                try {
-                    const res = await fetch('/upload', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            filename: barbiereFileCaricatoNome,
-                            data: barbiereFileCaricatoDataUrl,
-                            folder: 'barbieri'
-                        })
-                    });
-                    const resJson = await res.json();
-                    console.log("Upload ritratto eseguito su disco in barbieri:", resJson);
-                } catch(err) {
-                    console.error("Errore durante upload ritratto su disco:", err);
-                }
+            let fotoFinale = foto;
+            if (barbiereFileCaricatoDataUrl) {
+                fotoFinale = barbiereFileCaricatoDataUrl;
             }
 
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            const payload = {
+                nome: nome,
+                cognome: cognome,
+                data_nascita: dataNascita,
+                ruolo: ruolo,
+                foto: fotoFinale,
+                descrizione: descrizione
+            };
             
+            let success = false;
             if (id) {
-                const index = barbieri.findIndex(b => b.id === id);
-                if (index !== -1) {
-                    barbieri[index].nome = nome;
-                    barbieri[index].cognome = cognome;
-                    barbieri[index].eta = eta;
-                    barbieri[index].ruolo = ruolo;
-                    barbieri[index].foto = foto;
-                    barbieri[index].ritratto = foto;
-                    barbieri[index].descrizione = descrizione;
-                }
+                success = await window.FranklinApp.Storage.aggiornaBarbiere(id, payload);
             } else {
-                const nuovoId = 'bar_' + Date.now();
-                barbieri.push({
-                    id: nuovoId,
-                    nome: nome,
-                    cognome: cognome,
-                    eta: eta,
-                    ruolo: ruolo,
-                    foto: foto,
-                    ritratto: foto,
-                    descrizione: descrizione,
-                    attivo: true
-                });
+                const newId = await window.FranklinApp.Storage.aggiungiBarbiere(payload);
+                success = !!newId;
             }
             
-            window.FranklinApp.Storage.salvaBarbieri(barbieri);
-            
-            if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
-                window.FranklinApp.Admin.mostraToast("Barbiere salvato con successo", "successo");
+            if (success) {
+                chiudiModaleBarbiere();
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Barbiere salvato con successo!", "successo");
+                }
+                caricaBarbieri();
+            } else {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Errore durante il salvataggio in Supabase.", "errore");
+                } else {
+                    alert("Errore durante il salvataggio.");
+                }
             }
-            
-            chiudiModaleBarbiere();
-            caricaBarbieri();
         }
 
-        function cambiaStatoBarbiere(id, value) {
+        async function cambiaStatoBarbiere(id, value) {
             const isActive = value === "true";
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
-            const index = barbieri.findIndex(b => b.id === id);
-            if (index !== -1) {
-                barbieri[index].attivo = isActive;
-                window.FranklinApp.Storage.salvaBarbieri(barbieri);
+            
+            // Invece di toggle (che inverte), usiamo l'aggiorna per forzare lo stato desiderato
+            const success = await window.FranklinApp.Storage.aggiornaBarbiere(id, { attivo: isActive });
+            
+            if (success) {
                 if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Stato barbiere aggiornato", "successo");
                 caricaBarbieri();
+            } else {
+                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Errore durante l'aggiornamento dello stato", "errore");
             }
         }
 
@@ -734,8 +735,8 @@
             renderGiorniEccezionali(filtrate);
         }
 
-        function filtraRiepilogoBarbieri() {
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+        async function filtraRiepilogoBarbieri() {
+            const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
             renderRiepilogoBarbieri(tutteEccezioniBarbieri, barbieri);
         }
 
@@ -833,13 +834,13 @@
             return `<select id="eccezione-barbiere-id" class="vintage-select" style="width: 100%;" required onchange="ricalcolaModaleEccezioneBarbiere()">${options}</select>`;
         }
 
-        function apriModaleEccezioneBarbiere() {
+        async function apriModaleEccezioneBarbiere() {
             document.getElementById('form-eccezione-barbiere').reset();
             document.getElementById('eccezione-barbiere-old-data').value = "";
             document.getElementById('eccezione-barbiere-old-id').value = "";
             document.getElementById('modale-eccezione-barbiere-titolo').textContent = "Aggiungi Richiesta";
             
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
             document.getElementById('eccezione-barbiere-select-container').innerHTML = generaSelectBarbiere(barbieri);
             
             ricalcolaModaleEccezioneBarbiere();
@@ -953,7 +954,7 @@
             }
         }
         
-        function salvaGiornoEccezionaleBarbiere() {
+        async function salvaGiornoEccezionaleBarbiere() {
             const barbiereId = document.getElementById('eccezione-barbiere-id').value;
             const dataStr = document.getElementById('eccezione-barbiere-data').value;
             const motivo = document.getElementById('eccezione-barbiere-motivo').value;
@@ -961,56 +962,42 @@
             const dalle = document.getElementById('eccezione-barbiere-dalle').value;
             const alle = document.getElementById('eccezione-barbiere-alle').value;
             
-            const oldData = document.getElementById('eccezione-barbiere-old-data').value;
-            const oldId = document.getElementById('eccezione-barbiere-old-id').value;
+            const oldId = document.getElementById('eccezione-barbiere-old-id').value; // In realtà questo ora deve contenere l'ID del permesso, non l'id del barbiere
+            const permessoId = document.getElementById('eccezione-barbiere-old-data').value; // Ricicliamo i campi vecchi per tenere l'id univoco del permesso Supabase
             
             if (!intera && (!dalle || !alle)) {
                 if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Inserisci un orario valido", "errore");
                 return;
             }
             
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            const permesso = {
+                id: permessoId ? permessoId : null,
+                data: dataStr,
+                motivo: motivo,
+                interaGiornata: intera,
+                dalle: intera ? '' : dalle,
+                alle: intera ? '' : alle
+            };
             
-            if (oldData && oldId) {
-                const oldB = barbieri.find(b => b.id === oldId);
-                if (oldB) {
-                    oldB.giorniEccezionali = (oldB.giorniEccezionali || []).filter(e => e.data !== oldData);
-                }
-            }
+            const success = await window.FranklinApp.Storage.salvaPermessoBarbiere(barbiereId, permesso);
             
-            const bIndex = barbieri.findIndex(b => b.id === barbiereId);
-            if (bIndex !== -1) {
-                if (!barbieri[bIndex].giorniEccezionali) barbieri[bIndex].giorniEccezionali = [];
-                
-                const esiste = barbieri[bIndex].giorniEccezionali.find(e => e.data === dataStr);
-                if (esiste) {
-                    if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Questo barbiere ha già un'eccezione in questa data", "errore");
-                    return;
-                }
-                
-                barbieri[bIndex].giorniEccezionali.push({
-                    data: dataStr,
-                    motivo: motivo,
-                    interaGiornata: intera,
-                    dalle: intera ? '' : dalle,
-                    alle: intera ? '' : alle
-                });
-                
-                window.FranklinApp.Storage.salvaBarbieri(barbieri);
+            if (success) {
                 chiudiModaleEccezioneBarbiere();
                 if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Richiesta salvata", "successo");
-                caricaBarbieri();
+                await caricaBarbieri();
+            } else {
+                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Errore durante il salvataggio", "errore");
             }
         }
         
-        function modificaGiornoEccezionaleBarbiere(barbiereId, dataStr) {
-            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+        async function modificaGiornoEccezionaleBarbiere(barbiereId, dataStr) {
+            const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
             const b = barbieri.find(x => x.id === barbiereId);
             if (!b) return;
             
             const exc = (b.giorniEccezionali || []).find(e => e.data === dataStr);
             if (exc) {
-                document.getElementById('eccezione-barbiere-old-data').value = dataStr;
+                document.getElementById('eccezione-barbiere-old-data').value = exc.id; 
                 document.getElementById('eccezione-barbiere-old-id').value = barbiereId;
                 document.getElementById('modale-eccezione-barbiere-titolo').textContent = "Modifica Richiesta";
                 
@@ -1020,40 +1007,45 @@
                 document.getElementById('eccezione-barbiere-data').disabled = false;
                 
                 document.getElementById('eccezione-barbiere-motivo').value = exc.motivo;
+                document.getElementById('eccezione-barbiere-motivo').disabled = false;
+                
                 document.getElementById('eccezione-barbiere-intera').checked = exc.interaGiornata;
+                document.getElementById('eccezione-barbiere-intera').disabled = false;
                 
-                ricalcolaModaleEccezioneBarbiere(); 
+                ricalcolaModaleEccezioneBarbiere();
                 
-                setTimeout(() => {
-                    if (!exc.interaGiornata) {
+                if (!exc.interaGiornata) {
+                    setTimeout(() => {
                         document.getElementById('eccezione-barbiere-dalle').value = exc.dalle;
-                        ricalcolaModaleEccezioneBarbiere();
-                        setTimeout(() => {
-                            document.getElementById('eccezione-barbiere-alle').value = exc.alle;
-                        }, 50);
-                    }
-                }, 50);
+                        document.getElementById('eccezione-barbiere-alle').value = exc.alle;
+                    }, 50);
+                }
                 
                 document.getElementById('modale-eccezione-barbiere').style.display = 'flex';
             }
         }
         
-        function eliminaGiornoEccezionaleBarbiere(barbiereId, dataStr) {
-            if (confirm(`Sei sicuro di voler eliminare la richiesta per il ${dataStr}?`)) {
-                const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+        async function eliminaGiornoEccezionaleBarbiere(barbiereId, dataStr) {
+            if (confirm(`Sei sicuro di voler eliminare la richiesta del ${dataStr}?`)) {
+                const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
                 const b = barbieri.find(x => x.id === barbiereId);
                 if (b) {
-                    b.giorniEccezionali = (b.giorniEccezionali || []).filter(e => e.data !== dataStr);
-                    window.FranklinApp.Storage.salvaBarbieri(barbieri);
-                    if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Richiesta eliminata", "successo");
-                    caricaBarbieri();
+                    const exc = (b.giorniEccezionali || []).find(e => e.data === dataStr);
+                    if (exc && exc.id) {
+                        const success = await window.FranklinApp.Storage.eliminaPermessoBarbiere(exc.id);
+                        if (success) {
+                            if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Richiesta eliminata", "successo");
+                            await caricaBarbieri();
+                        } else {
+                            if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Errore durante l'eliminazione", "errore");
+                        }
+                    }
                 }
             }
         }
     </script>
 </body>
 </html>
-
 
 
 

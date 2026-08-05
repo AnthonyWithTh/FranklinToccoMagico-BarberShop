@@ -53,9 +53,28 @@ FranklinApp.Storage = {
   },
 
   async ottieniBarbieri() {
-    const { data, error } = await sbClient.from('barbieri').select('*').order('created_at', { ascending: true });
-    if (error) console.error("Errore fetch barbieri:", error);
-    return data || [];
+    const { data, error } = await sbClient.from('barbieri').select('*, barbieri_permessi(*)').order('created_at', { ascending: true });
+    if (error) {
+        console.error("Errore fetch barbieri:", error);
+        return [];
+    }
+    
+    // Mappa per il frontend
+    return (data || []).map(b => {
+        return {
+            ...b,
+            eta: b.data_nascita || '', // fallback per retrocompatibilità se qualche codice si aspetta 'eta' nel payload UI
+            data_nascita: b.data_nascita || '',
+            giorniEccezionali: (b.barbieri_permessi || []).map(p => ({
+                id: p.id,
+                data: p.data,
+                motivo: p.motivo,
+                interaGiornata: p.intera_giornata,
+                dalle: p.dalle,
+                alle: p.alle
+            }))
+        };
+    });
   },
   
   async aggiungiBarbiere(datiBarbiere) {
@@ -81,6 +100,31 @@ FranklinApp.Storage = {
   async eliminaBarbiere(id) {
     const { error } = await sbClient.from('barbieri').delete().eq('id', id);
     return !error;
+  },
+
+  async salvaPermessoBarbiere(barbiereId, permesso) {
+    const row = {
+      barbiere_id: barbiereId,
+      data: permesso.data,
+      motivo: permesso.motivo,
+      intera_giornata: permesso.interaGiornata,
+      dalle: permesso.dalle || '',
+      alle: permesso.alle || ''
+    };
+    if (permesso.id) {
+        const { error } = await sbClient.from('barbieri_permessi').update(row).eq('id', permesso.id);
+        if (error) { console.error("Errore modifica permesso:", error); return false; }
+    } else {
+        const { error } = await sbClient.from('barbieri_permessi').insert([row]);
+        if (error) { console.error("Errore inserimento permesso:", error); return false; }
+    }
+    return true;
+  },
+
+  async eliminaPermessoBarbiere(id) {
+    const { error } = await sbClient.from('barbieri_permessi').delete().eq('id', id);
+    if (error) { console.error("Errore eliminazione permesso:", error); return false; }
+    return true;
   },
 
   async ottieniAppuntamenti() {
