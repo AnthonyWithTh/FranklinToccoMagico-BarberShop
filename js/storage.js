@@ -163,7 +163,7 @@ FranklinApp.Storage = {
     }
     
     const orariMap = {};
-    if (orari && !errOrari) {
+    if (orari && !errOrari && orari.length > 0) {
         orari.forEach(o => {
             orariMap[o.giorno] = {
                 chiuso: o.chiuso,
@@ -171,6 +171,11 @@ FranklinApp.Storage = {
                 orarioPomeriggio: o.orario_pomeriggio || '15:00-19:00'
             };
         });
+    } else {
+        // Fallback ai dati iniziali se la tabella è vuota
+        if (window.FranklinApp && window.FranklinApp.DatiIniziali && window.FranklinApp.DatiIniziali.orariLavoro) {
+            Object.assign(orariMap, window.FranklinApp.DatiIniziali.orariLavoro);
+        }
     }
     result.orariLavoro = orariMap;
     

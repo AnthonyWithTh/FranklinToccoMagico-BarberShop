@@ -185,6 +185,9 @@ FranklinApp.Prenotazione = {
   },
 
   async renderDataOra(container) {
+    if (!this.stato.data) {
+        this.stato.data = window.FranklinApp.DateHelpers.oggi();
+    }
     let html = `
       <div style="margin-bottom: 1.2rem; text-align: left;">
         <label class="vintage-label" style="display: block; font-size: 0.88rem; margin-bottom: 0.4rem; color: var(--color-text-cream);">
@@ -192,7 +195,7 @@ FranklinApp.Prenotazione = {
         </label>
         <input type="date" id="booking-date" class="vintage-input" style="width: 100%; padding: 0.7rem; font-size: 1rem; color-scheme: dark;"
                min="${window.FranklinApp.DateHelpers.oggi()}" 
-               value="${this.stato.data || ''}" 
+               value="${this.stato.data}" 
                onchange="FranklinApp.Prenotazione.caricaSlot()">
       </div>
       <div style="text-align: left;">
