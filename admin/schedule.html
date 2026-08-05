@@ -559,20 +559,25 @@
             return [];
         }
         
-        function salvaEccezionali(eccezionali) {
+        async function salvaEccezionali(eccezionali) {
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 imp.giorniEccezionali = eccezionali;
-                window.FranklinApp.Storage.salvaImpostazioni(imp);
+                await window.FranklinApp.Storage.salvaImpostazioni(imp);
             }
         }
 
-        function apriModaleEccezione() {
+        async function apriModaleEccezione() {
             document.getElementById('form-eccezione').reset();
             document.getElementById('eccezione-index').value = "-1";
             document.getElementById('modale-eccezione-titolo').textContent = "Aggiungi Giorno Eccezionale";
             
-            ricalcolaModaleEccezione();
+            const dataInput = document.getElementById('eccezione-data');
+            const today = new Date();
+            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+            dataInput.min = today.toISOString().split('T')[0];
+            
+            await ricalcolaModaleEccezione();
             document.getElementById('modale-giorno-eccezionale').style.display = 'flex';
         }
         
@@ -580,7 +585,7 @@
             document.getElementById('modale-giorno-eccezionale').style.display = 'none';
         }
         
-        function ricalcolaModaleEccezione() {
+        async function ricalcolaModaleEccezione() {
             const dataInput = document.getElementById('eccezione-data');
             const motivoInput = document.getElementById('eccezione-motivo');
             const tipoSelect = document.getElementById('eccezione-tipo');
@@ -610,7 +615,7 @@
             let slotPermessi = [];
             
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 const orarioNormale = imp.orariLavoro ? imp.orariLavoro[nomeGiorno] : null;
                 
                 if (!orarioNormale || orarioNormale.chiuso) {
@@ -638,45 +643,35 @@
                         const parts = orarioNormale.orarioPomeriggio.split('-');
                         genera(parts[0], parts[1]);
                     }
+                    slotPermessi.sort();
                 }
             }
             
-            if (interaCheck.checked) {
-                dalleSelect.disabled = true;
-                alleSelect.disabled = true;
-                dalleSelect.innerHTML = '';
-                alleSelect.innerHTML = '';
-            } else {
-                dalleSelect.disabled = false;
-                alleSelect.disabled = false;
-                
-                const oldDalle = dalleSelect.value;
-                const oldAlle = alleSelect.value;
-                
-                dalleSelect.innerHTML = '<option value="">-- Seleziona --</option>';
-                alleSelect.innerHTML = '<option value="">-- Seleziona --</option>';
-                
+            const oldDalle = dalleSelect.value;
+            const oldAlle = alleSelect.value;
+            
+            dalleSelect.innerHTML = '<option value="">--:--</option>';
+            alleSelect.innerHTML = '<option value="">--:--</option>';
+            
+            if (slotPermessi.length > 0) {
                 slotPermessi.forEach(slot => {
                     dalleSelect.innerHTML += `<option value="${slot}">${slot}</option>`;
+                    alleSelect.innerHTML += `<option value="${slot}">${slot}</option>`;
                 });
-                
+            }
+            
+            if (!interaCheck.checked && !interaCheck.disabled) {
+                dalleSelect.disabled = false;
+                alleSelect.disabled = false;
                 if (oldDalle && slotPermessi.includes(oldDalle)) {
                     dalleSelect.value = oldDalle;
                 }
-                
-                if (dalleSelect.value) {
-                    const idx = slotPermessi.indexOf(dalleSelect.value);
-                    if (idx !== -1) {
-                        for (let i = idx + 1; i < slotPermessi.length; i++) {
-                            alleSelect.innerHTML += `<option value="${slotPermessi[i]}">${slotPermessi[i]}</option>`;
-                        }
-                    }
-                    if (oldAlle && alleSelect.querySelector(`option[value="${oldAlle}"]`)) {
-                        alleSelect.value = oldAlle;
-                    }
-                } else {
-                    alleSelect.disabled = true;
+                if (oldAlle && slotPermessi.includes(oldAlle)) {
+                    alleSelect.value = oldAlle;
                 }
+            } else {
+                dalleSelect.disabled = true;
+                alleSelect.disabled = true;
             }
         }
         
@@ -723,13 +718,15 @@
             const eccezione = ecc.find(e => e.data === data);
             if (!eccezione) return;
             
-            apriModaleEccezione();
+            await apriModaleEccezione();
             const index = ecc.findIndex(e => e.data === data);
             
             document.getElementById('eccezione-index').value = index;
             document.getElementById('eccezione-data').value = eccezione.data;
             document.getElementById('eccezione-motivo').value = eccezione.motivo;
             document.getElementById('eccezione-tipo').value = eccezione.tipo || 'Giorno Festivo';
+            
+            await ricalcolaModaleEccezione();
             
             document.getElementById('eccezione-intera').checked = eccezione.interaGiornata;
             if (!eccezione.interaGiornata) {
@@ -738,7 +735,6 @@
             }
             
             document.getElementById('modale-eccezione-titolo').textContent = "Modifica Giorno Eccezionale";
-            ricalcolaModaleEccezione();
         }
         
         async function eliminaGiornoEccezionale(data) {
