@@ -375,16 +375,26 @@
                 return;
             }
 
+            const permessiNomi = {
+                'appointments': 'Agenda',
+                'services': 'Servizi',
+                'schedule': 'Orario di Lavoro',
+                'barbers': 'Staff',
+                'users': 'Amministrazione',
+                'vetrina': 'Vetrina',
+                'settings': 'Impostazioni',
+                'personale': 'Personale'
+            };
+
             (ruoli || []).forEach(ruolo => {
                 const isSystem = (ruolo.id === 'ruolo_admin' || ruolo.nome === 'Amministratore');
                 
                 tbody.innerHTML += `
                     <tr style="border-bottom: 1px solid var(--color-wood-200);">
-                        <td style="color: var(--color-brass-dark); font-family: var(--font-typewriter);">${ruolo.id}</td>
                         <td style="font-weight: bold; color: var(--color-text-cream);">${ruolo.nome}</td>
                         <td>
                             <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-                                ${(ruolo.permessi || []).map(p => `<span class="badge" style="background-color: var(--color-wood-300); color: white; padding: 3px 8px; font-size: 0.8rem; border-radius: 12px;">${p}</span>`).join('')}
+                                ${(ruolo.permessi || []).map(p => `<span class="badge" style="background-color: var(--color-wood-300); color: white; padding: 3px 8px; font-size: 0.8rem; border-radius: 12px;">${permessiNomi[p] || p}</span>`).join('')}
                             </div>
                         </td>
                         <td style="white-space: nowrap;">

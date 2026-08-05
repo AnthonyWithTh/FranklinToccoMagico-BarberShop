@@ -150,9 +150,31 @@
                     
                     if (user) {
                         if (span) {
-                            // Recupera il vero username dalla tabella utenti
-                            const { data: profilo } = await sb.from('utenti').select('username').eq('id', user.id).single();
+                            // Recupera il vero username e ruolo dalla tabella utenti
+                            const { data: profilo } = await sb.from('utenti').select('username, ruoloid').eq('id', user.id).single();
                             span.textContent = (profilo && profilo.username) ? profilo.username : (user.user_metadata?.display_name || user.email);
+                            
+                            // Applica i permessi RBAC
+                            if (profilo && profilo.ruoloid) {
+                                const { data: ruolo } = await sb.from('ruoli').select('permessi').eq('id', profilo.ruoloid).single();
+                                if (ruolo && ruolo.permessi) {
+                                    const linksPerm = [
+                                        { id: 'nav-appointments', perm: 'appointments' },
+                                        { id: 'nav-services', perm: 'services' },
+                                        { id: 'nav-schedule', perm: 'schedule' },
+                                        { id: 'nav-barbers', perm: 'barbers' },
+                                        { id: 'nav-users', perm: 'users' },
+                                        { id: 'nav-vetrina', perm: 'vetrina' },
+                                        { id: 'nav-settings', perm: 'settings' }
+                                    ];
+                                    linksPerm.forEach(l => {
+                                        const el = document.getElementById(l.id);
+                                        if (el && !ruolo.permessi.includes(l.perm)) {
+                                            el.style.display = 'none';
+                                        }
+                                    });
+                                }
+                            }
                         }
                     } else {
                         if (span) span.textContent = 'Non loggato';
