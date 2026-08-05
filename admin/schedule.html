@@ -189,9 +189,9 @@
             return html;
         }
 
-        function popolaOrari() {
+        async function popolaOrari() {
             if(window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 if(imp) {
                     // Tabella 1: Orari Lavoro
                     const orariMap = imp.orariLavoro || {};
@@ -228,7 +228,7 @@
                     
                     if (eccezioni.length !== originalLength) {
                         imp.giorniEccezionali = eccezioni;
-                        window.FranklinApp.Storage.salvaImpostazioni(imp);
+                        await window.FranklinApp.Storage.salvaImpostazioni({ ...imp, giorniEccezionali: eccezioni });
                     }
                     
                     renderGiorniEccezionali(eccezioni);
@@ -280,11 +280,11 @@
             document.getElementById('totale-ore-settimana').textContent = `Orario di Apertura - ${Math.round(totaleSettimana * 10) / 10} ore lavorative`;
         }
         
-        function autoSalvaOrari() {
+        async function autoSalvaOrari() {
             calcolaTotaleSettimana();
             
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 const orariMap = {};
                 
                 document.querySelectorAll('#orari-tbody tr').forEach(tr => {
@@ -299,7 +299,7 @@
                 });
                 
                 imp.orariLavoro = orariMap;
-                window.FranklinApp.Storage.salvaImpostazioni(imp);
+                await window.FranklinApp.Storage.salvaImpostazioni(imp);
                 
                 if (window.FranklinApp.Admin) {
                     window.FranklinApp.Admin.mostraToast("Orari salvati automaticamente", "successo");
@@ -311,13 +311,13 @@
 
         let eccezioniSortAsc = true;
         
-        function toggleSortEccezioni() {
+        async function toggleSortEccezioni() {
             eccezioniSortAsc = !eccezioniSortAsc;
             const icon = document.getElementById('sort-icon-schedule');
             if (icon) icon.textContent = eccezioniSortAsc ? '▲' : '▼';
             
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 renderGiorniEccezionali(imp.giorniEccezionali || []);
             }
         }
@@ -373,7 +373,7 @@
             checkboxes.forEach(cb => cb.checked = source.checked);
         }
 
-        function eliminaEccezioniSelezionate() {
+        async function eliminaEccezioniSelezionate() {
             const checkboxes = document.querySelectorAll('.eccezione-checkbox:checked');
             if (checkboxes.length === 0) {
                 if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Seleziona almeno un elemento da eliminare", "errore");
@@ -383,14 +383,14 @@
             if (!confirm(`Sei sicuro di voler eliminare ${checkboxes.length} elementi selezionati?`)) return;
             
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 if (!imp.giorniEccezionali) return;
                 
                 const datesToRemove = Array.from(checkboxes).map(cb => cb.value);
                 
                 imp.giorniEccezionali = imp.giorniEccezionali.filter(e => !datesToRemove.includes(e.data));
                 
-                window.FranklinApp.Storage.salvaImpostazioni(imp);
+                await window.FranklinApp.Storage.salvaImpostazioni(imp);
                 renderGiorniEccezionali(imp.giorniEccezionali);
                 
                 if (window.FranklinApp.Admin) {
@@ -399,15 +399,15 @@
             }
         }
 
-        function ripulisciEccezioni() {
+        async function ripulisciEccezioni() {
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 if (!imp.giorniEccezionali || imp.giorniEccezionali.length === 0) return;
                 
                 if (!confirm("Sei sicuro di voler eliminare TUTTI i giorni festivi e imprevisti? Questa azione è irreversibile.")) return;
                 
                 imp.giorniEccezionali = [];
-                window.FranklinApp.Storage.salvaImpostazioni(imp);
+                await window.FranklinApp.Storage.salvaImpostazioni(imp);
                 renderGiorniEccezionali(imp.giorniEccezionali);
                 
                 if (window.FranklinApp.Admin) {
@@ -416,9 +416,9 @@
             }
         }
 
-        function aggiungiFestivitaBase() {
+        async function aggiungiFestivitaBase() {
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 if (!imp.giorniEccezionali) imp.giorniEccezionali = [];
                 
                 const currentYear = new Date().getFullYear();
@@ -455,7 +455,7 @@
                 });
                 
                 if (added > 0) {
-                    window.FranklinApp.Storage.salvaImpostazioni(imp);
+                    await window.FranklinApp.Storage.salvaImpostazioni(imp);
                     renderGiorniEccezionali(imp.giorniEccezionali);
                     if (window.FranklinApp.Admin) {
                         window.FranklinApp.Admin.mostraToast(`${added} festività base aggiunte`, "successo");
@@ -592,98 +592,78 @@
             }
         }
         
-        function salvaGiornoEccezionale() {
-            const dataStr = document.getElementById('eccezione-data').value;
+        async function salvaGiornoEccezionale() {
+            const index = parseInt(document.getElementById('eccezione-index').value);
+            const dataVal = document.getElementById('eccezione-data').value;
             const motivo = document.getElementById('eccezione-motivo').value;
-            const tipo = document.getElementById('eccezione-tipo').value || 'Giorno Festivo';
+            const tipo = document.getElementById('eccezione-tipo').value;
             const intera = document.getElementById('eccezione-intera').checked;
             const dalle = document.getElementById('eccezione-dalle').value;
             const alle = document.getElementById('eccezione-alle').value;
-            const indexStr = document.getElementById('eccezione-index').value;
             
             if (!intera && (!dalle || !alle)) {
-                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Inserisci un orario valido", "errore");
+                if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Inserisci gli orari o seleziona 'Chiuso tutta la giornata'", "errore");
                 return;
             }
             
-            const eccezione = {
-                data: dataStr,
-                motivo: motivo,
-                tipo: tipo,
-                interaGiornata: intera,
-                dalle: intera ? '' : dalle,
-                alle: intera ? '' : alle
-            };
+            const newExc = { data: dataVal, motivo, tipo, interaGiornata: intera, dalle: intera ? '' : dalle, alle: intera ? '' : alle };
             
-            let eccezionali = ottieniEccezionali();
+            let ecc = await ottieniEccezionali();
             
-            if (indexStr === "-1") {
-                const esiste = eccezionali.find(e => e.data === dataStr);
-                if (esiste) {
-                    if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Esiste già un'eccezione per questa data", "errore");
+            // Verifica duplicati se è un nuovo inserimento o abbiamo cambiato data
+            if (index === -1 || ecc[index].data !== dataVal) {
+                if (ecc.some(e => e.data === dataVal)) {
+                    if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Esiste già un'eccezione per questa data", "errore");
                     return;
                 }
-                eccezionali.push(eccezione);
+            }
+            
+            if (index === -1) {
+                ecc.push(newExc);
             } else {
-                const oldData = indexStr;
-                const idx = eccezionali.findIndex(e => e.data === oldData);
-                if (idx !== -1) {
-                    if (oldData !== dataStr && eccezionali.find(e => e.data === dataStr)) {
-                        if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Esiste già un'eccezione per questa data", "errore");
-                        return;
-                    }
-                    eccezionali[idx] = eccezione;
-                }
+                ecc[index] = newExc;
             }
             
-            salvaEccezionali(eccezionali);
-            renderGiorniEccezionali(eccezionali);
+            await salvaEccezionali(ecc);
+            renderGiorniEccezionali(ecc);
             chiudiModaleEccezione();
-            if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Eccezione salvata", "successo");
+            if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Eccezione salvata con successo", "successo");
         }
         
-        function modificaGiornoEccezionale(dataStr) {
-            const eccezionali = ottieniEccezionali();
-            const exc = eccezionali.find(e => e.data === dataStr);
+        async function modificaGiornoEccezionale(data) {
+            const ecc = await ottieniEccezionali();
+            const eccezione = ecc.find(e => e.data === data);
+            if (!eccezione) return;
             
-            if (exc) {
-                document.getElementById('eccezione-index').value = dataStr;
-                document.getElementById('modale-eccezione-titolo').textContent = "Modifica Giorno Eccezionale";
-                
-                document.getElementById('eccezione-data').value = exc.data;
-                document.getElementById('eccezione-motivo').value = exc.motivo;
-                document.getElementById('eccezione-tipo').value = exc.tipo || 'Giorno Festivo';
-                document.getElementById('eccezione-intera').checked = exc.interaGiornata;
-                
-                ricalcolaModaleEccezione();
-                
-                setTimeout(() => {
-                    if (!exc.interaGiornata) {
-                        document.getElementById('eccezione-dalle').value = exc.dalle;
-                        ricalcolaModaleEccezione();
-                        
-                        setTimeout(() => {
-                            document.getElementById('eccezione-alle').value = exc.alle;
-                        }, 50);
-                    }
-                }, 50);
-                
-                document.getElementById('modale-giorno-eccezionale').style.display = 'flex';
+            apriModaleEccezione();
+            const index = ecc.findIndex(e => e.data === data);
+            
+            document.getElementById('eccezione-index').value = index;
+            document.getElementById('eccezione-data').value = eccezione.data;
+            document.getElementById('eccezione-motivo').value = eccezione.motivo;
+            document.getElementById('eccezione-tipo').value = eccezione.tipo || 'Giorno Festivo';
+            
+            document.getElementById('eccezione-intera').checked = eccezione.interaGiornata;
+            if (!eccezione.interaGiornata) {
+                document.getElementById('eccezione-dalle').value = eccezione.dalle;
+                document.getElementById('eccezione-alle').value = eccezione.alle;
             }
+            
+            document.getElementById('modale-eccezione-titolo').textContent = "Modifica Giorno Eccezionale";
+            ricalcolaModaleEccezione();
         }
         
-        function eliminaGiornoEccezionale(dataStr) {
-            if (confirm(`Sei sicuro di voler eliminare l'eccezione del ${dataStr}?`)) {
-                let eccezionali = ottieniEccezionali();
-                eccezionali = eccezionali.filter(e => e.data !== dataStr);
-                salvaEccezionali(eccezionali);
-                renderGiorniEccezionali(eccezionali);
-                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Eccezione eliminata", "successo");
-            }
+        async function eliminaGiornoEccezionale(data) {
+            if (!confirm(`Sei sicuro di voler eliminare l'eccezione per la data ${data}?`)) return;
+            
+            let ecc = await ottieniEccezionali();
+            ecc = ecc.filter(e => e.data !== data);
+            
+            await salvaEccezionali(ecc);
+            renderGiorniEccezionali(ecc);
+            if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Eccezione eliminata", "successo");
         }
     </script>
 </body>
-</html>
-
 
 
