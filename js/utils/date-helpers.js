@@ -62,23 +62,23 @@ FranklinApp.DateHelpers = {
     return `${year}-${month}-${day}`;
   },
 
-  // Controlla se il salone ed il barbiere sono aperti in un dato giorno
-  isGiornoAperto(dateStr, barbiereId = null) {
-    const slots = this.ottieniSlotDisponibili(dateStr, 15, barbiereId);
+  async isGiornoAperto(dateStr, barbiereId = null) {
+    const slots = await this.ottieniSlotDisponibili(dateStr, 15, barbiereId);
     return slots.length > 0;
   },
 
-  controllaConflitto(data, oraInizioMin, durata, barbiereId, escludiId = null) {
-    const appuntamenti = window.FranklinApp.Storage.ottieniAppuntamenti() || [];
+  async controllaConflitto(data, oraInizioMin, durata, barbiereId, escludiId = null) {
+    const appuntamenti = await window.FranklinApp.Storage.ottieniAppuntamenti() || [];
     const oraFineMin = oraInizioMin + durata;
 
     // 1. Controlla accavallamento temporale con appuntamenti esistenti
-    const haConflittoApp = appuntamenti.some(app => {
-      if (app.data !== data || app.stato === 'cancellato') return false;
-      if (barbiereId && app.barbiereId && app.barbiereId !== barbiereId) return false;
-      if (escludiId && app.id === escludiId) return false;
+    let haConflittoApp = false;
+    for (const app of appuntamenti) {
+      if (app.data !== data || app.stato === 'cancellato') continue;
+      if (barbiereId && app.barbiereId && app.barbiereId !== barbiereId) continue;
+      if (escludiId && app.id === escludiId) continue;
 
-      const servizi = window.FranklinApp.Storage.ottieniServizi() || [];
+      const servizi = await window.FranklinApp.Storage.ottieniServizi() || [];
       const servizio = servizi.find(s => s.id === app.servizioId);
       const appDurata = app.durata ? parseInt(app.durata, 10) : (servizio ? parseInt(servizio.durata, 10) : 30);
       
@@ -86,14 +86,17 @@ FranklinApp.DateHelpers = {
       const appFineMin = appInizioMin + appDurata;
 
       // Accavallamento: [oraInizioMin, oraFineMin] si sovrappone a [appInizioMin, appFineMin]
-      return (oraInizioMin < appFineMin && oraFineMin > appInizioMin);
-    });
+      if (oraInizioMin < appFineMin && oraFineMin > appInizioMin) {
+        haConflittoApp = true;
+        break;
+      }
+    }
 
     if (haConflittoApp) return true;
 
     // 2. Controlla accavallamento temporale con ferie/malattie/permessi/imprevisti del barbiere
     if (barbiereId) {
-      const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+      const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
       const barbiere = barbieri.find(b => b.id === barbiereId);
       if (barbiere) {
         const assenze = [
@@ -136,10 +139,10 @@ FranklinApp.DateHelpers = {
     return false;
   },
 
-  ottieniSlotDisponibili(data, durataServizio = 30, barbiereId = null) {
+  async ottieniSlotDisponibili(data, durataServizio = 30, barbiereId = null) {
     if (!data) return [];
 
-    const impostazioni = window.FranklinApp.Storage.ottieniImpostazioni() || {};
+    const impostazioni = await window.FranklinApp.Storage.ottieniImpostazioni() || {};
     const giornoSettimana = this.ottieniGiornoSettimana(data);
     
     // 1. Controlla orari salone (supporta schema orariLavoro e orariApertura)
@@ -160,7 +163,7 @@ FranklinApp.DateHelpers = {
 
     // 3. Controlla Barbiere (Ferie, Malattie, Permessi, Imprevisti, Assenze)
     if (barbiereId) {
-      const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+      const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
       const barbiere = barbieri.find(b => b.id === barbiereId);
       if (!barbiere || barbiere.attivo === false) return [];
 
@@ -220,7 +223,7 @@ FranklinApp.DateHelpers = {
     const oraAttualeObj = new Date();
     const adessoMinuti = (oraAttualeObj.getHours() * 60) + oraAttualeObj.getMinutes();
 
-    fasce.forEach(fascia => {
+    for (const fascia of fasce) {
       const minInizio = this.oraInMinuti(fascia.inizio);
       const minFine = this.oraInMinuti(fascia.fine);
 
@@ -229,11 +232,12 @@ FranklinApp.DateHelpers = {
         if (data === oggiStr && min <= adessoMinuti + 10) continue;
 
         // Verifica accavallamenti con appuntamenti o permessi parziali
-        if (!this.controllaConflitto(data, min, durataServizio, barbiereId)) {
+        const haConflitto = await this.controllaConflitto(data, min, durataServizio, barbiereId);
+        if (!haConflitto) {
           slotDisponibili.push(this.minutiInOra(min));
         }
       }
-    });
+    }
 
     return slotDisponibili;
   }

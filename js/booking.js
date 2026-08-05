@@ -229,7 +229,7 @@ FranklinApp.Prenotazione = {
     const servizio = servizi.find(s => s.id === this.stato.servizioId);
     if (!servizio) return;
     
-    const slotDisponibili = window.FranklinApp.DateHelpers.ottieniSlotDisponibili(this.stato.data, servizio.durata, this.stato.barbiereId);
+    const slotDisponibili = await window.FranklinApp.DateHelpers.ottieniSlotDisponibili(this.stato.data, servizio.durata, this.stato.barbiereId);
     
     if (slotDisponibili.length === 0) {
       slotsContainer.innerHTML = '<p style="color: var(--color-danger); background: rgba(180, 40, 40, 0.15); border: 1px solid var(--color-danger); padding: 0.8rem; border-radius: 6px; font-size: 0.9rem; margin-top: 0.3rem;">⚠️ Nessun orario disponibile per questa data.<br><span style="font-size: 0.82rem; color: var(--color-text-cream);">Il salone potrebbe essere chiuso, festivo, o il barbiere non disponibile (ferie, permessi, imprevisti). Scegli un\'altra data.</span></p>';
