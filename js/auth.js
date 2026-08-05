@@ -59,7 +59,7 @@ FranklinApp.Auth = {
               <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: var(--color-black-100); color: var(--color-text-cream); text-align: center; padding: 2rem;">
                 <h1 class="vintage-title" style="color: var(--color-danger); font-size: 3rem; margin-bottom: 1rem;">Accesso Negato</h1>
                 <p style="font-family: var(--font-body); font-size: 1.2rem; margin-bottom: 2rem;">Non hai i permessi per accedere a questo contenuto.</p>
-                <button onclick="window.history.back()" style="background-color: var(--color-brass-base); color: var(--color-black-100); border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: var(--font-body);">Torna Indietro</button>
+                <button onclick="window.location.href='personale.html'" style="background-color: var(--color-brass-base); color: var(--color-black-100); border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; border-radius: 4px; font-family: var(--font-body);">Torna alla tua Area Personale</button>
               </div>
             `;
             const fouc = document.getElementById('anti-fouc');
