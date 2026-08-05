@@ -113,7 +113,10 @@ FranklinApp.Storage = {
     
     // 2. Orari di Lavoro
     const { data: orari, error: errOrari } = await sbClient.from('orari_lavoro').select('*');
-    if (errOrari) console.error("Errore fetch orari:", errOrari);
+    if (errOrari) {
+        console.error("Errore fetch orari:", errOrari);
+        alert("Errore caricamento orari da Supabase: " + (errOrari.message || JSON.stringify(errOrari)));
+    }
     
     const orariMap = {};
     if (orari && !errOrari) {
@@ -130,9 +133,14 @@ FranklinApp.Storage = {
     result.orariLavoro = orariMap;
     
     // 3. Giorni Eccezionali
-    const { data: ecc } = await sbClient.from('giorni_eccezionali').select('*');
+    const { data: ecc, error: errEcc } = await sbClient.from('giorni_eccezionali').select('*');
+    if (errEcc) {
+        console.error("Errore fetch eccezioni:", errEcc);
+        alert("Errore caricamento festività da Supabase: " + (errEcc.message || JSON.stringify(errEcc)));
+    }
+    
     const eccList = [];
-    if (ecc) {
+    if (ecc && !errEcc) {
         ecc.forEach(e => {
             eccList.push({
                 data: e.data,
@@ -174,16 +182,28 @@ FranklinApp.Storage = {
         });
         if (orariRows.length > 0) {
             const { error: errOrari } = await sbClient.from('orari_lavoro').upsert(orariRows, { onConflict: 'giorno' });
-            if (errOrari) console.error("Errore salvataggio orari:", errOrari);
+            if (errOrari) {
+                console.error("Errore salvataggio orari:", errOrari);
+                alert("Errore salvataggio orari: " + (errOrari.message || JSON.stringify(errOrari)));
+            }
         }
     }
     
     // 3. Salva Giorni Eccezionali (Sostituzione completa come array)
     if (impostazioni.giorniEccezionali) {
-        const { data: eccAttuali } = await sbClient.from('giorni_eccezionali').select('data');
+        const { data: eccAttuali, error: errEccCheck } = await sbClient.from('giorni_eccezionali').select('data');
+        if (errEccCheck) {
+            console.error("Errore check eccezioni:", errEccCheck);
+            alert("Errore check festività: " + (errEccCheck.message || JSON.stringify(errEccCheck)));
+        }
+        
         if (eccAttuali && eccAttuali.length > 0) {
             const datesToDelete = eccAttuali.map(e => e.data);
-            await sbClient.from('giorni_eccezionali').delete().in('data', datesToDelete);
+            const { error: errDel } = await sbClient.from('giorni_eccezionali').delete().in('data', datesToDelete);
+            if (errDel) {
+                console.error("Errore delete eccezioni:", errDel);
+                alert("Errore rimozione vecchie festività: " + (errDel.message || JSON.stringify(errDel)));
+            }
         }
         
         if (impostazioni.giorniEccezionali.length > 0) {
@@ -195,7 +215,11 @@ FranklinApp.Storage = {
                 dalle: e.dalle || '',
                 alle: e.alle || ''
             }));
-            await sbClient.from('giorni_eccezionali').insert(eccRows);
+            const { error: errIns } = await sbClient.from('giorni_eccezionali').insert(eccRows);
+            if (errIns) {
+                console.error("Errore inserimento eccezioni:", errIns);
+                alert("Errore salvataggio nuove festività: " + (errIns.message || JSON.stringify(errIns)));
+            }
         }
     }
     
