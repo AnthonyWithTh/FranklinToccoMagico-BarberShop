@@ -375,7 +375,7 @@ window.Agenda = (function() {
                         <div style="font-size: 0.74rem; color: var(--color-text-cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">&#x2702;&#xFE0F; ${nomeServizio}</div>
                         <div style="font-size: 0.74rem; color: var(--color-brass-light); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><strong>&#x23F1;&#xFE0F; ${durata} min</strong></div>
                         <div style="font-size: 0.74rem; color: var(--color-text-cream); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">&#x1F4DE; ${app.clienteTelefono || 'N/A'}</div>
-                        <div style="font-size: 0.68rem; color: rgba(245,235,210,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic;">Da: ${app.inseritoDa || (isRichiesta ? 'Cliente' : 'Admin')}</div>
+                        <div style="font-size: 0.68rem; color: rgba(245,235,210,0.6); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-style: italic;">Da: ${(isRichiesta || isNonConfermato) ? (app.inseritoDa || 'Cliente') : (app.confermatoDa || app.inseritoDa || 'Admin')}</div>
                         <div style="position: absolute; bottom: 5px; right: 5px; display: flex; gap: 4px; z-index: 20;">${pulsantiHtml}</div>
                     </div>
                 `;
