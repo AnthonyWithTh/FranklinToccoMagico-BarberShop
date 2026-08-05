@@ -223,12 +223,7 @@
             }
         }
 
-        function togglePasswordInTable(userId) {
-            const pwdField = document.getElementById('pwd-' + userId);
-            const btn = document.getElementById('btn-pwd-' + userId);
-            const authData = window.FranklinApp.Storage.ottieniAuth();
-            const utente = authData.utenti.find(u => u.id === userId);
-            
+
         async function caricaUtenti() {
             const sb = window.FranklinApp.Storage.supabase;
             const { data: utenti } = await sb.from('utenti').select('*').order('nome', { ascending: true });
