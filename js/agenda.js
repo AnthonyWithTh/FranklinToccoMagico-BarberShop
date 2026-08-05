@@ -284,11 +284,25 @@ window.Agenda = (function() {
             
             if (startCell) {
                 const statoStr = (app.stato || 'Confermato').toLowerCase();
-                const isRichiesta = (statoStr === 'richiesto' || statoStr === 'in_attesa');
+                let isRichiesta = (statoStr === 'richiesto' || statoStr === 'in_attesa');
+                let isCompletato = (statoStr === 'completato');
+                
+                // Controlla se l'appuntamento è nel passato
+                const [hOra, mOra] = app.ora.split(':').map(Number);
+                const appDate = new Date(app.data);
+                appDate.setHours(hOra, mOra + durata, 0, 0); // Fine dell'appuntamento
+                
+                if (!isCompletato && appDate < new Date()) {
+                    isCompletato = true;
+                }
                 
                 let bg;
                 let borderStyle;
-                if (isRichiesta) {
+                if (isCompletato) {
+                    // Celestina per Completato
+                    bg = 'linear-gradient(135deg, rgba(30, 80, 160, 0.96), rgba(15, 45, 100, 0.96))';
+                    borderStyle = '1px solid #42a5f5';
+                } else if (isRichiesta) {
                     // Pastello scuro ambra / senape per Richiesta
                     bg = 'linear-gradient(135deg, rgba(88, 72, 28, 0.96), rgba(64, 50, 18, 0.96))';
                     borderStyle = '1px solid #b89428';
@@ -299,27 +313,27 @@ window.Agenda = (function() {
                 }
                 
                 // Tasti piccoli e laterali in basso a destra:
-                // Se 'Richiesta': Croce Rossa (Rifiuta) + Checkmark Verde (Accetta)
-                // Se 'Confermato': Cestino (Elimina) + Matita (Modifica)
                 let pulsantiHtml = '';
-                const btnCommonStyle = 'width:24px; height:24px; min-width:24px; border-radius:4px; padding:0; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-size: 0.72rem; transition: transform 0.15s ease;';
-                
-                if (isRichiesta) {
-                    pulsantiHtml = `
-                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Confermato')" 
-                                style="${btnCommonStyle} background:rgba(46,125,50,0.85); border:1px solid #4caf50;" 
-                                title="Accetta e Conferma">&#x2705;</button>
-                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" 
-                                style="${btnCommonStyle} background:rgba(180,40,40,0.85); border:1px solid #e53935;" 
-                                title="Rifiuta e Cancella">&#x274C;</button>`;
-                } else {
-                    pulsantiHtml = `
-                        <button onclick="event.stopPropagation(); window.Agenda.modificaAppuntamento('${app.id}')" 
-                                style="${btnCommonStyle} background:rgba(184,134,11,0.75); border:1px solid #c5a059;" 
-                                title="Modifica">&#x270F;&#xFE0F;</button>
-                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" 
-                                style="${btnCommonStyle} background:rgba(180,40,40,0.85); border:1px solid #e53935;" 
-                                title="Elimina">&#x1F5D1;&#xFE0F;</button>`;
+                if (!isCompletato) {
+                    const btnCommonStyle = 'width:24px; height:24px; min-width:24px; border-radius:4px; padding:0; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-size: 0.72rem; transition: transform 0.15s ease;';
+                    
+                    if (isRichiesta) {
+                        pulsantiHtml = `
+                            <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Confermato')" 
+                                    style="${btnCommonStyle} background:rgba(46,125,50,0.85); border:1px solid #4caf50;" 
+                                    title="Accetta e Conferma">&#x2705;</button>
+                            <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" 
+                                    style="${btnCommonStyle} background:rgba(180,40,40,0.85); border:1px solid #e53935;" 
+                                    title="Rifiuta e Cancella">&#x274C;</button>`;
+                    } else {
+                        pulsantiHtml = `
+                            <button onclick="event.stopPropagation(); window.Agenda.modificaAppuntamento('${app.id}')" 
+                                    style="${btnCommonStyle} background:rgba(184,134,11,0.75); border:1px solid #c5a059;" 
+                                    title="Modifica">&#x270F;&#xFE0F;</button>
+                            <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" 
+                                    style="${btnCommonStyle} background:rgba(180,40,40,0.85); border:1px solid #e53935;" 
+                                    title="Cancella">&#x1F5D1;&#xFE0F;</button>`;
+                    }
                 }
 
                 // Punto esclamativo rosso ❗ in alto a destra se c'è una nota
@@ -542,21 +556,31 @@ window.Agenda = (function() {
         }
     }
 
-    async function cambiaStatoAppuntamento(appId, nuovoStato) {
+    async function cambiaStatoAppuntamento(id, nuovoStato) {
         if (!window.FranklinApp || !window.FranklinApp.Storage) return;
-        const appuntamenti = await window.FranklinApp.Storage.ottieniAppuntamenti();
-        const appIndex = appuntamenti.findIndex(a => a.id === appId);
-        if (appIndex > -1) {
-            const payload = { stato: nuovoStato };
-            
-            // Se confermato e originariamente inserito dal cliente, sovrascrivi con l'admin loggato
-            if (nuovoStato === 'Confermato' && appuntamenti[appIndex].inseritoDa === 'Cliente') {
-                const u = window.FranklinApp.Auth.getUtenteLoggato();
-                const nomeUtente = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
-                payload.confermatoDa = nomeUtente;
+        
+        try {
+            if (nuovoStato === 'Cancellato') {
+                await window.FranklinApp.Storage.eliminaAppuntamento(id);
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast(`Appuntamento eliminato!`, 'successo');
+                }
+            } else {
+                const payload = { stato: nuovoStato };
+                if (nuovoStato === 'Confermato') {
+                    const appuntamenti = await window.FranklinApp.Storage.ottieniAppuntamenti();
+                    const app = appuntamenti.find(a => a.id === id);
+                    if (app && app.inseritoDa === 'Cliente') {
+                        const u = await window.FranklinApp.Auth.getUtenteLoggato();
+                        const nomeUtente = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
+                        payload.confermatoDa = nomeUtente;
+                    }
+                }
+                await window.FranklinApp.Storage.aggiornaAppuntamento(id, payload);
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast(`Appuntamento ${nuovoStato.toLowerCase()}!`, 'successo');
+                }
             }
-            
-            await window.FranklinApp.Storage.aggiornaAppuntamento(appId, payload);
             await render();
             
             if (window.FranklinApp.Admin && typeof window.FranklinApp.Admin.mostraToast === 'function') {
@@ -565,6 +589,8 @@ window.Agenda = (function() {
                     nuovoStato === 'cancellato' ? 'errore' : 'successo'
                 );
             }
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -577,7 +603,7 @@ window.Agenda = (function() {
         
         // Apri il modale di nuovo appuntamento
         if (window.FranklinApp.Admin) {
-            window.FranklinApp.Admin.apriModaleNuovoAppuntamento();
+            await window.FranklinApp.Admin.apriModaleNuovoAppuntamento();
             
             // Pre-compila i campi con i dati esistenti
             var selectServizio = document.getElementById('nuovo-appuntamento-servizio');
