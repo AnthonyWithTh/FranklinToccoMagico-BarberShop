@@ -276,5 +276,55 @@ FranklinApp.Storage = {
   },
 
   esportaTutto() { return ""; },
-  importaTutto(jsonData) { return false; }
+  importaTutto(jsonData) { return false; },
+
+  // --- STORAGE BUCKET METHODS ---
+  async uploadImmagine(file, cartella) {
+    if (!file) return null;
+    
+    // Crea un nome file unico per evitare sovrascritture
+    const ext = file.name.split('.').pop();
+    const nomeOriginale = file.name.replace(`.${ext}`, '').replace(/[^a-zA-Z0-9]/g, '_');
+    const nomeUnico = `${nomeOriginale}_${Date.now()}.${ext}`;
+    const percorso = `${cartella}/${nomeUnico}`;
+
+    const { data, error } = await sbClient.storage
+      .from('immagini')
+      .upload(percorso, file);
+
+    if (error) {
+      console.error("Errore upload immagine:", error);
+      alert("Errore durante il caricamento dell'immagine: " + error.message);
+      return null;
+    }
+
+    return this.getPublicUrl(percorso);
+  },
+
+  async listaImmagini(cartella) {
+    const { data, error } = await sbClient.storage
+      .from('immagini')
+      .list(cartella, {
+        limit: 100,
+        offset: 0,
+        sortBy: { column: 'created_at', order: 'desc' },
+      });
+
+    if (error) {
+      console.error(`Errore lista immagini in ${cartella}:`, error);
+      return [];
+    }
+
+    // Converti i file nei loro URL pubblici
+    return data
+        .filter(file => file.name !== '.emptyFolderPlaceholder')
+        .map(file => this.getPublicUrl(`${cartella}/${file.name}`));
+  },
+
+  getPublicUrl(percorso) {
+    const { data } = sbClient.storage
+      .from('immagini')
+      .getPublicUrl(percorso);
+    return data.publicUrl;
+  }
 };

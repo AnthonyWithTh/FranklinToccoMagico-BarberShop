@@ -279,9 +279,8 @@
             caricaBarbieri();
         });
 
-        let barbiereFileCaricatoDataUrl = null;
+        let barbiereFileDaUploadare = null;
         let barbiereFileCaricatoNome = null;
-        let listaImmaginiBarbieri = [];
 
         function mostraTabImmagineBarbiere(tab) {
             const btnUpload = document.getElementById('btn-barbiere-tab-upload');
@@ -314,16 +313,12 @@
                 { val: '../assets/images/barbiere-alessandro.jpg', label: 'Avatar Alessandro (Default)' }
             ];
 
-            const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
-            barbieri.forEach(b => {
-                const img = b.foto || b.ritratto;
-                if (img) {
-                    if (img.startsWith('data:image/')) {
-                        opzioni.push({ val: img, label: `Foto di ${b.nome} ${b.cognome}` });
-                    } else if (!opzioni.find(o => o.val === img)) {
-                        const nomeFile = img.split('/').pop() || img;
-                        opzioni.push({ val: img, label: nomeFile });
-                    }
+            // Ottieni lista immagini dal bucket Supabase!
+            const storageImmagini = await window.FranklinApp.Storage.listaImmagini('barbieri') || [];
+            storageImmagini.forEach(imgUrl => {
+                const nomeFile = imgUrl.split('/').pop().split('?')[0] || imgUrl;
+                if (!opzioni.find(o => o.val === imgUrl)) {
+                    opzioni.push({ val: imgUrl, label: `☁️ ${nomeFile}` });
                 }
             });
 
@@ -359,24 +354,19 @@
         function gestisciCaricamentoFileBarbiere(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
+                barbiereFileDaUploadare = file;
                 barbiereFileCaricatoNome = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    barbiereFileCaricatoDataUrl = e.target.result;
-                    const relPath = 'assets/images/barbieri/' + barbiereFileCaricatoNome;
-                    document.getElementById('barbiere-foto').value = relPath;
-                    
-                    try {
-                        localStorage.setItem('img_cache_' + relPath, barbiereFileCaricatoDataUrl);
-                    } catch(err) {}
-                    
-                    const img = document.getElementById('barbiere-anteprima-img');
-                    if (img) img.src = barbiereFileCaricatoDataUrl;
+                
+                // Anteprima immediata
+                const previewUrl = URL.createObjectURL(file);
+                const img = document.getElementById('barbiere-anteprima-img');
+                if (img) img.src = previewUrl;
 
-                    const display = document.getElementById('barbiere-immagine-nome-display');
-                    if (display) display.textContent = 'Nuovo file: ' + barbiereFileCaricatoNome;
-                };
-                reader.readAsDataURL(file);
+                const display = document.getElementById('barbiere-immagine-nome-display');
+                if (display) display.textContent = 'Da caricare: ' + barbiereFileCaricatoNome;
+                
+                // Pulisci il campo foto per dire che usiamo il nuovo file
+                document.getElementById('barbiere-foto').value = '';
             }
         }
 
@@ -525,7 +515,7 @@
             const display = document.getElementById('barbiere-immagine-nome-display');
             
             form.reset();
-            barbiereFileCaricatoDataUrl = null;
+            barbiereFileDaUploadare = null;
             barbiereFileCaricatoNome = null;
             if (fileInput) fileInput.value = '';
             mostraTabImmagineBarbiere('upload');
@@ -619,18 +609,30 @@
                 return;
             }
 
-            let fotoFinale = foto;
-            if (barbiereFileCaricatoDataUrl) {
-                fotoFinale = barbiereFileCaricatoDataUrl;
+            let finalFoto = foto;
+
+            if (barbiereFileDaUploadare) {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Caricamento immagine in corso...", "info");
+                }
+                const btnSave = event ? event.target.querySelector('button[type="submit"]') : null;
+                if (btnSave) btnSave.disabled = true;
+
+                const urlStorage = await window.FranklinApp.Storage.uploadImmagine(barbiereFileDaUploadare, 'barbieri');
+                
+                if (btnSave) btnSave.disabled = false;
+                
+                if (!urlStorage) return; // Errore già mostrato da uploadImmagine
+                finalFoto = urlStorage;
             }
 
             const payload = {
-                nome: nome,
-                cognome: cognome,
+                nome,
+                cognome,
                 data_nascita: dataNascita,
-                ruolo: ruolo,
-                foto: fotoFinale,
-                descrizione: descrizione
+                ruolo,
+                foto: finalFoto,
+                descrizione
             };
             
             let success = false;

@@ -171,9 +171,8 @@
             }
         });
 
-        let fileCaricatoDataUrl = null;
+        let servizioFileDaUploadare = null;
         let fileCaricatoNome = null;
-        let listaImmaginiCaricate = [];
 
         function mostraTabImmagine(tab) {
             const btnUpload = document.getElementById('btn-tab-upload');
@@ -199,41 +198,35 @@
             const select = document.getElementById('servizio-immagine-esistente');
             if (!select) return;
 
-            try {
-                const res = await fetch('/list-images');
-                const data = await res.json();
-                if (data.status === 'success' && Array.isArray(data.images)) {
-                    listaImmaginiCaricate = data.images.filter(img => img.startsWith('assets/images/servizi/'));
-                }
-            } catch(e) {
-                console.warn("Impossibile recuperare immagini da server, uso lista fallback:", e);
-                listaImmaginiCaricate = [];
-            }
+            let opzioni = [
+                { val: '../assets/images/hero-bg.jpg', label: 'Immagine Sfondo Default' },
+                { val: '../assets/images/taglio-capelli.jpg', label: 'Taglio Capelli Default' },
+                { val: '../assets/images/taglio-barba.jpg', label: 'Taglio Barba Default' }
+            ];
 
-            const servizi = window.FranklinApp.Storage.ottieniServizi();
-            servizi.forEach(s => {
-                if (s.immagine && s.immagine.startsWith('assets/images/servizi/') && !listaImmaginiCaricate.includes(s.immagine)) {
-                    listaImmaginiCaricate.push(s.immagine);
+            // Ottieni lista immagini dal bucket Supabase!
+            const storageImmagini = await window.FranklinApp.Storage.listaImmagini('servizi') || [];
+            storageImmagini.forEach(imgUrl => {
+                const nomeFile = imgUrl.split('/').pop().split('?')[0] || imgUrl;
+                if (!opzioni.find(o => o.val === imgUrl)) {
+                    opzioni.push({ val: imgUrl, label: `☁️ ${nomeFile}` });
                 }
             });
 
             const valAttuale = document.getElementById('servizio-immagine').value;
             let optionsHtml = '<option value="">Seleziona immagine</option>';
-            if (listaImmaginiCaricate.length === 0) {
-                optionsHtml += '<option value="" disabled>Nessuna immagine trovata in assets/images/servizi/</option>';
-            } else {
-                listaImmaginiCaricate.forEach(img => {
-                    const selected = (img === valAttuale) ? 'selected' : '';
-                    const nomeFile = img.split('/').pop() || img;
-                    optionsHtml += `<option value="${img}" ${selected}>${nomeFile}</option>`;
-                });
-            }
+            
+            opzioni.forEach(opt => {
+                const selected = (opt.val === valAttuale) ? 'selected' : '';
+                optionsHtml += `<option value="${opt.val}" ${selected}>${opt.label}</option>`;
+            });
+
             select.innerHTML = optionsHtml;
         }
 
         function selezionaImmagineEsistente(val) {
             if (!val) return;
-            fileCaricatoDataUrl = null;
+            servizioFileDaUploadare = null;
             fileCaricatoNome = null;
             document.getElementById('servizio-file').value = '';
             document.getElementById('servizio-immagine').value = val;
@@ -252,24 +245,19 @@
         function gestisciCaricamentoFileServizio(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
+                servizioFileDaUploadare = file;
                 fileCaricatoNome = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    fileCaricatoDataUrl = e.target.result;
-                    const relPath = 'assets/images/servizi/' + fileCaricatoNome;
-                    document.getElementById('servizio-immagine').value = relPath;
-                    
-                    try {
-                        localStorage.setItem('img_cache_' + relPath, fileCaricatoDataUrl);
-                    } catch(err) {}
-                    
-                    const img = document.getElementById('servizio-anteprima-img');
-                    if (img) img.src = fileCaricatoDataUrl;
+                
+                // Anteprima immediata
+                const previewUrl = URL.createObjectURL(file);
+                const img = document.getElementById('servizio-anteprima-img');
+                if (img) img.src = previewUrl;
 
-                    const display = document.getElementById('servizio-immagine-nome-display');
-                    if (display) display.textContent = 'Nuovo file: ' + fileCaricatoNome;
-                };
-                reader.readAsDataURL(file);
+                const display = document.getElementById('servizio-immagine-nome-display');
+                if (display) display.textContent = 'Da caricare: ' + fileCaricatoNome;
+                
+                // Pulisci il campo foto
+                document.getElementById('servizio-immagine').value = '';
             }
         }
 
@@ -295,7 +283,7 @@
             const display = document.getElementById('servizio-immagine-nome-display');
             
             form.reset();
-            fileCaricatoDataUrl = null;
+            servizioFileDaUploadare = null;
             fileCaricatoNome = null;
             if (fileInput) fileInput.value = '';
             mostraTabImmagine('upload');
@@ -376,21 +364,21 @@
                     return;
                 }
 
-                if (fileCaricatoDataUrl && fileCaricatoNome) {
-                    try {
-                        const res = await fetch('/upload', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                filename: fileCaricatoNome,
-                                data: fileCaricatoDataUrl
-                            })
-                        });
-                        const resJson = await res.json();
-                        console.log("Upload eseguito su disco:", resJson);
-                    } catch(err) {
-                        console.error("Errore durante upload su disco:", err);
+                let finalImmagine = immagine;
+
+                if (servizioFileDaUploadare) {
+                    if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                        window.FranklinApp.Admin.mostraToast("Caricamento immagine in corso...", "info");
                     }
+                    const btnSave = event ? event.target.querySelector('button[type="submit"]') : null;
+                    if (btnSave) btnSave.disabled = true;
+
+                    const urlStorage = await window.FranklinApp.Storage.uploadImmagine(servizioFileDaUploadare, 'servizi');
+                    
+                    if (btnSave) btnSave.disabled = false;
+                    
+                    if (!urlStorage) return; 
+                    finalImmagine = urlStorage;
                 }
 
                 const datiForm = {
@@ -400,7 +388,7 @@
                     durata: durata,
                     prezzo: prezzo,
                     descrizione: descrizione,
-                    immagine: immagine,
+                    immagine: finalImmagine,
                     attivo: document.getElementById('servizio-stato-hidden').value === 'true'
                 };
                 window.FranklinApp.Admin.salvaServizio(datiForm);
