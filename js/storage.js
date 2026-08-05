@@ -167,10 +167,8 @@ FranklinApp.Storage = {
         orari.forEach(o => {
             orariMap[o.giorno] = {
                 chiuso: o.chiuso,
-                mattinaApertura: o.mattina_apertura || '',
-                mattinaChiusura: o.mattina_chiusura || '',
-                pomeriggioApertura: o.pomeriggio_apertura || '',
-                pomeriggioChiusura: o.pomeriggio_chiusura || ''
+                orarioMattina: o.orario_mattina || '09:00-13:00',
+                orarioPomeriggio: o.orario_pomeriggio || '15:00-19:00'
             };
         });
     }
@@ -220,10 +218,8 @@ FranklinApp.Storage = {
                 id: dayIds[giorno] || 0,
                 giorno: giorno,
                 chiuso: o.chiuso,
-                mattina_apertura: o.mattinaApertura || '',
-                mattina_chiusura: o.mattinaChiusura || '',
-                pomeriggio_apertura: o.pomeriggioApertura || '',
-                pomeriggio_chiusura: o.pomeriggioChiusura || ''
+                orario_mattina: o.orarioMattina || '09:00-13:00',
+                orario_pomeriggio: o.orarioPomeriggio || '15:00-19:00'
             };
         });
         if (orariRows.length > 0) {

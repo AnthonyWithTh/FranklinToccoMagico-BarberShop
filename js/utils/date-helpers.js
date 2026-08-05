@@ -189,12 +189,22 @@ FranklinApp.DateHelpers = {
 
     // 4. Calcola fasce orarie di apertura del giorno
     const fasce = [];
-    if (orariConfig.mattinaApertura && orariConfig.mattinaChiusura) {
+    
+    // Supporto per il nuovo formato a range
+    if (orariConfig.orarioMattina && orariConfig.orarioMattina.includes('-')) {
+      const parts = orariConfig.orarioMattina.split('-');
+      fasce.push({ inizio: parts[0], fine: parts[1] });
+    } else if (orariConfig.mattinaApertura && orariConfig.mattinaChiusura) {
       fasce.push({ inizio: orariConfig.mattinaApertura, fine: orariConfig.mattinaChiusura });
     }
-    if (orariConfig.pomeriggioApertura && orariConfig.pomeriggioChiusura) {
+    
+    if (orariConfig.orarioPomeriggio && orariConfig.orarioPomeriggio.includes('-')) {
+      const parts = orariConfig.orarioPomeriggio.split('-');
+      fasce.push({ inizio: parts[0], fine: parts[1] });
+    } else if (orariConfig.pomeriggioApertura && orariConfig.pomeriggioChiusura) {
       fasce.push({ inizio: orariConfig.pomeriggioApertura, fine: orariConfig.pomeriggioChiusura });
     }
+    
     if (fasce.length === 0 && (orariConfig.apertura || orariConfig.mattinaApertura)) {
       const ap = orariConfig.apertura || orariConfig.mattinaApertura;
       const ch = orariConfig.chiusura || orariConfig.pomeriggioChiusura || "19:00";

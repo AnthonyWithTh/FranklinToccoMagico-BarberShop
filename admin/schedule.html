@@ -55,12 +55,10 @@
                         <thead>
                             <tr>
                                 <th>Giorno</th>
-                                <th>Chiuso</th>
-                                <th>Apertura Mattina</th>
-                                <th>Chiusura Mattina</th>
-                                <th>Apertura Pomeriggio</th>
-                                <th>Chiusura Pomeriggio</th>
-                                <th>Totale</th>
+                                <th style="width: 80px;">Chiuso</th>
+                                <th style="width: 35%;">Orario Mattina (06:00 - 14:00)</th>
+                                <th style="width: 35%;">Orario Pomeriggio (14:00 - 21:00)</th>
+                                <th style="width: 100px;">Totale</th>
                             </tr>
                         </thead>
                         <tbody id="orari-tbody">
@@ -199,24 +197,26 @@
                     tbody.innerHTML = '';
                     const giorni = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'];
                     giorni.forEach(giorno => {
-                        const orario = orariMap[giorno] || { chiuso: false, mattinaApertura: '', mattinaChiusura: '', pomeriggioApertura: '', pomeriggioChiusura: '' };
+                        const orario = orariMap[giorno] || { chiuso: false, orarioMattina: '09:00-13:00', orarioPomeriggio: '15:00-19:00' };
                         const checked = orario.chiuso ? 'checked' : '';
-                        const disabled = orario.chiuso ? 'disabled' : '';
                         const opacity = orario.chiuso ? 'opacity: 0.4; filter: grayscale(1);' : '';
                         
                         tbody.innerHTML += `
                             <tr data-giorno="${giorno}" style="${opacity} transition: all 0.3s ease;">
-                                <td style="text-transform: capitalize;">${giorno}</td>
+                                <td style="text-transform: capitalize; font-weight: bold;">${giorno}</td>
                                 <td><input type="checkbox" class="check-chiuso" ${checked} onchange="toggleChiusura(this)"></td>
-                                <td><select class="vintage-select m-apertura" ${disabled} onchange="autoSalvaOrari()">${generaOpzioniScaglioni(orario.mattinaApertura)}</select></td>
-                                <td><select class="vintage-select m-chiusura" ${disabled} onchange="autoSalvaOrari()">${generaOpzioniScaglioni(orario.mattinaChiusura)}</select></td>
-                                <td><select class="vintage-select p-apertura" ${disabled} onchange="autoSalvaOrari()">${generaOpzioniScaglioni(orario.pomeriggioApertura)}</select></td>
-                                <td><select class="vintage-select p-chiusura" ${disabled} onchange="autoSalvaOrari()">${generaOpzioniScaglioni(orario.pomeriggioChiusura)}</select></td>
+                                <td>
+                                    <div class="dual-slider-container" data-type="mattina" data-min="360" data-max="840" data-step="15" data-val="${orario.orarioMattina}"></div>
+                                </td>
+                                <td>
+                                    <div class="dual-slider-container" data-type="pomeriggio" data-min="840" data-max="1260" data-step="15" data-val="${orario.orarioPomeriggio}"></div>
+                                </td>
                                 <td class="totale-ore-giorno">0h</td>
                             </tr>
                         `;
                     });
                     calcolaTotaleSettimana();
+                    inizializzaDualSliders();
 
                     // Tabella 2: Giorni Eccezionali
                     let eccezioni = imp.giorniEccezionali || [];
@@ -236,10 +236,93 @@
             }
         }
 
+        function timeToMins(t) {
+            if (!t) return 0;
+            const [h, m] = t.split(':').map(Number);
+            return h * 60 + m;
+        }
+
+        function minsToTime(m) {
+            const h = Math.floor(m / 60).toString().padStart(2, '0');
+            const min = (m % 60).toString().padStart(2, '0');
+            return `${h}:${min}`;
+        }
+
+        function inizializzaDualSliders() {
+            document.querySelectorAll('.dual-slider-container').forEach(container => {
+                if(container.hasAttribute('data-initialized')) return;
+                
+                const min = parseInt(container.getAttribute('data-min'));
+                const max = parseInt(container.getAttribute('data-max'));
+                const step = parseInt(container.getAttribute('data-step'));
+                const valStr = container.getAttribute('data-val') || '';
+                
+                let startMins = min;
+                let endMins = max;
+                
+                if (valStr && valStr.includes('-')) {
+                    const parts = valStr.split('-');
+                    startMins = timeToMins(parts[0]);
+                    endMins = timeToMins(parts[1]);
+                }
+                
+                container.innerHTML = `
+                    <input type="range" class="range-min" min="${min}" max="${max}" step="${step}" value="${startMins}">
+                    <input type="range" class="range-max" min="${min}" max="${max}" step="${step}" value="${endMins}">
+                    <div class="dual-slider-track"></div>
+                    <div class="dual-slider-fill"></div>
+                    <div class="dual-slider-labels">
+                        <span class="label-min" style="font-weight:bold;">${minsToTime(startMins)}</span>
+                        <span class="label-max" style="font-weight:bold;">${minsToTime(endMins)}</span>
+                    </div>
+                `;
+                
+                const inputMin = container.querySelector('.range-min');
+                const inputMax = container.querySelector('.range-max');
+                const fill = container.querySelector('.dual-slider-fill');
+                const labelMin = container.querySelector('.label-min');
+                const labelMax = container.querySelector('.label-max');
+                
+                function updateSlider(e) {
+                    let minVal = parseInt(inputMin.value);
+                    let maxVal = parseInt(inputMax.value);
+                    
+                    if (minVal >= maxVal) {
+                        if (e && e.target === inputMin) {
+                            inputMin.value = maxVal - step;
+                            minVal = parseInt(inputMin.value);
+                        } else {
+                            inputMax.value = minVal + step;
+                            maxVal = parseInt(inputMax.value);
+                        }
+                    }
+                    
+                    const percentMin = ((minVal - min) / (max - min)) * 100;
+                    const percentMax = ((maxVal - min) / (max - min)) * 100;
+                    
+                    fill.style.left = percentMin + '%';
+                    fill.style.width = (percentMax - percentMin) + '%';
+                    
+                    labelMin.textContent = minsToTime(minVal);
+                    labelMax.textContent = minsToTime(maxVal);
+                    
+                    container.setAttribute('data-val', `${minsToTime(minVal)}-${minsToTime(maxVal)}`);
+                }
+                
+                inputMin.addEventListener('input', updateSlider);
+                inputMax.addEventListener('input', updateSlider);
+                inputMin.addEventListener('change', autoSalvaOrari);
+                inputMax.addEventListener('change', autoSalvaOrari);
+                
+                updateSlider();
+                container.setAttribute('data-initialized', 'true');
+            });
+        }
+
         function toggleChiusura(checkbox) {
             const tr = checkbox.closest('tr');
-            const selects = tr.querySelectorAll('select');
-            selects.forEach(sel => {
+            const sliders = tr.querySelectorAll('input[type="range"]');
+            sliders.forEach(sel => {
                 sel.disabled = checkbox.checked;
             });
             if (checkbox.checked) {
@@ -252,10 +335,11 @@
             autoSalvaOrari();
         }
         
-        function calcolaOre(inizio, fine) {
-            if (!inizio || !fine) return 0;
-            const [h1, m1] = inizio.split(':').map(Number);
-            const [h2, m2] = fine.split(':').map(Number);
+        function calcolaOreRange(rangeStr) {
+            if (!rangeStr || !rangeStr.includes('-')) return 0;
+            const parts = rangeStr.split('-');
+            const [h1, m1] = parts[0].split(':').map(Number);
+            const [h2, m2] = parts[1].split(':').map(Number);
             let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
             return diff > 0 ? diff / 60 : 0;
         }
@@ -266,13 +350,11 @@
                 const chiuso = tr.querySelector('.check-chiuso').checked;
                 let totaleGiorno = 0;
                 if (!chiuso) {
-                    const ma = tr.querySelector('.m-apertura').value;
-                    const mc = tr.querySelector('.m-chiusura').value;
-                    const pa = tr.querySelector('.p-apertura').value;
-                    const pc = tr.querySelector('.p-chiusura').value;
+                    const sliderM = tr.querySelector('.dual-slider-container[data-type="mattina"]');
+                    const sliderP = tr.querySelector('.dual-slider-container[data-type="pomeriggio"]');
                     
-                    totaleGiorno += calcolaOre(ma, mc);
-                    totaleGiorno += calcolaOre(pa, pc);
+                    if (sliderM) totaleGiorno += calcolaOreRange(sliderM.getAttribute('data-val'));
+                    if (sliderP) totaleGiorno += calcolaOreRange(sliderP.getAttribute('data-val'));
                 }
                 tr.querySelector('.totale-ore-giorno').textContent = totaleGiorno > 0 ? (Math.round(totaleGiorno * 10) / 10) + ' ore' : '0 ore';
                 totaleSettimana += totaleGiorno;
@@ -289,12 +371,13 @@
                 
                 document.querySelectorAll('#orari-tbody tr').forEach(tr => {
                     const giorno = tr.getAttribute('data-giorno');
+                    const sliderM = tr.querySelector('.dual-slider-container[data-type="mattina"]');
+                    const sliderP = tr.querySelector('.dual-slider-container[data-type="pomeriggio"]');
+                    
                     orariMap[giorno] = {
                         chiuso: tr.querySelector('.check-chiuso').checked,
-                        mattinaApertura: tr.querySelector('.m-apertura').value,
-                        mattinaChiusura: tr.querySelector('.m-chiusura').value,
-                        pomeriggioApertura: tr.querySelector('.p-apertura').value,
-                        pomeriggioChiusura: tr.querySelector('.p-chiusura').value
+                        orarioMattina: sliderM ? sliderM.getAttribute('data-val') : '09:00-13:00',
+                        orarioPomeriggio: sliderP ? sliderP.getAttribute('data-val') : '15:00-19:00'
                     };
                 });
                 
