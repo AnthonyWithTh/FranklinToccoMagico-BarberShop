@@ -130,17 +130,54 @@ FranklinApp.Storage = {
   async ottieniAppuntamenti() {
     const { data, error } = await sbClient.from('appuntamenti').select('*').order('data', { ascending: true }).order('ora', { ascending: true });
     if (error) console.error("Errore fetch appuntamenti:", error);
-    return data || [];
+    if (!data) return [];
+    
+    return data.map(app => ({
+      id: app.id.toString(),
+      clienteNome: app.cliente_nome,
+      clienteTelefono: app.cliente_telefono,
+      clienteEmail: app.cliente_email,
+      data: app.data,
+      ora: app.ora ? app.ora.substring(0, 5) : '', // '14:30:00' -> '14:30'
+      servizioId: app.servizio_id ? app.servizio_id.toString() : null,
+      barbiereId: app.barbiere_id ? app.barbiere_id.toString() : null,
+      stato: app.stato,
+      note: app.note,
+      inseritoDa: app.inserito_da
+    }));
   },
   
   async aggiungiAppuntamento(datiApp) {
-    const { data, error } = await sbClient.from('appuntamenti').insert([datiApp]).select();
-    if (error) { console.error(error); return null; }
+    const payload = {
+      cliente_nome: datiApp.clienteNome,
+      cliente_telefono: datiApp.clienteTelefono,
+      cliente_email: datiApp.clienteEmail || null,
+      data: datiApp.data,
+      ora: datiApp.ora,
+      servizio_id: datiApp.servizioId,
+      barbiere_id: datiApp.barbiereId,
+      stato: datiApp.stato,
+      note: datiApp.note || '',
+      inserito_da: datiApp.inseritoDa || 'Cliente'
+    };
+    const { data, error } = await sbClient.from('appuntamenti').insert([payload]).select();
+    if (error) { console.error("Errore aggiunta appuntamento:", error); return null; }
     return data[0].id;
   },
   
   async aggiornaAppuntamento(id, datiAggiornati) {
-    const { error } = await sbClient.from('appuntamenti').update(datiAggiornati).eq('id', id);
+    const payload = {};
+    if (datiAggiornati.clienteNome !== undefined) payload.cliente_nome = datiAggiornati.clienteNome;
+    if (datiAggiornati.clienteTelefono !== undefined) payload.cliente_telefono = datiAggiornati.clienteTelefono;
+    if (datiAggiornati.clienteEmail !== undefined) payload.cliente_email = datiAggiornati.clienteEmail;
+    if (datiAggiornati.data !== undefined) payload.data = datiAggiornati.data;
+    if (datiAggiornati.ora !== undefined) payload.ora = datiAggiornati.ora;
+    if (datiAggiornati.servizioId !== undefined) payload.servizio_id = datiAggiornati.servizioId;
+    if (datiAggiornati.barbiereId !== undefined) payload.barbiere_id = datiAggiornati.barbiereId;
+    if (datiAggiornati.stato !== undefined) payload.stato = datiAggiornati.stato;
+    if (datiAggiornati.note !== undefined) payload.note = datiAggiornati.note;
+    
+    const { error } = await sbClient.from('appuntamenti').update(payload).eq('id', id);
     return !error;
   },
   

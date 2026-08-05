@@ -67,8 +67,11 @@ FranklinApp.DateHelpers = {
     return slots.length > 0;
   },
 
-  async controllaConflitto(data, oraInizioMin, durata, barbiereId, escludiId = null) {
-    const appuntamenti = await window.FranklinApp.Storage.ottieniAppuntamenti() || [];
+  async controllaConflitto(data, oraInizioMin, durata, barbiereId, escludiId = null, dbData = null) {
+    const appuntamenti = dbData ? dbData.appuntamenti : (await window.FranklinApp.Storage.ottieniAppuntamenti() || []);
+    const servizi = dbData ? dbData.servizi : (await window.FranklinApp.Storage.ottieniServizi() || []);
+    const barbieri = dbData ? dbData.barbieri : (await window.FranklinApp.Storage.ottieniBarbieri() || []);
+    
     const oraFineMin = oraInizioMin + durata;
 
     // 1. Controlla accavallamento temporale con appuntamenti esistenti
@@ -78,7 +81,6 @@ FranklinApp.DateHelpers = {
       if (barbiereId && app.barbiereId && app.barbiereId !== barbiereId) continue;
       if (escludiId && app.id === escludiId) continue;
 
-      const servizi = await window.FranklinApp.Storage.ottieniServizi() || [];
       const servizio = servizi.find(s => s.id === app.servizioId);
       const appDurata = app.durata ? parseInt(app.durata, 10) : (servizio ? parseInt(servizio.durata, 10) : 30);
       
@@ -96,7 +98,6 @@ FranklinApp.DateHelpers = {
 
     // 2. Controlla accavallamento temporale con ferie/malattie/permessi/imprevisti del barbiere
     if (barbiereId) {
-      const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
       const barbiere = barbieri.find(b => b.id === barbiereId);
       if (barbiere) {
         const assenze = [
@@ -220,6 +221,12 @@ FranklinApp.DateHelpers = {
     const slotDisponibili = [];
     const oggiStr = this.oggi();
 
+    const dbData = {
+      appuntamenti: await window.FranklinApp.Storage.ottieniAppuntamenti() || [],
+      servizi: await window.FranklinApp.Storage.ottieniServizi() || [],
+      barbieri: await window.FranklinApp.Storage.ottieniBarbieri() || []
+    };
+
     const oraAttualeObj = new Date();
     const adessoMinuti = (oraAttualeObj.getHours() * 60) + oraAttualeObj.getMinutes();
 
@@ -232,7 +239,7 @@ FranklinApp.DateHelpers = {
         if (data === oggiStr && min <= adessoMinuti + 10) continue;
 
         // Verifica accavallamenti con appuntamenti o permessi parziali
-        const haConflitto = await this.controllaConflitto(data, min, durataServizio, barbiereId);
+        const haConflitto = await this.controllaConflitto(data, min, durataServizio, barbiereId, null, dbData);
         if (!haConflitto) {
           slotDisponibili.push(this.minutiInOra(min));
         }

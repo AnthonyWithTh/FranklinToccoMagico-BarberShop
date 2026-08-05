@@ -236,14 +236,37 @@ FranklinApp.Prenotazione = {
       return;
     }
     
+    const slotMattina = slotDisponibili.filter(ora => ora < '13:00');
+    const slotPomeriggio = slotDisponibili.filter(ora => ora >= '13:00');
+    
     let html = '';
-    slotDisponibili.forEach(ora => {
-      const isSelected = this.stato.ora === ora;
-      const btnStyle = isSelected 
-        ? 'background: var(--color-brass-base); color: var(--color-black-100); font-weight: bold; border-color: var(--color-brass-light); box-shadow: 0 0 10px rgba(197,160,89,0.5);'
-        : 'background: rgba(18,18,18,0.7); color: var(--color-text-cream); border: 1px solid var(--color-brass-dark);';
-      html += `<button type="button" class="orario-slot" style="padding: 8px 14px; border-radius: 6px; font-size: 0.92rem; cursor: pointer; transition: all 0.2s ease; ${btnStyle}" onclick="FranklinApp.Prenotazione.selezionaOra('${ora}')">${ora}</button>`;
-    });
+    
+    const renderButtons = (slots) => {
+      let btns = '';
+      slots.forEach(ora => {
+        const isSelected = this.stato.ora === ora;
+        const btnStyle = isSelected 
+          ? 'background: var(--color-brass-base); color: var(--color-black-100); font-weight: bold; border-color: var(--color-brass-light); box-shadow: 0 0 10px rgba(197,160,89,0.5);'
+          : 'background: rgba(18,18,18,0.7); color: var(--color-text-cream); border: 1px solid var(--color-brass-dark);';
+        btns += `<button type="button" class="orario-slot" style="padding: 8px 14px; border-radius: 6px; font-size: 0.92rem; cursor: pointer; transition: all 0.2s ease; margin: 4px; ${btnStyle}" onclick="FranklinApp.Prenotazione.selezionaOra('${ora}')">${ora}</button>`;
+      });
+      return btns;
+    };
+
+    if (slotMattina.length > 0) {
+      html += `<div style="width: 100%; margin-bottom: 1rem;">
+        <h5 style="color: var(--color-brass-base); margin: 0 0 8px 0; font-family: var(--font-admin); font-size: 0.9rem; border-bottom: 1px solid rgba(197,160,89,0.3); padding-bottom: 4px;">Mattina</h5>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px;">${renderButtons(slotMattina)}</div>
+      </div>`;
+    }
+    
+    if (slotPomeriggio.length > 0) {
+      html += `<div style="width: 100%;">
+        <h5 style="color: var(--color-brass-base); margin: 0 0 8px 0; font-family: var(--font-admin); font-size: 0.9rem; border-bottom: 1px solid rgba(197,160,89,0.3); padding-bottom: 4px;">Pomeriggio</h5>
+        <div style="display: flex; flex-wrap: wrap; gap: 4px;">${renderButtons(slotPomeriggio)}</div>
+      </div>`;
+    }
+
     slotsContainer.innerHTML = html;
     this.gestisciPulsantiNavigazione();
   },
