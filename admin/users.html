@@ -249,7 +249,7 @@
                         </td>
                         <td><span class="badge ${badgeClass}">${ruoloNome}</span></td>
                         <td>
-                            <button class="azioni-btn" onclick="modificaPasswordUtente('${utente.id}', '${utente.username}')" title="Cambia Password">🔑</button>
+                            <button class="azioni-btn" onclick="modificaUtente('${utente.id}')" title="Modifica">✏️</button>
                             ${(utente.username !== 'admin') ? `<button class="azioni-btn btn-danger" onclick="eliminaUtente('${utente.id}')" title="Elimina">🗑️</button>` : ''}
                         </td>
                     </tr>
@@ -276,26 +276,26 @@
             }
         }
 
-        async function modificaPasswordUtente(id, username) {
-            const nuovaPassword = prompt(`Inserisci la nuova password per l'utente ${username}:`);
-            if (!nuovaPassword) return; // annullato o stringa vuota
-            if (nuovaPassword.length < 6) {
-                mostraToast("La password deve essere lunga almeno 6 caratteri", "errore");
-                return;
-            }
-
+        async function modificaUtente(id) {
             const sb = window.FranklinApp.Storage.supabase;
-            const { data, error } = await sb.functions.invoke('manage-users', {
-                body: { action: 'update_password', userId: id, password: nuovaPassword }
-            });
+            const { data: utente } = await sb.from('utenti').select('*').eq('id', id).single();
+            
+            if (!utente) return;
 
-            if (error || (data && data.error)) {
-                mostraToast("Errore durante l'aggiornamento: " + (error?.message || data?.error), "errore");
-                return;
-            }
-
-            caricaUtenti();
-            mostraToast("Password aggiornata con successo", "successo");
+            document.getElementById('form-utente').reset();
+            document.getElementById('utente-id').value = utente.id;
+            document.getElementById('utente-nome').value = utente.nome ? utente.nome.split(' ')[0] : '';
+            document.getElementById('utente-cognome').value = utente.nome && utente.nome.split(' ').length > 1 ? utente.nome.split(' ').slice(1).join(' ') : '';
+            document.getElementById('utente-username').value = utente.username || '';
+            document.getElementById('utente-password').required = false;
+            
+            popolaSelectRuoli();
+            setTimeout(() => {
+                document.getElementById('utente-ruoloId').value = utente.ruoloid || utente.ruoloId;
+            }, 100);
+            
+            document.getElementById('modale-utente-titolo').textContent = "Modifica Profilo Utente";
+            document.getElementById('modale-utente').style.display = 'flex';
         }
 
         function apriModaleUtente() {
@@ -314,6 +314,7 @@
         }
 
         async function salvaUtente() {
+            const id = document.getElementById('utente-id').value;
             const nome = document.getElementById('utente-nome').value;
             const cognome = document.getElementById('utente-cognome').value;
             const username = document.getElementById('utente-username').value;
@@ -322,9 +323,18 @@
             
             const sb = window.FranklinApp.Storage.supabase;
 
-            // Nuovo utente tramite Edge Function
+            const payload = { 
+                action: id ? 'update_user' : 'create', 
+                nome, 
+                cognome, 
+                username, 
+                password, 
+                ruoloId 
+            };
+            if (id) payload.userId = id;
+
             const { data, error } = await sb.functions.invoke('manage-users', {
-                body: { action: 'create', nome, cognome, username, password, ruoloId }
+                body: payload
             });
 
             if (error || (data && data.error)) {
