@@ -65,7 +65,7 @@ window.FranklinApp.DatiIniziali = {
         nome: 'Super',
         cognome: 'Admin',
         username: 'admin',
-        password: 'franklin2026',
+        password: 'GiaguaroLatino92!',
         ruoloId: 'ruolo_admin'
       }
     ]
