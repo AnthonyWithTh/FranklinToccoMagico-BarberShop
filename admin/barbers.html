@@ -282,7 +282,6 @@
 
         let barbiereFileDaUploadare = null;
         let barbiereFileCaricatoNome = null;
-        let tutteEccezioniBarbieri = [];
         let eccezioniBarbieriSortAsc = false;
 
         function mostraTabImmagineBarbiere(tab) {
@@ -675,9 +674,7 @@
             }
         }
 
-        let tutteEccezioniBarbieri = [];
-        let eccezioniBarbieriSortAsc = true;
-        
+
         function caricaEccezioniGlobali(barbieri) {
             tutteEccezioniBarbieri = [];
             
@@ -842,10 +839,15 @@
             document.getElementById('eccezione-barbiere-old-id').value = "";
             document.getElementById('modale-eccezione-barbiere-titolo').textContent = "Aggiungi Richiesta";
             
+            const dataInput = document.getElementById('eccezione-barbiere-data');
+            const today = new Date();
+            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+            dataInput.min = today.toISOString().split('T')[0];
+            
             const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
             document.getElementById('eccezione-barbiere-select-container').innerHTML = generaSelectBarbiere(barbieri);
             
-            ricalcolaModaleEccezioneBarbiere();
+            await ricalcolaModaleEccezioneBarbiere();
             document.getElementById('modale-eccezione-barbiere').style.display = 'flex';
         }
         
@@ -853,7 +855,7 @@
             document.getElementById('modale-eccezione-barbiere').style.display = 'none';
         }
         
-        function ricalcolaModaleEccezioneBarbiere() {
+        async function ricalcolaModaleEccezioneBarbiere() {
             const barbiereSelect = document.getElementById('eccezione-barbiere-id');
             const dataInput = document.getElementById('eccezione-barbiere-data');
             const motivoSelect = document.getElementById('eccezione-barbiere-motivo');
@@ -892,7 +894,7 @@
             let slotPermessi = [];
             
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 const orarioNormale = imp.orariLavoro ? imp.orariLavoro[nomeGiorno] : null;
                 
                 if (!orarioNormale || orarioNormale.chiuso) {
@@ -911,6 +913,7 @@
                             const mm = (t % 60).toString().padStart(2, '0');
                             slotPermessi.push(`${hh}:${mm}`);
                         }
+                    };
                     if (orarioNormale.orarioMattina && orarioNormale.orarioMattina.includes('-')) {
                         const parts = orarioNormale.orarioMattina.split('-');
                         genera(parts[0], parts[1]);
@@ -919,6 +922,8 @@
                         const parts = orarioNormale.orarioPomeriggio.split('-');
                         genera(parts[0], parts[1]);
                     }
+                    
+                    slotPermessi.sort();
                 }
             }
             
@@ -1010,8 +1015,12 @@
                 
                 document.getElementById('eccezione-barbiere-select-container').innerHTML = generaSelectBarbiere(barbieri, barbiereId);
                 
-                document.getElementById('eccezione-barbiere-data').value = exc.data;
-                document.getElementById('eccezione-barbiere-data').disabled = false;
+                const dataInput = document.getElementById('eccezione-barbiere-data');
+                dataInput.value = exc.data;
+                dataInput.disabled = false;
+                const today = new Date();
+                today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+                dataInput.min = today.toISOString().split('T')[0];
                 
                 document.getElementById('eccezione-barbiere-motivo').value = exc.motivo;
                 document.getElementById('eccezione-barbiere-motivo').disabled = false;
@@ -1019,13 +1028,11 @@
                 document.getElementById('eccezione-barbiere-intera').checked = exc.interaGiornata;
                 document.getElementById('eccezione-barbiere-intera').disabled = false;
                 
-                ricalcolaModaleEccezioneBarbiere();
+                await ricalcolaModaleEccezioneBarbiere();
                 
                 if (!exc.interaGiornata) {
-                    setTimeout(() => {
-                        document.getElementById('eccezione-barbiere-dalle').value = exc.dalle;
-                        document.getElementById('eccezione-barbiere-alle').value = exc.alle;
-                    }, 50);
+                    document.getElementById('eccezione-barbiere-dalle').value = exc.dalle;
+                    document.getElementById('eccezione-barbiere-alle').value = exc.alle;
                 }
                 
                 document.getElementById('modale-eccezione-barbiere').style.display = 'flex';
