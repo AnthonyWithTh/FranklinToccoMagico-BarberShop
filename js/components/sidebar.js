@@ -24,7 +24,7 @@
         links.forEach(link => {
             if (canView(link.perm)) {
                 navHTML += `
-                    <a href="${link.url}" class="nav-link" id="${link.id}">
+                    <a href="${link.url}" class="nav-link" id="${link.id}" style="display: none;">
                         <span class="icon">${link.icon}</span><span class="text">${link.text}</span>
                     </a>
                 `;
@@ -169,8 +169,8 @@
                                     ];
                                     linksPerm.forEach(l => {
                                         const el = document.getElementById(l.id);
-                                        if (el && !ruolo.permessi.includes(l.perm)) {
-                                            el.style.display = 'none';
+                                        if (el && ruolo.permessi.includes(l.perm)) {
+                                            el.style.display = 'flex';
                                         }
                                     });
                                 }
