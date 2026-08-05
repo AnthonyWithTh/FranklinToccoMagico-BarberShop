@@ -346,7 +346,7 @@
                     return;
                 }
 
-                if (!immagine) {
+                if (!immagine && !servizioFileDaUploadare) {
                     if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
                         window.FranklinApp.Admin.mostraToast("Carica un'immagine per il servizio!", "errore");
                     } else {

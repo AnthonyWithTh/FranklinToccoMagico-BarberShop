@@ -591,7 +591,7 @@
                 return;
             }
 
-            if (!foto) {
+            if (!foto && !barbiereFileDaUploadare) {
                 if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
                     window.FranklinApp.Admin.mostraToast("Seleziona o carica un ritratto per il barbiere!", "errore");
                 } else {
