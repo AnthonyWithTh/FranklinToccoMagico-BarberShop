@@ -163,7 +163,6 @@
     }
     function initSidebar() {
         bindSidebarEvents();
-        impostaLinkAttivo();
         initSidebarUser();
     }
 
