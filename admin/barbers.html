@@ -308,36 +308,33 @@
             const select = document.getElementById('barbiere-immagine-esistente');
             if (!select) return;
 
-            try {
-                const res = await fetch('/list-images?folder=barbieri');
-                const data = await res.json();
-                if (data.status === 'success' && Array.isArray(data.images)) {
-                    listaImmaginiBarbieri = data.images.filter(img => img.startsWith('assets/images/barbieri/'));
-                }
-            } catch(e) {
-                console.warn("Impossibile recuperare immagini barbieri da server:", e);
-                listaImmaginiBarbieri = [];
-            }
+            let opzioni = [
+                { val: '../assets/images/barbiere-marco.jpg', label: 'Avatar Marco (Default)' },
+                { val: '../assets/images/barbiere-luca.jpg', label: 'Avatar Luca (Default)' },
+                { val: '../assets/images/barbiere-alessandro.jpg', label: 'Avatar Alessandro (Default)' }
+            ];
 
             const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
             barbieri.forEach(b => {
                 const img = b.foto || b.ritratto;
-                if (img && img.startsWith('assets/images/barbieri/') && !listaImmaginiBarbieri.includes(img)) {
-                    listaImmaginiBarbieri.push(img);
+                if (img) {
+                    if (img.startsWith('data:image/')) {
+                        opzioni.push({ val: img, label: `Foto di ${b.nome} ${b.cognome}` });
+                    } else if (!opzioni.find(o => o.val === img)) {
+                        const nomeFile = img.split('/').pop() || img;
+                        opzioni.push({ val: img, label: nomeFile });
+                    }
                 }
             });
 
             const valAttuale = document.getElementById('barbiere-foto').value;
             let optionsHtml = '<option value="">Seleziona immagine</option>';
-            if (listaImmaginiBarbieri.length === 0) {
-                optionsHtml += '<option value="" disabled>Nessuna immagine trovata in assets/images/barbieri/</option>';
-            } else {
-                listaImmaginiBarbieri.forEach(img => {
-                    const selected = (img === valAttuale) ? 'selected' : '';
-                    const nomeFile = img.split('/').pop() || img;
-                    optionsHtml += `<option value="${img}" ${selected}>${nomeFile}</option>`;
-                });
-            }
+            
+            opzioni.forEach(opt => {
+                const selected = (opt.val === valAttuale) ? 'selected' : '';
+                optionsHtml += `<option value="${opt.val}" ${selected}>${opt.label}</option>`;
+            });
+
             select.innerHTML = optionsHtml;
         }
 
