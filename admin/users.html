@@ -249,6 +249,7 @@
                         </td>
                         <td><span class="badge ${badgeClass}">${ruoloNome}</span></td>
                         <td>
+                            <button class="azioni-btn" onclick="modificaPasswordUtente('${utente.id}', '${utente.username}')" title="Cambia Password">🔑</button>
                             ${(utente.username !== 'admin') ? `<button class="azioni-btn btn-danger" onclick="eliminaUtente('${utente.id}')" title="Elimina">🗑️</button>` : ''}
                         </td>
                     </tr>
@@ -273,6 +274,28 @@
             } else {
                 span.textContent = '••••••••';
             }
+        }
+
+        async function modificaPasswordUtente(id, username) {
+            const nuovaPassword = prompt(`Inserisci la nuova password per l'utente ${username}:`);
+            if (!nuovaPassword) return; // annullato o stringa vuota
+            if (nuovaPassword.length < 6) {
+                mostraToast("La password deve essere lunga almeno 6 caratteri", "errore");
+                return;
+            }
+
+            const sb = window.FranklinApp.Storage.supabase;
+            const { data, error } = await sb.functions.invoke('manage-users', {
+                body: { action: 'update_password', userId: id, password: nuovaPassword }
+            });
+
+            if (error || (data && data.error)) {
+                mostraToast("Errore durante l'aggiornamento: " + (error?.message || data?.error), "errore");
+                return;
+            }
+
+            caricaUtenti();
+            mostraToast("Password aggiornata con successo", "successo");
         }
 
         function apriModaleUtente() {
