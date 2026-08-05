@@ -29,15 +29,24 @@ FranklinApp.Auth = {
     }
   },
 
-  async login(username, password) {
+  async login(usernameOrEmail, password) {
     const sb = window.FranklinApp.Storage.supabase;
-    
-    // Risolvi l'email partendo dall'username in modo sicuro bypassando RLS
-    const { data: email, error: rpcError } = await sb.rpc('get_email_by_username', { p_username: username });
-    
-    if (rpcError || !email) {
-        console.error("RPC Error:", rpcError);
-        return { success: false, message: rpcError ? rpcError.message : "Username non trovato o errato" };
+    let email = usernameOrEmail;
+
+    // Se prova ad accedere come 'admin', bloccalo
+    if (usernameOrEmail.toLowerCase() === 'admin') {
+        return { success: false, message: "Per l'amministratore, inserire l'indirizzo email anziché l'username." };
+    }
+
+    // Se non c'è una @, presumiamo sia un username e lo convertiamo in email tramite l'RPC
+    if (!usernameOrEmail.includes('@')) {
+        const { data: resolvedEmail, error: rpcError } = await sb.rpc('get_email_by_username', { p_username: usernameOrEmail });
+        
+        if (rpcError || !resolvedEmail) {
+            console.error("RPC Error:", rpcError);
+            return { success: false, message: rpcError ? rpcError.message : "Username non trovato o errato" };
+        }
+        email = resolvedEmail;
     }
 
     const { data, error } = await sb.auth.signInWithPassword({
