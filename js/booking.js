@@ -351,7 +351,7 @@ FranklinApp.Prenotazione = {
     const isAdmin = this.stato.adminMode;
     let nomeInseritoDa = 'Cliente';
     if (isAdmin) {
-      const u = window.FranklinApp.Auth ? window.FranklinApp.Auth.getUtenteLoggato() : null;
+      const u = window.FranklinApp.Auth ? await window.FranklinApp.Auth.getUtenteLoggato() : null;
       nomeInseritoDa = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
     }
     const nuovoApp = {

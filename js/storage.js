@@ -119,22 +119,8 @@ FranklinApp.Storage = {
     return !error;
   },
 
-  async ottieniAuth() {
-    const { data, error } = await sbClient.from('utenti').select('*');
-    if (error) return null;
-    return {
-        utenti: data,
-        ruoli: [
-          {
-            id: 'ruolo_admin',
-            nome: 'Amministratore',
-            permessi: ['appointments', 'services', 'schedule', 'barbers', 'settings', 'users', 'vetrina', 'personale']
-          }
-        ]
-    };
-  },
-  
-  async salvaAuth(dati) { return false; },
+  // I vecchi metodi ottieniAuth e salvaAuth sono stati rimossi.
+  // L'autenticazione è ora gestita in js/auth.js tramite sbClient.auth
 
   async inizializza() {
     console.log("Supabase inizializzato e collegato.");
