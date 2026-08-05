@@ -74,26 +74,6 @@
                     </form>
                 </div>
 
-                <!-- Section 2: Ruoli e Permessi -->
-                <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Ruoli e Permessi 🛡️</h3>
-                    <div class="admin-tabella-container">
-                        <table class="admin-tabella" style="width: 100%;">
-                            <thead>
-                                <tr>
-                                    <th>ID Ruolo</th>
-                                    <th>Nome</th>
-                                    <th>Permessi</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tabella-ruoli-body">
-                                <tr>
-                                    <td colspan="3" style="text-align: center;">Caricamento in corso...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
                 <!-- Section 4: Sicurezza -->
                 <div class="vintage-card admin-form">
                     <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Sicurezza 🔒</h3>
@@ -154,44 +134,7 @@
             }
             
             popolaImpostazioni();
-            caricaRuoli();
         });
-
-        async function caricaRuoli() {
-            if (window.FranklinApp && window.FranklinApp.Storage && window.FranklinApp.Storage.supabase) {
-                const sb = window.FranklinApp.Storage.supabase;
-                const { data: ruoli, error } = await sb.from('ruoli').select('*').order('nome', { ascending: true });
-                
-                const tbody = document.getElementById('tabella-ruoli-body');
-                if (!tbody) return;
-                
-                if (error) {
-                    console.error("Errore recupero ruoli:", error);
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--color-danger);">Errore nel caricamento dei ruoli</td></tr>`;
-                    return;
-                }
-                
-                if (!ruoli || ruoli.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="3" style="text-align: center;">Nessun ruolo trovato</td></tr>`;
-                    return;
-                }
-                
-                tbody.innerHTML = ruoli.map(r => `
-                    <tr style="border-bottom: 1px solid var(--color-wood-200);">
-                        <td style="padding: 1rem; color: var(--color-brass-dark); font-family: var(--font-typewriter);">${r.id}</td>
-                        <td style="padding: 1rem; font-weight: bold;">${r.nome}</td>
-                        <td style="padding: 1rem;">
-                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
-                                ${(r.permessi || []).map(p => `<span class="badge" style="background-color: var(--color-wood-300); color: white; padding: 3px 8px; font-size: 0.8rem; border-radius: 12px;">${p}</span>`).join('')}
-                            </div>
-                        </td>
-                    </tr>
-                `).join('');
-            } else {
-                // Fallback in caso Supabase non sia pronto o in uso localStorage (mock)
-                document.getElementById('tabella-ruoli-body').innerHTML = `<tr><td colspan="3" style="text-align: center;">Dati Supabase non disponibili</td></tr>`;
-            }
-        }
 
         function popolaImpostazioni() {
             if(window.FranklinApp && window.FranklinApp.Storage) {

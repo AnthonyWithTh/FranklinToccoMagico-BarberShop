@@ -11,15 +11,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/variables.css?v=639214773924878610">
-    <link rel="stylesheet" href="../css/global.css?v=639214773924878610">
-    <link rel="stylesheet" href="../css/vintage-theme.css?v=639214773924878610">
-    <link rel="stylesheet" href="../css/admin.css?v=639214773924878610">
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/vintage-theme.css">
+    <link rel="stylesheet" href="../css/admin.css">
     <!-- Blocco anti-fouc e Auth -->
     <style id="anti-fouc">html { display: none !important; }</style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/storage.js?v=639214773924878610"></script>
-    <script src="../js/auth.js?v=639214773924878610"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         if (window.FranklinApp && window.FranklinApp.Auth) {
             if (!window.FranklinApp.Auth.isAutenticato()) {
@@ -34,7 +34,7 @@
 <body>
     <div class="admin-layout">
         <!-- Sidebar -->
-        <script src="../js/components/sidebar.js?v=639214773924878610"></script>
+        <script src="../js/components/sidebar.js"></script>
 
         <!-- Main Content -->
         <main class="main-content" style="padding: 2rem; overflow-y: auto;">
@@ -79,15 +79,9 @@
                 <table class="admin-tabella" style="width: 100%;">
                     <thead>
                         <tr>
+                            <th>ID Ruolo</th>
                             <th>Nome Ruolo</th>
-                            <th style="text-align: center;">Agenda</th>
-                            <th style="text-align: center;">Servizi</th>
-                            <th style="text-align: center;">Orario Lavoro</th>
-                            <th style="text-align: center;">Staff</th>
-                            <th style="text-align: center;">Impostazioni</th>
-                            <th style="text-align: center;">Amministrazione</th>
-                            <th style="text-align: center;">Vetrina</th>
-                            <th style="text-align: center;">Personale</th>
+                            <th>Permessi</th>
                             <th>Azioni</th>
                         </tr>
                     </thead>
@@ -368,29 +362,32 @@
 
         // --- GESTIONE RUOLI ---
 
-        function caricaRuoli() {
-            const authData = window.FranklinApp.Storage.ottieniAuth();
-            const ruoli = authData.ruoli || [];
+        async function caricaRuoli() {
+            const sb = window.FranklinApp.Storage.supabase;
+            const { data: ruoli, error } = await sb.from('ruoli').select('*').order('nome', { ascending: true });
+            
             const tbody = document.getElementById('ruoli-tbody');
             tbody.innerHTML = '';
             
-            const hasPerm = (perms, target) => (perms && perms.includes(target)) ? '✅' : '<span style="color: #444;">-</span>';
+            if (error) {
+                console.error("Errore recupero ruoli:", error);
+                tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--color-danger);">Errore nel caricamento dei ruoli</td></tr>`;
+                return;
+            }
 
-            ruoli.forEach(ruolo => {
+            (ruoli || []).forEach(ruolo => {
                 const isSystem = (ruolo.id === 'ruolo_admin' || ruolo.nome === 'Amministratore');
                 
                 tbody.innerHTML += `
-                    <tr>
-                        <td style="font-weight: bold; color: var(--color-brass-light);">${ruolo.nome}</td>
-                        <td style="text-align: center;">${hasPerm(ruolo.permessi, 'appointments')}</td>
-                        <td style="text-align: center;">${hasPerm(ruolo.permessi, 'services')}</td>
-                        <td style="text-align: center;">${hasPerm(ruolo.permessi, 'schedule')}</td>
-                        <td style="text-align: center;">${hasPerm(ruolo.permessi, 'barbers')}</td>
-                        <td style="text-align: center;">${hasPerm(ruolo.permessi, 'settings')}</td>
-                        <td style="text-align: center;">${hasPerm(ruolo.permessi, 'users')}</td>
-                        <td style="text-align: center;">${hasPerm(ruolo.permessi, 'vetrina')}</td>
-                        <td style="text-align: center;">${hasPerm(ruolo.permessi, 'personale')}</td>
+                    <tr style="border-bottom: 1px solid var(--color-wood-200);">
+                        <td style="color: var(--color-brass-dark); font-family: var(--font-typewriter);">${ruolo.id}</td>
+                        <td style="font-weight: bold; color: var(--color-text-cream);">${ruolo.nome}</td>
                         <td>
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px;">
+                                ${(ruolo.permessi || []).map(p => `<span class="badge" style="background-color: var(--color-wood-300); color: white; padding: 3px 8px; font-size: 0.8rem; border-radius: 12px;">${p}</span>`).join('')}
+                            </div>
+                        </td>
+                        <td style="white-space: nowrap;">
                             <button class="azioni-btn" onclick="modificaRuolo('${ruolo.id}')" title="Modifica">✏️</button>
                             ${!isSystem ? `<button class="azioni-btn btn-danger" onclick="eliminaRuolo('${ruolo.id}')" title="Elimina">🗑️</button>` : ''}
                         </td>
@@ -410,9 +407,9 @@
             document.getElementById('modale-ruolo').style.display = 'none';
         }
 
-        function modificaRuolo(id) {
-            const authData = window.FranklinApp.Storage.ottieniAuth();
-            const ruolo = (authData.ruoli || []).find(r => r.id === id);
+        async function modificaRuolo(id) {
+            const sb = window.FranklinApp.Storage.supabase;
+            const { data: ruolo } = await sb.from('ruoli').select('*').eq('id', id).single();
             
             if (!ruolo) return;
 
@@ -429,57 +426,70 @@
             document.getElementById('modale-ruolo').style.display = 'flex';
         }
 
-        function salvaRuolo() {
-            const id = document.getElementById('ruolo-id').value;
-            const nome = document.getElementById('ruolo-nome').value;
+        async function salvaRuolo() {
+            let id = document.getElementById('ruolo-id').value;
+            const nome = document.getElementById('ruolo-nome').value.trim();
             
             const checkboxes = document.querySelectorAll('input[name="ruolo-permessi"]:checked');
             const permessi = Array.from(checkboxes).map(cb => cb.value);
             
-            const authData = window.FranklinApp.Storage.ottieniAuth();
-            if (!authData.ruoli) authData.ruoli = [];
+            const sb = window.FranklinApp.Storage.supabase;
 
-            if (id) {
-                // Modifica
-                const index = authData.ruoli.findIndex(r => r.id === id);
-                if (index !== -1) {
-                    authData.ruoli[index].nome = nome;
-                    
-                    // L'admin di base ha sempre permessi su users e non lo togliamo
-                    if (authData.ruoli[index].id === 'ruolo_admin' && !permessi.includes('users')) {
-                        permessi.push('users');
-                    }
-                    authData.ruoli[index].permessi = permessi;
-                }
-            } else {
-                // Nuovo
-                authData.ruoli.push({
-                    id: 'role_' + Date.now(),
-                    nome: nome,
-                    permessi: permessi
-                });
+            if (id === 'ruolo_admin' && !permessi.includes('users')) {
+                permessi.push('users'); // Protezione
             }
 
-            window.FranklinApp.Storage.salvaAuth(authData);
+            if (!id) {
+                // Nuovo ruolo: generiamo un ID semplice
+                id = 'ruolo_' + nome.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            }
+
+            const { error } = await sb.from('ruoli').upsert({
+                id: id,
+                nome: nome,
+                permessi: permessi
+            });
+
+            if (error) {
+                mostraToast("Errore durante il salvataggio: " + error.message, "errore");
+                return;
+            }
+
             chiudiModaleRuolo();
             caricaRuoli();
-            popolaSelectRuoli();
-            caricaUtenti(); // I nomi dei ruoli in tabella utenti potrebbero essere aggiornati
+            popolaSelectRuoli(); // Aggiorna anche la tendina nella modale utenti
             mostraToast("Ruolo salvato con successo", "successo");
         }
 
-        function eliminaRuolo(id) {
-            if (!confirm("Sei sicuro di voler eliminare questo ruolo? Gli utenti con questo ruolo perderanno l'accesso.")) return;
-            
-            const authData = window.FranklinApp.Storage.ottieniAuth();
-            if (authData.ruoli) {
-                authData.ruoli = authData.ruoli.filter(r => r.id !== id);
-                window.FranklinApp.Storage.salvaAuth(authData);
-                caricaRuoli();
-                popolaSelectRuoli();
-                caricaUtenti();
-                mostraToast("Ruolo eliminato", "successo");
+        async function eliminaRuolo(id) {
+            if (id === 'ruolo_admin') {
+                mostraToast("Non puoi eliminare il ruolo di Amministratore base", "errore");
+                return;
             }
+
+            // Verifica se il ruolo è assegnato a qualche utente
+            const sb = window.FranklinApp.Storage.supabase;
+            const { data: utenti } = await sb.from('utenti').select('id').eq('ruoloId', id);
+            // Supportiamo anche ruoloid (lowercase) se usato per errore nello schema
+            const { data: utenti2 } = await sb.from('utenti').select('id').eq('ruoloid', id);
+            
+            if ((utenti && utenti.length > 0) || (utenti2 && utenti2.length > 0)) {
+                mostraToast("Impossibile eliminare: ci sono utenti assegnati a questo ruolo.", "errore");
+                return;
+            }
+
+            if (!confirm("Sei sicuro di voler eliminare questo ruolo?")) return;
+
+            const { error } = await sb.from('ruoli').delete().eq('id', id);
+
+            if (error) {
+                mostraToast("Errore durante l'eliminazione: " + error.message, "errore");
+                return;
+            }
+
+            caricaRuoli();
+            popolaSelectRuoli();
+            mostraToast("Ruolo eliminato con successo", "successo");
         }
 
         // --- UTILITY ---
