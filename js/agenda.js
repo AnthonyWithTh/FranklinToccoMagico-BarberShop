@@ -575,8 +575,14 @@ window.Agenda = (function() {
             } else {
                 const payload = { stato: nuovoStato };
                 if (nuovoStato === 'Confermato') {
+                    let nomeUtente = 'Admin';
                     const u = await window.FranklinApp.Auth.getUtenteLoggato();
-                    const nomeUtente = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
+                    if (u) {
+                        const { data: prof } = await window.FranklinApp.Storage.supabase.from('utenti').select('*').eq('id', u.id).single();
+                        if (prof) {
+                            nomeUtente = `${prof.nome || ''} ${prof.cognome || ''}`.trim() || prof.username || 'Admin';
+                        }
+                    }
                     payload.confermatoDa = nomeUtente;
                 }
                 await window.FranklinApp.Storage.aggiornaAppuntamento(id, payload);
@@ -585,13 +591,6 @@ window.Agenda = (function() {
                 }
             }
             await render();
-            
-            if (window.FranklinApp.Admin && typeof window.FranklinApp.Admin.mostraToast === 'function') {
-                window.FranklinApp.Admin.mostraToast(
-                    nuovoStato === 'cancellato' ? 'Appuntamento cancellato' : 'Appuntamento confermato', 
-                    nuovoStato === 'cancellato' ? 'errore' : 'successo'
-                );
-            }
         } catch (e) {
             console.error(e);
         }

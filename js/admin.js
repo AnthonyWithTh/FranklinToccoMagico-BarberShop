@@ -808,8 +808,14 @@ window.FranklinApp.Admin = {
             delete modal.dataset.editingId;
         } else {
             // NUOVO: creiamo un nuovo appuntamento
+            let nomeAdmin = 'Admin';
             const utenteLoggato = window.FranklinApp.Auth ? await window.FranklinApp.Auth.getUtenteLoggato() : null;
-            const nomeAdmin = utenteLoggato ? (`${utenteLoggato.nome || ''} ${utenteLoggato.cognome || ''}`.trim() || utenteLoggato.username) : 'Admin';
+            if (utenteLoggato) {
+                const { data: prof } = await window.FranklinApp.Storage.supabase.from('utenti').select('*').eq('id', utenteLoggato.id).single();
+                if (prof) {
+                    nomeAdmin = `${prof.nome || ''} ${prof.cognome || ''}`.trim() || prof.username || 'Admin';
+                }
+            }
             
             const nuovoApp = {
                 clienteNome: nomeCliente,
