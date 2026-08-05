@@ -205,7 +205,7 @@
             ];
 
             // Ottieni lista immagini dal bucket Supabase!
-            const storageImmagini = await window.FranklinApp.Storage.listaImmagini('servizi') || [];
+            const storageImmagini = await window.FranklinApp.Storage.listaImmagini('immagini_servizi') || [];
             storageImmagini.forEach(imgUrl => {
                 const nomeFile = imgUrl.split('/').pop().split('?')[0] || imgUrl;
                 if (!opzioni.find(o => o.val === imgUrl)) {
@@ -373,7 +373,7 @@
                     const btnSave = event ? event.target.querySelector('button[type="submit"]') : null;
                     if (btnSave) btnSave.disabled = true;
 
-                    const urlStorage = await window.FranklinApp.Storage.uploadImmagine(servizioFileDaUploadare, 'servizi');
+                    const urlStorage = await window.FranklinApp.Storage.uploadImmagine(servizioFileDaUploadare, 'immagini_servizi');
                     
                     if (btnSave) btnSave.disabled = false;
                     

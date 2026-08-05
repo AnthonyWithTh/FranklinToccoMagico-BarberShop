@@ -314,7 +314,7 @@
             ];
 
             // Ottieni lista immagini dal bucket Supabase!
-            const storageImmagini = await window.FranklinApp.Storage.listaImmagini('barbieri') || [];
+            const storageImmagini = await window.FranklinApp.Storage.listaImmagini('immagini_barbieri') || [];
             storageImmagini.forEach(imgUrl => {
                 const nomeFile = imgUrl.split('/').pop().split('?')[0] || imgUrl;
                 if (!opzioni.find(o => o.val === imgUrl)) {
@@ -618,7 +618,7 @@
                 const btnSave = event ? event.target.querySelector('button[type="submit"]') : null;
                 if (btnSave) btnSave.disabled = true;
 
-                const urlStorage = await window.FranklinApp.Storage.uploadImmagine(barbiereFileDaUploadare, 'barbieri');
+                const urlStorage = await window.FranklinApp.Storage.uploadImmagine(barbiereFileDaUploadare, 'immagini_barbieri');
                 
                 if (btnSave) btnSave.disabled = false;
                 

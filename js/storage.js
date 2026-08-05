@@ -286,45 +286,44 @@ FranklinApp.Storage = {
     const ext = file.name.split('.').pop();
     const nomeOriginale = file.name.replace(`.${ext}`, '').replace(/[^a-zA-Z0-9]/g, '_');
     const nomeUnico = `${nomeOriginale}_${Date.now()}.${ext}`;
-    const percorso = `${cartella}/${nomeUnico}`;
 
     const { data, error } = await sbClient.storage
-      .from('immagini')
-      .upload(percorso, file);
+      .from(cartella)
+      .upload(nomeUnico, file);
 
     if (error) {
-      console.error("Errore upload immagine:", error);
+      console.error(`Errore upload immagine in ${cartella}:`, error);
       alert("Errore durante il caricamento dell'immagine: " + error.message);
       return null;
     }
 
-    return this.getPublicUrl(percorso);
+    return this.getPublicUrl(cartella, nomeUnico);
   },
 
   async listaImmagini(cartella) {
     const { data, error } = await sbClient.storage
-      .from('immagini')
-      .list(cartella, {
+      .from(cartella)
+      .list('', {
         limit: 100,
         offset: 0,
         sortBy: { column: 'created_at', order: 'desc' },
       });
 
     if (error) {
-      console.error(`Errore lista immagini in ${cartella}:`, error);
+      console.error(`Errore lista immagini in bucket ${cartella}:`, error);
       return [];
     }
 
     // Converti i file nei loro URL pubblici
     return data
         .filter(file => file.name !== '.emptyFolderPlaceholder')
-        .map(file => this.getPublicUrl(`${cartella}/${file.name}`));
+        .map(file => this.getPublicUrl(cartella, file.name));
   },
 
-  getPublicUrl(percorso) {
+  getPublicUrl(cartella, nomeFile) {
     const { data } = sbClient.storage
-      .from('immagini')
-      .getPublicUrl(percorso);
+      .from(cartella)
+      .getPublicUrl(nomeFile);
     return data.publicUrl;
   }
 };
