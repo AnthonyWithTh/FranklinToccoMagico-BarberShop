@@ -56,12 +56,13 @@
                                 <tr>
                                     <th style="width: 14%;">Nome</th>
                                     <th style="width: 14%;">Cognome</th>
-                                    <th style="width: 12%;">Data di nascita</th>
+                                    <th style="width: 13%;">Data di nascita</th>
+                                    <th style="width: 5%;">Età</th>
                                     <th style="width: 13%;">Ruolo</th>
                                     <th style="width: 10%;">Ritratto</th>
-                                    <th style="width: 25%;">Descrizione</th>
+                                    <th style="width: 21%;">Descrizione</th>
                                     <th style="width: 10%;">Stato</th>
-                                    <th style="width: 6%;">Azioni</th>
+                                    <th style="width: 10%;">Azioni</th>
                                 </tr>
                             </thead>
                             <tbody id="barbieri-tbody">
@@ -368,7 +369,7 @@
                 const tbody = document.getElementById('barbieri-tbody');
                 
                 if (barbieri.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun barbiere trovato</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Nessun barbiere trovato</td></tr>';
                     return;
                 }
                 
@@ -387,14 +388,18 @@
                         c = parti.slice(1).join(' ');
                     }
 
-                    // Calcolo età dalla data di nascita
+                    // Calcolo età e formattazione dalla data di nascita
                     let etaDisplay = '-';
+                    let dataNascitaDisplay = '-';
                     if (b.data_nascita) {
                         const dob = new Date(b.data_nascita);
                         if (!isNaN(dob.getTime())) {
                             const diff = Date.now() - dob.getTime();
                             const ageDt = new Date(diff); 
                             etaDisplay = Math.abs(ageDt.getUTCFullYear() - 1970) + ' anni';
+                            
+                            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+                            dataNascitaDisplay = dob.toLocaleDateString('it-IT', options);
                         }
                     }
 
@@ -408,6 +413,7 @@
                     <tr style="${opacity}">
                         <td><strong>${n}</strong></td>
                         <td><strong>${c || '-'}</strong></td>
+                        <td>${dataNascitaDisplay}</td>
                         <td>${etaDisplay}</td>
                         <td>${b.ruolo || 'Barbiere'}</td>
                         <td>
