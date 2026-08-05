@@ -11,16 +11,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
     
     <!-- CSS -->
-    <link rel="stylesheet" href="../css/variables.css?v=639214755924302358">
-    <link rel="stylesheet" href="../css/global.css?v=639214755924302358">
-    <link rel="stylesheet" href="../css/vintage-theme.css?v=639214755924302358">
-    <link rel="stylesheet" href="../css/admin.css?v=639214755924302358">
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/vintage-theme.css">
+    <link rel="stylesheet" href="../css/admin.css">
     
     <!-- Blocco anti-fouc e Auth -->
     <style id="anti-fouc">html { display: none !important; }</style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/storage.js?v=639214755924302358"></script>
-    <script src="../js/auth.js?v=639214755924302358"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
     <script>
         if (window.FranklinApp && window.FranklinApp.Auth) {
             if (!window.FranklinApp.Auth.isAutenticato()) {
@@ -35,7 +35,7 @@
 <body>
     <div class="admin-layout">
         <!-- Sidebar -->
-        <script src="../js/components/sidebar.js?v=639214755924302358"></script>
+        <script src="../js/components/sidebar.js"></script>
 
         <!-- Main Content -->
         <main class="main-content" style="padding: 2rem; overflow-y: auto;">
@@ -64,8 +64,8 @@
                         </div>
 
                         <div style="margin-bottom: 1rem;">
-                            <label class="vintage-label">Email (Username)</label>
-                            <input type="text" id="pers-username" class="vintage-input" readonly style="opacity: 0.7; cursor: not-allowed;" title="Non modificabile qui.">
+                            <label class="vintage-label">Nuovo Username</label>
+                            <input type="text" id="pers-username" class="vintage-input" required>
                         </div>
                         
                         <div style="margin-bottom: 2rem;">
@@ -76,19 +76,8 @@
                             </div>
                         </div>
 
-                        <h3 class="vintage-title" style="color: var(--color-danger); margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-danger); padding-bottom: 10px;">Conferma Identità</h3>
-                        <p style="font-family: var(--font-admin); color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Per salvare le modifiche è necessario inserire la password attuale.</p>
-
-                        <div style="margin-bottom: 2rem;">
-                            <label class="vintage-label">Vecchia Password</label>
-                            <div style="display: flex; gap: 10px;">
-                                <input type="password" id="pers-vecchia-password" class="vintage-input" required style="flex: 1;">
-                                <button type="button" class="btn-secondary" onclick="togglePasswordVisibility('pers-vecchia-password', this)" title="Mostra/Nascondi" style="padding: 0.5rem; min-width: 45px;">👁️</button>
-                            </div>
-                        </div>
-
-                        <div style="text-align: right;">
-                            <button type="submit" class="btn-primary" style="padding: 0.8rem 2rem;">Salva Modifiche</button>
+                        <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                            <button type="submit" class="btn-primary">Salva Modifiche</button>
                         </div>
                     </form>
                 </div>
@@ -97,10 +86,10 @@
     </div>
 
     <!-- Scripts -->
-    <script src="../js/mock-data.js?v=639214755924302358"></script>
-    <script src="../js/public.js?v=639214755924302358"></script>
-    <script src="../js/admin.js?v=639214755924302358"></script>
-    <script src="../js/personale.js?v=639214755924302358"></script>
+    <script src="../js/mock-data.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/admin.js"></script>
+    <script src="../js/personale.js"></script>
 </body>
 </html>
 

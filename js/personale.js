@@ -3,13 +3,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 async function caricaDatiPersonali() {
-    if (window.FranklinApp && window.FranklinApp.Auth) {
-        const utente = await window.FranklinApp.Auth.getUtenteLoggato();
-        if (utente) {
-            document.getElementById('pers-nome').value = utente.user_metadata?.nome || '';
-            document.getElementById('pers-cognome').value = utente.user_metadata?.cognome || '';
-            document.getElementById('pers-username').value = utente.email || '';
-            document.getElementById('pers-username').setAttribute('readonly', true); // Email is readonly per ora
+    if (window.FranklinApp && window.FranklinApp.Storage) {
+        const sb = window.FranklinApp.Storage.supabase;
+        const { data: { user } } = await sb.auth.getUser();
+        
+        if (user) {
+            const { data: profilo } = await sb.from('utenti').select('*').eq('id', user.id).single();
+            if (profilo) {
+                document.getElementById('pers-nome').value = profilo.nome ? profilo.nome.split(' ')[0] : '';
+                document.getElementById('pers-cognome').value = profilo.nome && profilo.nome.split(' ').length > 1 ? profilo.nome.split(' ').slice(1).join(' ') : '';
+                document.getElementById('pers-username').value = profilo.username || '';
+            }
         }
     }
 }
@@ -28,61 +32,46 @@ function togglePasswordVisibility(inputId, btnElement) {
 async function salvaDatiPersonali() {
     const nome = document.getElementById('pers-nome').value.trim();
     const cognome = document.getElementById('pers-cognome').value.trim();
-    const nuovaPassword = document.getElementById('pers-nuova-password').value;
-    const vecchiaPassword = document.getElementById('pers-vecchia-password').value;
+    const username = document.getElementById('pers-username').value.trim();
+    const password = document.getElementById('pers-nuova-password').value;
     
-    if (!nome || !cognome) {
-        window.FranklinApp.Admin.mostraToast("Nome e Cognome sono obbligatori", "errore");
+    if (!nome || !cognome || !username) {
+        window.FranklinApp.Admin?.mostraToast("Nome, Cognome e Username sono obbligatori", "errore");
         return;
     }
     
-    if (window.FranklinApp && window.FranklinApp.Auth) {
-        const client = window.FranklinApp.Auth.client;
-        
-        // 1. Aggiorna nome e cognome
-        const { error: updateError } = await client.auth.updateUser({
-            data: { nome: nome, cognome: cognome }
-        });
-        
-        if (updateError) {
-            window.FranklinApp.Admin.mostraToast("Errore aggiornamento profilo: " + updateError.message, "errore");
-            return;
-        }
+    const sb = window.FranklinApp.Storage.supabase;
+    const { data: { user } } = await sb.auth.getUser();
+    
+    if (!user) return;
+    
+    // Recupera il ruolo attuale dell'utente (per non perderlo)
+    const { data: profiloAttuale } = await sb.from('utenti').select('ruoloid').eq('id', user.id).single();
+    const ruoloId = profiloAttuale ? profiloAttuale.ruoloid : 'barbiere';
 
-        // 2. Se è stata fornita una nuova password, cambiala
-        if (nuovaPassword) {
-            if (!vecchiaPassword) {
-                window.FranklinApp.Admin.mostraToast("Inserisci la vecchia password per cambiarla", "errore");
-                return;
-            }
-            
-            // Re-autentica per sicurezza prima di cambiare password (richiede email)
-            const utente = await window.FranklinApp.Auth.getUtenteLoggato();
-            const { error: signInError } = await client.auth.signInWithPassword({
-                email: utente.email,
-                password: vecchiaPassword
-            });
-            
-            if (signInError) {
-                window.FranklinApp.Admin.mostraToast("Vecchia password non valida", "errore");
-                return;
-            }
-            
-            // Cambia password
-            const res = await window.FranklinApp.Auth.cambiaPassword(vecchiaPassword, nuovaPassword);
-            if (!res.successo) {
-                window.FranklinApp.Admin.mostraToast(res.messaggio, "errore");
-                return;
-            }
-        }
-        
-        window.FranklinApp.Admin.mostraToast("Dati personali aggiornati con successo!", "successo");
-        
-        document.getElementById('pers-vecchia-password').value = '';
-        document.getElementById('pers-nuova-password').value = '';
-        
-        setTimeout(() => {
-            location.reload();
-        }, 1000);
+    const payload = {
+        action: 'update_user',
+        userId: user.id,
+        nome,
+        cognome,
+        username,
+        password,
+        ruoloId
+    };
+
+    const { data, error } = await sb.functions.invoke('manage-users', {
+        body: payload
+    });
+
+    if (error || (data && data.error)) {
+        window.FranklinApp.Admin?.mostraToast("Errore durante il salvataggio: " + (error?.message || data?.error), "errore");
+        return;
     }
+
+    document.getElementById('pers-nuova-password').value = '';
+    window.FranklinApp.Admin?.mostraToast("Profilo aggiornato con successo! Le modifiche avranno effetto totale al prossimo accesso.", "successo");
+    
+    // Aggiorna nome nella sidebar
+    const span = document.getElementById('sidebar-username');
+    if (span) span.textContent = username;
 }

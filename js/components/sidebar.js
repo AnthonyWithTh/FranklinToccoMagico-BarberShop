@@ -5,9 +5,9 @@
         let canView = (page) => true; // Momentaneamente mostriamo tutto finché Auth non gestisce RBAC client-side (o si può implementare un controllo asincrono successivo)
 
         let usernameDisplay = `
-            <div class="nav-link" style="cursor: default;">
+            <a href="personale.html" class="nav-link" id="nav-personale" style="text-decoration: none; cursor: pointer;">
                 <span class="icon">👤</span><span class="text" id="sidebar-username" style="color: var(--color-brass-light);">Caricamento...</span>
-            </div>
+            </a>
         `;
 
         const links = [
@@ -17,7 +17,6 @@
             { id: 'nav-barbers', url: 'barbers.html', icon: '💈', text: 'Staff', perm: 'barbers' },
             { id: 'nav-users', url: 'users.html', icon: '👤', text: 'Amministrazione', perm: 'users' },
             { id: 'nav-vetrina', url: '#', icon: '🌐', text: 'Vetrina', perm: 'vetrina' },
-            { id: 'nav-personale', url: 'personale.html', icon: '👥', text: 'Personale', perm: 'personale' },
             { id: 'nav-settings', url: 'settings.html', icon: '⚙️', text: 'Impostazioni', perm: 'settings' }
         ];
 
