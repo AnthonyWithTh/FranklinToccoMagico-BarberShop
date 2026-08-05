@@ -106,35 +106,97 @@ FranklinApp.Storage = {
   },
 
   async ottieniImpostazioni() {
-    const { data, error } = await sbClient.from('impostazioni').select('*').eq('id', 1).single();
-    if (error) {
-        console.error("Errore fetch impostazioni:", error);
-        return { nomeNegozio: 'Franklin Barber Shop', indirizzo: '', telefono: '', email: '', orariLavoro: {}, giorniEccezionali: [] };
-    }
+    // 1. Impostazioni Base
+    const { data: imp, error } = await sbClient.from('impostazioni').select('*').eq('id', 1).single();
+    if (error) console.error("Errore fetch impostazioni:", error);
+    const result = imp || { nomeNegozio: 'Franklin Barber Shop', indirizzo: '', telefono: '', email: '' };
     
-    // Mappatura nomi colonne DB a proprietà JS
-    if (data) {
-        data.orariLavoro = data.orari || {};
-        data.giorniEccezionali = data.chiusureEccezionali || [];
+    // 2. Orari di Lavoro
+    const { data: orari } = await sbClient.from('orari_lavoro').select('*');
+    const orariMap = {};
+    if (orari) {
+        orari.forEach(o => {
+            orariMap[o.giorno] = {
+                chiuso: o.chiuso,
+                mattinaApertura: o.mattina_apertura || '',
+                mattinaChiusura: o.mattina_chiusura || '',
+                pomeriggioApertura: o.pomeriggio_apertura || '',
+                pomeriggioChiusura: o.pomeriggio_chiusura || ''
+            };
+        });
     }
-    return data;
+    result.orariLavoro = orariMap;
+    
+    // 3. Giorni Eccezionali
+    const { data: ecc } = await sbClient.from('giorni_eccezionali').select('*');
+    const eccList = [];
+    if (ecc) {
+        ecc.forEach(e => {
+            eccList.push({
+                data: e.data,
+                motivo: e.motivo,
+                tipo: e.tipo,
+                interaGiornata: e.intera_giornata,
+                dalle: e.dalle || '',
+                alle: e.alle || ''
+            });
+        });
+    }
+    result.giorniEccezionali = eccList;
+    
+    return result;
   },
   
   async salvaImpostazioni(impostazioni) {
-    // Rimappatura proprietà JS a nomi colonne DB prima del salvataggio
-    const dbData = {
-        ...impostazioni,
-        orari: impostazioni.orariLavoro || {},
-        chiusureEccezionali: impostazioni.giorniEccezionali || []
+    // 1. Salva Impostazioni Base
+    const baseData = {
+        nomeNegozio: impostazioni.nomeNegozio,
+        indirizzo: impostazioni.indirizzo,
+        telefono: impostazioni.telefono,
+        email: impostazioni.email
     };
+    await sbClient.from('impostazioni').update(baseData).eq('id', 1);
     
-    // Rimuoviamo le chiavi JS pure dal payload per Supabase per evitare errori
-    delete dbData.orariLavoro;
-    delete dbData.giorniEccezionali;
+    // 2. Salva Orari di Lavoro (Upsert)
+    if (impostazioni.orariLavoro) {
+        const orariRows = Object.keys(impostazioni.orariLavoro).map(giorno => {
+            const o = impostazioni.orariLavoro[giorno];
+            return {
+                giorno: giorno,
+                chiuso: o.chiuso,
+                mattina_apertura: o.mattinaApertura || '',
+                mattina_chiusura: o.mattinaChiusura || '',
+                pomeriggio_apertura: o.pomeriggioApertura || '',
+                pomeriggio_chiusura: o.pomeriggioChiusura || ''
+            };
+        });
+        if (orariRows.length > 0) {
+            await sbClient.from('orari_lavoro').upsert(orariRows);
+        }
+    }
     
-    const { error } = await sbClient.from('impostazioni').update(dbData).eq('id', 1);
-    if (error) console.error("Errore salva impostazioni:", error);
-    return !error;
+    // 3. Salva Giorni Eccezionali (Sostituzione completa come array)
+    if (impostazioni.giorniEccezionali) {
+        const { data: eccAttuali } = await sbClient.from('giorni_eccezionali').select('data');
+        if (eccAttuali && eccAttuali.length > 0) {
+            const datesToDelete = eccAttuali.map(e => e.data);
+            await sbClient.from('giorni_eccezionali').delete().in('data', datesToDelete);
+        }
+        
+        if (impostazioni.giorniEccezionali.length > 0) {
+            const eccRows = impostazioni.giorniEccezionali.map(e => ({
+                data: e.data,
+                motivo: e.motivo,
+                tipo: e.tipo,
+                intera_giornata: e.interaGiornata,
+                dalle: e.dalle || '',
+                alle: e.alle || ''
+            }));
+            await sbClient.from('giorni_eccezionali').insert(eccRows);
+        }
+    }
+    
+    return true;
   },
   async inizializza() {
     console.log("Supabase inizializzato e collegato.");
