@@ -29,16 +29,25 @@ FranklinApp.Auth = {
     }
   },
 
-  async login(email, password) {
+  async login(username, password) {
     const sb = window.FranklinApp.Storage.supabase;
+    
+    // Risolvi l'email partendo dall'username in modo sicuro bypassando RLS
+    const { data: email, error: rpcError } = await sb.rpc('get_email_by_username', { p_username: username });
+    
+    if (rpcError || !email) {
+        return { success: false, message: "Username non trovato o errato" };
+    }
+
     const { data, error } = await sb.auth.signInWithPassword({
       email: email,
       password: password,
     });
     
     if (error) {
-      return { success: false, message: error.message };
+      return { success: false, message: "Password errata" };
     }
+    
     return { success: true };
   },
 

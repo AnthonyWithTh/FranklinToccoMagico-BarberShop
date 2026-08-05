@@ -119,8 +119,8 @@
                 </div>
 
                 <div class="form-group" style="margin-bottom: 1rem;">
-                    <label class="vintage-label">Email di accesso</label>
-                    <input type="email" id="utente-email" class="vintage-input" required>
+                    <label class="vintage-label">Username</label>
+                    <input type="text" id="utente-username" class="vintage-input" required>
                 </div>
                 
                 <div class="form-group" style="margin-bottom: 1rem;">
@@ -229,15 +229,6 @@
             const authData = window.FranklinApp.Storage.ottieniAuth();
             const utente = authData.utenti.find(u => u.id === userId);
             
-            if (pwdField.textContent === '••••••••') {
-                pwdField.textContent = utente.password;
-                btn.textContent = '🙈';
-            } else {
-                pwdField.textContent = '••••••••';
-                btn.textContent = '👁️';
-            }
-        }
-
         async function caricaUtenti() {
             const sb = window.FranklinApp.Storage.supabase;
             const { data: utenti } = await sb.from('utenti').select('*').order('nome', { ascending: true });
@@ -256,14 +247,14 @@
                 tbody.innerHTML += `
                     <tr>
                         <td style="font-weight: bold;">${fullName}</td>
-                        <td style="color: var(--color-brass-light);">${utente.email || utente.username}</td>
+                        <td style="color: var(--color-brass-light);">${utente.username}</td>
                         <td style="white-space: nowrap;">
-                            <span style="font-family: monospace; display: inline-block; width: 120px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;">[Nascosta]</span>
+                            <span style="font-family: monospace; display: inline-block; width: 120px; overflow: hidden; text-overflow: ellipsis; vertical-align: middle;" id="pwd-${utente.id}">••••••••</span>
+                            <button id="btn-pwd-${utente.id}" onclick="togglePasswordInTable('${utente.id}', '${utente.password || 'N/A'}')" style="background: none; border: none; cursor: pointer; color: var(--color-text-muted); padding: 0 5px; vertical-align: middle;">👁️</button>
                         </td>
                         <td><span class="badge ${badgeClass}">${ruoloNome}</span></td>
                         <td>
-                            <button class="azioni-btn" onclick="modificaUtente('${utente.id}')" title="Modifica">✏️</button>
-                            ${(utente.username !== 'admin' && utente.email !== 'admin') ? `<button class="azioni-btn btn-danger" onclick="eliminaUtente('${utente.id}')" title="Elimina">🗑️</button>` : ''}
+                            ${(utente.username !== 'admin') ? `<button class="azioni-btn btn-danger" onclick="eliminaUtente('${utente.id}')" title="Elimina">🗑️</button>` : ''}
                         </td>
                     </tr>
                 `;
@@ -280,12 +271,21 @@
             });
         }
 
+        function togglePasswordInTable(id, password) {
+            const span = document.getElementById('pwd-' + id);
+            if (span.textContent === '••••••••') {
+                span.textContent = password;
+            } else {
+                span.textContent = '••••••••';
+            }
+        }
+
         function apriModaleUtente() {
             document.getElementById('form-utente').reset();
             document.getElementById('utente-id').value = '';
             document.getElementById('modale-utente-titolo').textContent = "Aggiungi Utente";
             document.getElementById('utente-password').required = true;
-            document.getElementById('utente-email').disabled = false;
+            document.getElementById('utente-username').disabled = false;
             document.getElementById('utente-password').disabled = false;
             popolaSelectRuoli();
             document.getElementById('modale-utente').style.display = 'flex';
@@ -295,60 +295,23 @@
             document.getElementById('modale-utente').style.display = 'none';
         }
 
-        async function modificaUtente(id) {
-            const sb = window.FranklinApp.Storage.supabase;
-            const { data: utente } = await sb.from('utenti').select('*').eq('id', id).single();
-            
-            if (!utente) return;
-
-            document.getElementById('form-utente').reset();
-            document.getElementById('utente-id').value = utente.id;
-            document.getElementById('utente-nome').value = utente.nome ? utente.nome.split(' ')[0] : '';
-            document.getElementById('utente-cognome').value = utente.nome && utente.nome.split(' ').length > 1 ? utente.nome.split(' ').slice(1).join(' ') : '';
-            document.getElementById('utente-email').value = utente.email || '';
-            document.getElementById('utente-email').disabled = true; // Non modifichiamo l'email base da qui per ora
-            document.getElementById('utente-password').disabled = true; // Password si cambia dal profilo personale
-            document.getElementById('utente-password').required = false;
-            
-            popolaSelectRuoli();
-            document.getElementById('utente-ruoloId').value = utente.ruoloid || utente.ruoloId;
-            
-            document.getElementById('modale-utente-titolo').textContent = "Modifica Profilo Utente";
-            document.getElementById('modale-utente').style.display = 'flex';
-        }
-
         async function salvaUtente() {
-            const id = document.getElementById('utente-id').value;
             const nome = document.getElementById('utente-nome').value;
             const cognome = document.getElementById('utente-cognome').value;
-            const email = document.getElementById('utente-email').value;
+            const username = document.getElementById('utente-username').value;
             const password = document.getElementById('utente-password').value;
             const ruoloId = document.getElementById('utente-ruoloId').value;
             
             const sb = window.FranklinApp.Storage.supabase;
 
-            if (id) {
-                // Modifica tramite Supabase (modifica base del profilo)
-                const { error } = await sb.from('utenti').update({
-                    nome: nome,
-                    cognome: cognome,
-                    ruoloid: ruoloId
-                }).eq('id', id);
+            // Nuovo utente tramite Edge Function
+            const { data, error } = await sb.functions.invoke('manage-users', {
+                body: { action: 'create', nome, cognome, username, password, ruoloId }
+            });
 
-                if (error) {
-                    mostraToast("Errore durante la modifica: " + error.message, "errore");
-                    return;
-                }
-            } else {
-                // Nuovo utente tramite Edge Function
-                const { data, error } = await sb.functions.invoke('manage-users', {
-                    body: { action: 'create', email, password, nome: nome + " " + cognome, ruoloId }
-                });
-
-                if (error || (data && data.error)) {
-                    mostraToast("Errore: " + (error?.message || data?.error), "errore");
-                    return;
-                }
+            if (error || (data && data.error)) {
+                mostraToast("Errore: " + (error?.message || data?.error), "errore");
+                return;
             }
 
             chiudiModaleUtente();
