@@ -88,13 +88,13 @@
             }
         }
 
-        function handleLogin() {
+        async function handleLogin() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
             const errorDiv = document.getElementById('login-error');
             
             if (window.FranklinApp && window.FranklinApp.Auth) {
-                const res = window.FranklinApp.Auth.login(username, password);
+                const res = await window.FranklinApp.Auth.login(username, password);
                 if (res && res.success) {
                     window.location.href = 'appointments.html';
                 } else {
