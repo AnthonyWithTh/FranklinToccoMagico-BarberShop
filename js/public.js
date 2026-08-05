@@ -42,7 +42,7 @@ FranklinApp.Pubblico = {
     
     let images = [];
     if (window.FranklinApp.Storage.listaImmagini) {
-        images = await window.FranklinApp.Storage.listaImmagini('images_vetrina');
+        images = await window.FranklinApp.Storage.listaImmagini('immagini_vetrina');
     }
     
     if (images && images.length > 0) {
