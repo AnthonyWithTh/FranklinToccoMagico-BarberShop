@@ -292,7 +292,10 @@ window.Agenda = (function() {
                 const appDate = new Date(app.data);
                 appDate.setHours(hOra, mOra + durata, 0, 0); // Fine dell'appuntamento
                 
-                if (!isCompletato && appDate < new Date()) {
+                const timePassed = appDate < new Date();
+                let isNonConfermato = isRichiesta && timePassed;
+                
+                if (!isCompletato && !isRichiesta && timePassed) {
                     isCompletato = true;
                 }
                 
@@ -302,6 +305,10 @@ window.Agenda = (function() {
                     // Celestina per Completato
                     bg = 'linear-gradient(135deg, rgba(30, 80, 160, 0.96), rgba(15, 45, 100, 0.96))';
                     borderStyle = '1px solid #42a5f5';
+                } else if (isNonConfermato) {
+                    // Grigio per Non Confermato (richiesta scaduta)
+                    bg = 'linear-gradient(135deg, rgba(90, 90, 90, 0.96), rgba(60, 60, 60, 0.96))';
+                    borderStyle = '1px solid #9e9e9e';
                 } else if (isRichiesta) {
                     // Pastello scuro ambra / senape per Richiesta
                     bg = 'linear-gradient(135deg, rgba(88, 72, 28, 0.96), rgba(64, 50, 18, 0.96))';
@@ -622,8 +629,8 @@ window.Agenda = (function() {
             if (titoloModale) titoloModale.textContent = 'Modifica Appuntamento';
             
             if (selectServizio) {
-                const srv = window.FranklinApp.Cache ? 
-                    (window.FranklinApp.Cache.servizi || []).find(s => s.nome === app.servizioNome) : null;
+                const servizi = await window.FranklinApp.Storage.ottieniServizi();
+                const srv = servizi.find(s => s.nome === app.servizioNome);
                 if (srv) selectServizio.value = srv.id;
             }
             if (selectBarbiere) selectBarbiere.value = app.barbiereId;
