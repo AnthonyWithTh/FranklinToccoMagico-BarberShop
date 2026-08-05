@@ -1,14 +1,12 @@
 window.FranklinApp = window.FranklinApp || {};
 
 FranklinApp.Auth = {
-  get client() {
-    return window.FranklinApp.Storage.supabase;
-  },
-
+  // Ottiene l'utente corrente tramite la sessione Supabase
   async getUtenteLoggato() {
-    const { data, error } = await this.client.auth.getSession();
-    if (error || !data.session) return null;
-    return data.session.user;
+    const sb = window.FranklinApp.Storage.supabase;
+    if (!sb) return null;
+    const { data: { session } } = await sb.auth.getSession();
+    return session ? session.user : null;
   },
 
   async isAutenticato() {
@@ -17,11 +15,9 @@ FranklinApp.Auth = {
   },
 
   async hasPermission(page) {
-    const utente = await this.getUtenteLoggato();
-    if (!utente) return false;
-    // Per il nostro prototipo, qualsiasi utente autenticato su Supabase Auth (es. l'admin) ha tutti i permessi.
-    // In futuro potremmo leggere la tabella "ruoli", ma l'RLS di Supabase protegge già il database alla fonte.
-    return true; 
+    // Al momento, se sei autenticato tramite Supabase Auth,
+    // consideriamo che sei Admin e hai tutti i permessi.
+    return await this.isAutenticato();
   },
 
   async verificaAccesso() {
@@ -29,33 +25,33 @@ FranklinApp.Auth = {
     if (!isAuth) {
       document.documentElement.style.display = 'none';
       window.location.href = 'login.html';
+      return;
     }
   },
 
   async login(email, password) {
-    const { data, error } = await this.client.auth.signInWithPassword({
+    const sb = window.FranklinApp.Storage.supabase;
+    const { data, error } = await sb.auth.signInWithPassword({
       email: email,
-      password: password
+      password: password,
     });
-
+    
     if (error) {
       return { success: false, message: error.message };
     }
-    
     return { success: true };
   },
 
   async logout() {
-    await this.client.auth.signOut();
+    const sb = window.FranklinApp.Storage.supabase;
+    await sb.auth.signOut();
     window.location.href = 'login.html';
   },
 
   async cambiaPassword(vecchia, nuova) {
-    if (nuova.length < 6) {
-      return { successo: false, messaggio: "La nuova password deve essere di almeno 6 caratteri" };
-    }
-    
-    const { data, error } = await this.client.auth.updateUser({
+    // Supabase Auth permette di aggiornare la password dell'utente loggato
+    const sb = window.FranklinApp.Storage.supabase;
+    const { data, error } = await sb.auth.updateUser({
       password: nuova
     });
     

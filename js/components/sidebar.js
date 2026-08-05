@@ -61,7 +61,7 @@
                     <div style="margin-top: auto;">
                         <div class="brass-divider" style="margin-bottom: 1rem;"></div>
                         ${usernameDisplay}
-                        <button class="nav-link" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer; padding: var(--spacing-sm);" onclick="if(window.FranklinApp && window.FranklinApp.Auth) window.FranklinApp.Auth.logout(); window.location.href='login.html';">
+                        <button class="nav-link" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer; padding: var(--spacing-sm);" onclick="if(window.FranklinApp && window.FranklinApp.Auth) window.FranklinApp.Auth.logout(); else window.location.href='login.html';">
                             <span class="icon">🚪</span><span class="text">Esci</span>
                         </button>
                     </div>
