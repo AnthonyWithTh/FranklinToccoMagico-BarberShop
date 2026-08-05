@@ -36,7 +36,8 @@ FranklinApp.Auth = {
     const { data: email, error: rpcError } = await sb.rpc('get_email_by_username', { p_username: username });
     
     if (rpcError || !email) {
-        return { success: false, message: "Username non trovato o errato" };
+        console.error("RPC Error:", rpcError);
+        return { success: false, message: rpcError ? rpcError.message : "Username non trovato o errato" };
     }
 
     const { data, error } = await sb.auth.signInWithPassword({
