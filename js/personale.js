@@ -35,6 +35,14 @@ async function salvaDatiPersonali() {
     const username = document.getElementById('pers-username').value.trim();
     const password = document.getElementById('pers-nuova-password').value;
     
+    const vecchioUsername = document.getElementById('pers-vecchio-username').value.trim();
+    const vecchiaPassword = document.getElementById('pers-vecchia-password').value;
+    
+    if (!vecchioUsername || !vecchiaPassword) {
+        window.FranklinApp.Admin?.mostraToast("Devi inserire le tue vecchie credenziali per confermare", "errore");
+        return;
+    }
+    
     if (!nome || !cognome || !username) {
         window.FranklinApp.Admin?.mostraToast("Nome, Cognome e Username sono obbligatori", "errore");
         return;
@@ -45,8 +53,27 @@ async function salvaDatiPersonali() {
     
     if (!user) return;
     
-    // Recupera il ruolo attuale dell'utente (per non perderlo)
-    const { data: profiloAttuale } = await sb.from('utenti').select('ruoloid').eq('id', user.id).single();
+    // Recupera il profilo attuale
+    const { data: profiloAttuale } = await sb.from('utenti').select('username, ruoloid').eq('id', user.id).single();
+    
+    // Verifica username (l'admin base usa 'admin' ma la sua vera mail è admin@franklin.it)
+    const currentDbUsername = (profiloAttuale && profiloAttuale.username) ? profiloAttuale.username : 'admin';
+    if (vecchioUsername !== currentDbUsername && (vecchioUsername.toLowerCase() !== 'admin' || user.email !== 'admin@franklin.it')) {
+        window.FranklinApp.Admin?.mostraToast("Il Vecchio Username non corrisponde al tuo account", "errore");
+        return;
+    }
+
+    // Verifica password tentando un login sul momento
+    const { error: signInError } = await sb.auth.signInWithPassword({
+        email: user.email,
+        password: vecchiaPassword
+    });
+
+    if (signInError) {
+        window.FranklinApp.Admin?.mostraToast("La Vecchia Password non è corretta", "errore");
+        return;
+    }
+
     const ruoloId = profiloAttuale ? profiloAttuale.ruoloid : 'barbiere';
 
     const payload = {
@@ -68,6 +95,8 @@ async function salvaDatiPersonali() {
         return;
     }
 
+    document.getElementById('pers-vecchio-username').value = '';
+    document.getElementById('pers-vecchia-password').value = '';
     document.getElementById('pers-nuova-password').value = '';
     window.FranklinApp.Admin?.mostraToast("Profilo aggiornato con successo! Le modifiche avranno effetto totale al prossimo accesso.", "successo");
     

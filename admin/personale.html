@@ -76,6 +76,23 @@
                             </div>
                         </div>
 
+                        <h3 class="vintage-title" style="color: var(--color-danger); margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-danger); padding-bottom: 10px; margin-top: 2rem;">Conferma Identità</h3>
+                        <p style="font-family: var(--font-admin); color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Per salvare le modifiche è necessario inserire le credenziali attuali.</p>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div>
+                                <label class="vintage-label">Vecchio Username</label>
+                                <input type="text" id="pers-vecchio-username" class="vintage-input" required>
+                            </div>
+                            <div>
+                                <label class="vintage-label">Vecchia Password</label>
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="password" id="pers-vecchia-password" class="vintage-input" style="flex: 1;" required>
+                                    <button type="button" class="btn-secondary" onclick="togglePasswordVisibility('pers-vecchia-password', this)" title="Mostra/Nascondi" style="padding: 0.5rem; min-width: 45px;">👁️</button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div style="display: flex; justify-content: flex-end; gap: 1rem;">
                             <button type="submit" class="btn-primary">Salva Modifiche</button>
                         </div>
