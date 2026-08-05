@@ -233,6 +233,8 @@
             tbody.innerHTML = '';
             
             (utenti || []).forEach(utente => {
+                if (utente.username === 'admin') return; // Nascondi l'amministratore principale
+
                 const ruolo = (ruoli || []).find(r => r.id === (utente.ruoloid || utente.ruoloId));
                 const ruoloNome = ruolo ? ruolo.nome : 'Nessun Ruolo';
                 const badgeClass = ruoloNome === 'Amministratore' ? 'badge-confirmed' : 'badge-completed';
