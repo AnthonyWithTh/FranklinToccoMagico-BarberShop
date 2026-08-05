@@ -202,7 +202,7 @@ FranklinApp.Prenotazione = {
         <label class="vintage-label" style="display: block; font-size: 0.88rem; margin-bottom: 0.4rem; color: var(--color-text-cream);">
           Orari Disponibili *
         </label>
-        <div id="slots-container" class="slots-container" style="display: flex; flex-wrap: wrap; gap: 8px; max-height: 240px; overflow-y: auto; padding: 6px 0;"></div>
+        <div id="slots-container" class="slots-container" style="display: flex; flex-wrap: wrap; gap: 8px; padding: 6px 0;"></div>
       </div>
     `;
     container.innerHTML = html;
@@ -236,8 +236,8 @@ FranklinApp.Prenotazione = {
       return;
     }
     
-    const slotMattina = slotDisponibili.filter(ora => ora < '13:00');
-    const slotPomeriggio = slotDisponibili.filter(ora => ora >= '13:00');
+    const slotMattina = slotDisponibili.filter(ora => ora < '14:00');
+    const slotPomeriggio = slotDisponibili.filter(ora => ora >= '14:00');
     
     let html = '';
     
@@ -248,7 +248,7 @@ FranklinApp.Prenotazione = {
         const btnStyle = isSelected 
           ? 'background: var(--color-brass-base); color: var(--color-black-100); font-weight: bold; border-color: var(--color-brass-light); box-shadow: 0 0 10px rgba(197,160,89,0.5);'
           : 'background: rgba(18,18,18,0.7); color: var(--color-text-cream); border: 1px solid var(--color-brass-dark);';
-        btns += `<button type="button" class="orario-slot" style="padding: 8px 14px; border-radius: 6px; font-size: 0.92rem; cursor: pointer; transition: all 0.2s ease; margin: 4px; ${btnStyle}" onclick="FranklinApp.Prenotazione.selezionaOra('${ora}')">${ora}</button>`;
+        btns += `<button type="button" class="orario-slot" data-ora="${ora}" style="padding: 8px 14px; border-radius: 6px; font-size: 0.92rem; cursor: pointer; transition: all 0.2s ease; margin: 4px; ${btnStyle}" onclick="FranklinApp.Prenotazione.selezionaOra('${ora}', this)">${ora}</button>`;
       });
       return btns;
     };
@@ -271,9 +271,28 @@ FranklinApp.Prenotazione = {
     this.gestisciPulsantiNavigazione();
   },
 
-  async selezionaOra(ora) {
+  selezionaOra(ora, btnElement) {
     this.stato.ora = ora;
-    await this.caricaSlot();
+    
+    // Rimuovi stile attivo da tutti gli slot
+    const tuttiSlot = document.querySelectorAll('.orario-slot');
+    tuttiSlot.forEach(btn => {
+      btn.style.background = 'rgba(18,18,18,0.7)';
+      btn.style.color = 'var(--color-text-cream)';
+      btn.style.fontWeight = 'normal';
+      btn.style.borderColor = 'var(--color-brass-dark)';
+      btn.style.boxShadow = 'none';
+    });
+    
+    // Aggiungi stile attivo al bottone cliccato
+    if (btnElement) {
+      btnElement.style.background = 'var(--color-brass-base)';
+      btnElement.style.color = 'var(--color-black-100)';
+      btnElement.style.fontWeight = 'bold';
+      btnElement.style.borderColor = 'var(--color-brass-light)';
+      btnElement.style.boxShadow = '0 0 10px rgba(197,160,89,0.5)';
+    }
+
     this.gestisciPulsantiNavigazione();
   },
 
