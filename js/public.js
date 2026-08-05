@@ -23,6 +23,7 @@ FranklinApp.Pubblico = {
     this.setupNavbar();
     this.setupSmoothScroll();
     this.setupCarouselEvents();
+    this.setupHeroBackgroundCarousel();
     
     document.addEventListener('DOMContentLoaded', () => {
       document.body.addEventListener('click', (e) => {
@@ -32,6 +33,33 @@ FranklinApp.Pubblico = {
         }
       });
     });
+  },
+
+  async setupHeroBackgroundCarousel() {
+    const hero = document.getElementById('home');
+    if (!hero) return;
+    
+    hero.style.transition = 'background-image 1.5s ease-in-out';
+    
+    let images = [];
+    if (window.FranklinApp.Storage.listaImmagini) {
+        images = await window.FranklinApp.Storage.listaImmagini('images_vetrina');
+    }
+    
+    if (!images || images.length === 0) {
+        images = ['assets/images/hero-bg.jpg'];
+    } else {
+        images = images.filter(url => url && !url.includes('.emptyFolderPlaceholder'));
+    }
+    
+    if (images.length <= 1) return;
+    
+    let currentIndex = 0;
+    setInterval(() => {
+        currentIndex = (currentIndex + 1) % images.length;
+        const newBg = images[currentIndex];
+        hero.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${newBg}')`;
+    }, 40000);
   },
 
   async renderServizi() {
