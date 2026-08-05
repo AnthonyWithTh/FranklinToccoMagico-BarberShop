@@ -114,6 +114,17 @@ window.Agenda = (function() {
     async function cambiaGiorno(offset) {
         const newDate = new Date(currentDate);
         newDate.setDate(newDate.getDate() + offset);
+        
+        const oggi = new Date();
+        oggi.setHours(0, 0, 0, 0);
+        
+        if (newDate < oggi) {
+            if (window.FranklinApp && window.FranklinApp.Admin) {
+                window.FranklinApp.Admin.mostraToast("Non puoi visualizzare date passate.", "errore");
+            }
+            return;
+        }
+        
         currentDate = newDate;
         await render();
     }
@@ -295,10 +306,10 @@ window.Agenda = (function() {
                 
                 if (isRichiesta) {
                     pulsantiHtml = `
-                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'confermato')" 
+                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Confermato')" 
                                 style="${btnCommonStyle} background:rgba(46,125,50,0.85); border:1px solid #4caf50;" 
                                 title="Accetta e Conferma">&#x2705;</button>
-                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'cancellato')" 
+                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" 
                                 style="${btnCommonStyle} background:rgba(180,40,40,0.85); border:1px solid #e53935;" 
                                 title="Rifiuta e Cancella">&#x274C;</button>`;
                 } else {
@@ -306,7 +317,7 @@ window.Agenda = (function() {
                         <button onclick="event.stopPropagation(); window.Agenda.modificaAppuntamento('${app.id}')" 
                                 style="${btnCommonStyle} background:rgba(184,134,11,0.75); border:1px solid #c5a059;" 
                                 title="Modifica">&#x270F;&#xFE0F;</button>
-                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'cancellato')" 
+                        <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" 
                                 style="${btnCommonStyle} background:rgba(180,40,40,0.85); border:1px solid #e53935;" 
                                 title="Elimina">&#x1F5D1;&#xFE0F;</button>`;
                 }
@@ -536,16 +547,16 @@ window.Agenda = (function() {
         const appuntamenti = await window.FranklinApp.Storage.ottieniAppuntamenti();
         const appIndex = appuntamenti.findIndex(a => a.id === appId);
         if (appIndex > -1) {
-            appuntamenti[appIndex].stato = nuovoStato;
+            const payload = { stato: nuovoStato };
             
             // Se confermato e originariamente inserito dal cliente, sovrascrivi con l'admin loggato
-            if (nuovoStato === 'confermato' && appuntamenti[appIndex].inseritoDa === 'Cliente') {
+            if (nuovoStato === 'Confermato' && appuntamenti[appIndex].inseritoDa === 'Cliente') {
                 const u = window.FranklinApp.Auth.getUtenteLoggato();
                 const nomeUtente = u ? `${u.nome || ''} ${u.cognome || ''}`.trim() || u.username : 'Admin';
-                appuntamenti[appIndex].inseritoDa = nomeUtente;
+                payload.confermatoDa = nomeUtente;
             }
             
-            await window.FranklinApp.Storage.salvaAppuntamenti(appuntamenti);
+            await window.FranklinApp.Storage.aggiornaAppuntamento(appId, payload);
             await render();
             
             if (window.FranklinApp.Admin && typeof window.FranklinApp.Admin.mostraToast === 'function') {

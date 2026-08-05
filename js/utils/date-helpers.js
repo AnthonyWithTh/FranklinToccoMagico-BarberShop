@@ -77,12 +77,11 @@ FranklinApp.DateHelpers = {
     // 1. Controlla accavallamento temporale con appuntamenti esistenti
     let haConflittoApp = false;
     for (const app of appuntamenti) {
-      if (app.data !== data || app.stato === 'cancellato') continue;
+      if (app.data !== data || (app.stato && app.stato.toLowerCase() === 'cancellato')) continue;
       if (barbiereId && app.barbiereId && app.barbiereId !== barbiereId) continue;
       if (escludiId && app.id === escludiId) continue;
 
-      const servizio = servizi.find(s => s.id === app.servizioId);
-      const appDurata = app.durata ? parseInt(app.durata, 10) : (servizio ? parseInt(servizio.durata, 10) : 30);
+      const appDurata = app.servizioDurata ? parseInt(app.servizioDurata, 10) : 30;
       
       const appInizioMin = this.oraInMinuti(app.ora);
       const appFineMin = appInizioMin + appDurata;

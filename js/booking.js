@@ -398,7 +398,7 @@ FranklinApp.Prenotazione = {
     let nomeAdmin = 'Admin';
     
     if (isAdmin && window.FranklinApp.Auth) {
-      utenteLoggato = window.FranklinApp.Auth.getUtenteLoggato();
+      utenteLoggato = await window.FranklinApp.Auth.getUtenteLoggato();
       if (utenteLoggato) {
         nomeAdmin = `${utenteLoggato.nome || ''} ${utenteLoggato.cognome || ''}`.trim() || utenteLoggato.username || 'Admin';
       }
