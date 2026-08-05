@@ -231,6 +231,12 @@ window.FranklinApp.Admin = {
   },
 
   statoOrdinamentoServizi: { col: 'categoria', dir: 'asc' },
+  filtroCategoriaServizi: 'Tutti',
+
+  async impostaFiltroCategoriaServizi(cat) {
+    this.filtroCategoriaServizi = cat;
+    await this.renderServizi();
+  },
 
   async ordinaServizi(col) {
     if (this.statoOrdinamentoServizi.col === col) {
@@ -247,6 +253,25 @@ window.FranklinApp.Admin = {
     if (!tbody) return;
     
     let servizi = await window.FranklinApp.Storage.ottieniServizi();
+    
+    // Popola i bottoni filtro categoria
+    const filtriContainer = document.getElementById('servizi-filtri-categoria');
+    if (filtriContainer) {
+        const categorieSet = new Set(servizi.map(s => s.categoria).filter(c => c));
+        const categorie = ['Tutti', ...Array.from(categorieSet).sort()];
+        
+        filtriContainer.innerHTML = categorie.map(cat => {
+            const isActive = this.filtroCategoriaServizi === cat;
+            const btnClass = isActive ? 'btn-primary' : 'btn-secondary';
+            return `<button class="${btnClass}" style="padding: 0.2rem 0.6rem; font-size: 0.9rem;" onclick="window.FranklinApp.Admin.impostaFiltroCategoriaServizi('${cat}')">${cat}</button>`;
+        }).join('');
+    }
+
+    // Applica filtro
+    if (this.filtroCategoriaServizi !== 'Tutti') {
+        servizi = servizi.filter(s => s.categoria === this.filtroCategoriaServizi);
+    }
+
     const { col, dir } = this.statoOrdinamentoServizi;
     
     if (col) {
@@ -370,6 +395,7 @@ window.FranklinApp.Admin = {
     if (datiForm.id) {
       await window.FranklinApp.Storage.aggiornaServizio(datiForm.id, datiForm);
     } else {
+      delete datiForm.id; // Non inviare id nullo a Supabase
       await window.FranklinApp.Storage.aggiungiServizio(datiForm);
     }
     await this.renderServizi();
