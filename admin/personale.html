@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Area Personale - Franklin Admin</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/variables.css?v=639214755924302358">
+    <link rel="stylesheet" href="../css/global.css?v=639214755924302358">
+    <link rel="stylesheet" href="../css/vintage-theme.css?v=639214755924302358">
+    <link rel="stylesheet" href="../css/admin.css?v=639214755924302358">
+    
+    <!-- Blocco anti-fouc e Auth -->
+    <style id="anti-fouc">html { display: none !important; }</style>
+    <script src="../js/storage.js?v=639214755924302358"></script>
+    <script src="../js/auth.js?v=639214755924302358"></script>
+    <script>
+        if (window.FranklinApp && window.FranklinApp.Auth) {
+            if (!window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('anti-fouc').remove();
+                window.FranklinApp.Auth.verificaAccesso();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <script src="../js/components/sidebar.js?v=639214755924302358"></script>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 2rem; overflow-y: auto;">
+            <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 class="vintage-title brass-text" style="font-size: 2.5rem; margin-bottom: 0.5rem;">Area Personale</h1>
+                    <p style="font-family: var(--font-admin); color: var(--color-text-muted);">Modifica le tue credenziali e i dati del profilo</p>
+                </div>
+            </div>
+
+            <div style="max-width: 600px; margin: 0 auto;">
+                <div class="vintage-card admin-form">
+                    <form id="form-personale" onsubmit="event.preventDefault(); salvaDatiPersonali();">
+                        
+                        <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-brass-dark); padding-bottom: 10px;">I Tuoi Dati</h3>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                            <div>
+                                <label class="vintage-label">Nome</label>
+                                <input type="text" id="pers-nome" class="vintage-input" required>
+                            </div>
+                            <div>
+                                <label class="vintage-label">Cognome</label>
+                                <input type="text" id="pers-cognome" class="vintage-input" required>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <label class="vintage-label">Nuovo Username</label>
+                            <input type="text" id="pers-username" class="vintage-input" required>
+                        </div>
+                        
+                        <div style="margin-bottom: 2rem;">
+                            <label class="vintage-label">Nuova Password <span style="font-size: 0.8em; color: var(--color-text-muted);">(lascia vuoto per non modificarla)</span></label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="password" id="pers-nuova-password" class="vintage-input" style="flex: 1;">
+                                <button type="button" class="btn-secondary" onclick="togglePasswordVisibility('pers-nuova-password', this)" title="Mostra/Nascondi" style="padding: 0.5rem; min-width: 45px;">👁️</button>
+                            </div>
+                        </div>
+
+                        <h3 class="vintage-title" style="color: var(--color-danger); margin-bottom: 1.5rem; border-bottom: 1px solid var(--color-danger); padding-bottom: 10px;">Conferma Identità</h3>
+                        <p style="font-family: var(--font-admin); color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">Per salvare le modifiche è necessario inserire le credenziali attuali.</p>
+
+                        <div style="margin-bottom: 1rem;">
+                            <label class="vintage-label">Vecchio Username</label>
+                            <input type="text" id="pers-vecchio-username" class="vintage-input" required>
+                        </div>
+
+                        <div style="margin-bottom: 2rem;">
+                            <label class="vintage-label">Vecchia Password</label>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="password" id="pers-vecchia-password" class="vintage-input" required style="flex: 1;">
+                                <button type="button" class="btn-secondary" onclick="togglePasswordVisibility('pers-vecchia-password', this)" title="Mostra/Nascondi" style="padding: 0.5rem; min-width: 45px;">👁️</button>
+                            </div>
+                        </div>
+
+                        <div style="text-align: right;">
+                            <button type="submit" class="btn-primary" style="padding: 0.8rem 2rem;">Salva Modifiche</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/mock-data.js?v=639214755924302358"></script>
+    <script src="../js/public.js?v=639214755924302358"></script>
+    <script src="../js/admin.js?v=639214755924302358"></script>
+    <script src="../js/personale.js?v=639214755924302358"></script>
+</body>
+</html>
+
+
+

@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Servizi - Franklin Admin</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/vintage-theme.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <!-- Blocco anti-fouc e Auth -->
+    <style id="anti-fouc">html { display: none !important; }</style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (window.FranklinApp && window.FranklinApp.Auth) {
+            if (!window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('anti-fouc').remove();
+                window.FranklinApp.Auth.verificaAccesso();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <script src="../js/components/sidebar.js"></script>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 2rem; overflow-y: auto;">
+            <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 class="vintage-title" style="font-size: 2rem; color: var(--color-text-cream); margin-bottom: 0.2rem;">Gestione Servizi & Prezzi</h1>
+                </div>
+            </div>
+            
+            <div class="vintage-card admin-form">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--color-text-cream); margin: 0; font-family: var(--font-vintage);">I tuoi Servizi</h4>
+                    <button class="btn-primary" style="padding: 0.4rem 0.9rem; font-size: 1.2rem; font-weight: bold; line-height: 1;" onclick="apriModaleServizio()" title="Aggiungi Servizio">+</button>
+                </div>
+                <div>
+                    <table class="admin-tabella" style="width: 100%; table-layout: fixed;">
+                        <thead>
+                            <tr>
+                                <th style="width: 12%; cursor: pointer; user-select: none;" onclick="window.FranklinApp.Admin.ordinaServizi('categoria')">Categoria <span id="sort-icon-categoria" style="display:inline-block; width:15px;"></span></th>
+                                <th style="width: 8%;">Immagine</th>
+                                <th style="width: 18%; cursor: pointer; user-select: none;" onclick="window.FranklinApp.Admin.ordinaServizi('nome')">Nome <span id="sort-icon-nome" style="display:inline-block; width:15px;"></span></th>
+                                <th style="width: 25%;">Descrizione</th>
+                                <th style="width: 10%; cursor: pointer; user-select: none;" onclick="window.FranklinApp.Admin.ordinaServizi('durata')">Durata <span id="sort-icon-durata" style="display:inline-block; width:15px;"></span></th>
+                                <th style="width: 10%; cursor: pointer; user-select: none;" onclick="window.FranklinApp.Admin.ordinaServizi('prezzo')">Prezzo <span id="sort-icon-prezzo" style="display:inline-block; width:15px;"></span></th>
+                                <th style="width: 10%; cursor: pointer; user-select: none;" onclick="window.FranklinApp.Admin.ordinaServizi('attivo')">Stato <span id="sort-icon-attivo" style="display:inline-block; width:15px;"></span></th>
+                                <th style="width: 120px;">Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-servizi-tbody">
+                            <!-- Riempiito da JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modale Servizio -->
+    <div id="modale-servizio" class="modal-overlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="max-width: 500px; width: 90%;">
+            <div class="vintage-card">
+                <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1.5rem;" id="modale-servizio-titolo">Aggiungi Servizio</h3>
+                
+                <form id="form-servizio" class="admin-form" onsubmit="event.preventDefault(); salvaServizio();">
+                    <input type="hidden" id="servizio-id">
+                    <input type="hidden" id="servizio-stato-hidden" value="true">
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="servizio-categoria" style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Categoria *</label>
+                        <select id="servizio-categoria" class="vintage-select" required style="width: 100%;">
+                            <option value="capelli">Capelli</option>
+                            <option value="barba">Barba</option>
+                            <option value="trattamenti">Trattamenti</option>
+                            <option value="combo">Combo</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label for="servizio-nome" style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Nome Servizio *</label>
+                        <input type="text" id="servizio-nome" class="vintage-input" required style="width: 100%;">
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                        <div class="form-group" style="flex: 1;">
+                            <label for="servizio-durata" style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Durata (min) *</label>
+                            <input type="number" id="servizio-durata" class="vintage-input" min="5" step="5" required style="width: 100%;">
+                        </div>
+                        <div class="form-group" style="flex: 1;">
+                            <label for="servizio-prezzo" style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Prezzo (€) *</label>
+                            <input type="number" id="servizio-prezzo" class="vintage-input" min="0" step="0.5" required style="width: 100%;">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <label for="servizio-descrizione" style="font-family: var(--font-admin); color: var(--color-text-cream); margin: 0;">Descrizione *</label>
+                            <span id="servizio-descrizione-counter" style="color: var(--color-text-muted); font-size: 0.78rem;">0 / 50</span>
+                        </div>
+                        <textarea id="servizio-descrizione" class="vintage-textarea" required rows="2" maxlength="50" placeholder="Descrizione breve del servizio (max 50 caratteri)..." style="width: 100%;" oninput="aggiornaContatoreDescrizioneServizio(this.value)"></textarea>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1.5rem;">
+                        <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Immagine Servizio *</label>
+                        
+                        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.6rem;">
+                            <button type="button" id="btn-tab-upload" class="tab-btn active" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;" onclick="mostraTabImmagine('upload')">📁 Carica Nuovo File</button>
+                            <button type="button" id="btn-tab-esistente" class="tab-btn" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;" onclick="mostraTabImmagine('esistente')">🖼️ Scegli da Caricati</button>
+                        </div>
+
+                        <div id="box-tab-upload">
+                            <input type="file" id="servizio-file" accept="image/*" class="vintage-input" style="width: 100%; padding: 0.4rem;" onchange="gestisciCaricamentoFileServizio(this)">
+                        </div>
+
+                        <div id="box-tab-esistente" style="display: none;">
+                            <select id="servizio-immagine-esistente" class="vintage-select" style="width: 100%; font-size: 0.85rem;" onchange="selezionaImmagineEsistente(this.value)">
+                                <option value="">Seleziona immagine</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.8rem; margin-top: 0.8rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: var(--border-radius-sm); border: 1px dashed var(--color-brass-dark);">
+                            <div id="servizio-anteprima-box" style="width: 52px; height: 52px; flex: 0 0 52px; border-radius: var(--border-radius-sm); border: 1.5px solid var(--color-brass-dark); overflow: hidden; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                                <img id="servizio-anteprima-img" src="../assets/images/hero-bg.jpg" alt="Anteprima" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--color-text-cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <span id="servizio-immagine-nome-display" style="color: var(--color-brass-light); font-weight: 500;">Nessuna nuova immagine</span>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="servizio-immagine">
+                    </div>
+                    
+                    <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                        <button type="button" class="btn-secondary" onclick="chiudiModaleServizio()">Annulla</button>
+                        <button type="submit" class="btn-primary">Salva Servizio</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/mock-data.js"></script>
+    <script src="../js/utils/validators.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/admin.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.FranklinApp && window.FranklinApp.Auth && !window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            if (window.FranklinApp && window.FranklinApp.Admin) {
+                window.FranklinApp.Admin.renderServizi();
+            }
+        });
+
+        let fileCaricatoDataUrl = null;
+        let fileCaricatoNome = null;
+        let listaImmaginiCaricate = [];
+
+        function mostraTabImmagine(tab) {
+            const btnUpload = document.getElementById('btn-tab-upload');
+            const btnEsistente = document.getElementById('btn-tab-esistente');
+            const boxUpload = document.getElementById('box-tab-upload');
+            const boxEsistente = document.getElementById('box-tab-esistente');
+
+            if (tab === 'upload') {
+                btnUpload.classList.add('active');
+                btnEsistente.classList.remove('active');
+                boxUpload.style.display = 'block';
+                boxEsistente.style.display = 'none';
+            } else {
+                btnUpload.classList.remove('active');
+                btnEsistente.classList.add('active');
+                boxUpload.style.display = 'none';
+                boxEsistente.style.display = 'block';
+                caricaListaImmaginiEsistenti();
+            }
+        }
+
+        async function caricaListaImmaginiEsistenti() {
+            const select = document.getElementById('servizio-immagine-esistente');
+            if (!select) return;
+
+            try {
+                const res = await fetch('/list-images');
+                const data = await res.json();
+                if (data.status === 'success' && Array.isArray(data.images)) {
+                    listaImmaginiCaricate = data.images.filter(img => img.startsWith('assets/images/servizi/'));
+                }
+            } catch(e) {
+                console.warn("Impossibile recuperare immagini da server, uso lista fallback:", e);
+                listaImmaginiCaricate = [];
+            }
+
+            const servizi = window.FranklinApp.Storage.ottieniServizi();
+            servizi.forEach(s => {
+                if (s.immagine && s.immagine.startsWith('assets/images/servizi/') && !listaImmaginiCaricate.includes(s.immagine)) {
+                    listaImmaginiCaricate.push(s.immagine);
+                }
+            });
+
+            const valAttuale = document.getElementById('servizio-immagine').value;
+            let optionsHtml = '<option value="">Seleziona immagine</option>';
+            if (listaImmaginiCaricate.length === 0) {
+                optionsHtml += '<option value="" disabled>Nessuna immagine trovata in assets/images/servizi/</option>';
+            } else {
+                listaImmaginiCaricate.forEach(img => {
+                    const selected = (img === valAttuale) ? 'selected' : '';
+                    const nomeFile = img.split('/').pop() || img;
+                    optionsHtml += `<option value="${img}" ${selected}>${nomeFile}</option>`;
+                });
+            }
+            select.innerHTML = optionsHtml;
+        }
+
+        function selezionaImmagineEsistente(val) {
+            if (!val) return;
+            fileCaricatoDataUrl = null;
+            fileCaricatoNome = null;
+            document.getElementById('servizio-file').value = '';
+            document.getElementById('servizio-immagine').value = val;
+            
+            const anteprimaImg = document.getElementById('servizio-anteprima-img');
+            if (anteprimaImg) {
+                anteprimaImg.src = window.FranklinApp.Storage.fixImagePath(val, true);
+            }
+            const display = document.getElementById('servizio-immagine-nome-display');
+            if (display) {
+                const nomeFile = val.split('/').pop() || val;
+                display.textContent = nomeFile;
+            }
+        }
+
+        function gestisciCaricamentoFileServizio(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                fileCaricatoNome = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    fileCaricatoDataUrl = e.target.result;
+                    const relPath = 'assets/images/servizi/' + fileCaricatoNome;
+                    document.getElementById('servizio-immagine').value = relPath;
+                    
+                    try {
+                        localStorage.setItem('img_cache_' + relPath, fileCaricatoDataUrl);
+                    } catch(err) {}
+                    
+                    const img = document.getElementById('servizio-anteprima-img');
+                    if (img) img.src = fileCaricatoDataUrl;
+
+                    const display = document.getElementById('servizio-immagine-nome-display');
+                    if (display) display.textContent = 'Nuovo file: ' + fileCaricatoNome;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function aggiornaContatoreDescrizioneServizio(val = '') {
+            const counter = document.getElementById('servizio-descrizione-counter');
+            if (counter) {
+                const len = (val || '').length;
+                counter.textContent = `${len} / 50`;
+                if (len >= 50) {
+                    counter.style.color = 'var(--color-danger)';
+                } else {
+                    counter.style.color = 'var(--color-text-muted)';
+                }
+            }
+        }
+
+        function apriModaleServizio(servizio = null) {
+            const modale = document.getElementById('modale-servizio');
+            const form = document.getElementById('form-servizio');
+            const titolo = document.getElementById('modale-servizio-titolo');
+            const anteprimaImg = document.getElementById('servizio-anteprima-img');
+            const fileInput = document.getElementById('servizio-file');
+            const display = document.getElementById('servizio-immagine-nome-display');
+            
+            form.reset();
+            fileCaricatoDataUrl = null;
+            fileCaricatoNome = null;
+            if (fileInput) fileInput.value = '';
+            mostraTabImmagine('upload');
+            
+            if (servizio) {
+                titolo.textContent = "Modifica Servizio";
+                document.getElementById('servizio-id').value = servizio.id;
+                document.getElementById('servizio-nome').value = servizio.nome;
+                document.getElementById('servizio-categoria').value = servizio.categoria;
+                document.getElementById('servizio-durata').value = servizio.durata;
+                document.getElementById('servizio-prezzo').value = servizio.prezzo;
+                document.getElementById('servizio-descrizione').value = servizio.descrizione || '';
+                document.getElementById('servizio-immagine').value = servizio.immagine || '';
+                document.getElementById('servizio-stato-hidden').value = servizio.attivo ? 'true' : 'false';
+                
+                if (anteprimaImg) {
+                    anteprimaImg.src = window.FranklinApp.Storage.fixImagePath(servizio.immagine, true);
+                }
+                if (display) {
+                    const nomeFile = (servizio.immagine || '').split('/').pop() || 'Nessuna immagine';
+                    display.textContent = nomeFile;
+                }
+                aggiornaContatoreDescrizioneServizio(servizio.descrizione || '');
+            } else {
+                titolo.textContent = "Aggiungi Servizio";
+                document.getElementById('servizio-id').value = '';
+                document.getElementById('servizio-immagine').value = '';
+                document.getElementById('servizio-stato-hidden').value = 'true';
+                if (anteprimaImg) {
+                    anteprimaImg.src = '../assets/images/hero-bg.jpg';
+                }
+                if (display) display.textContent = 'Seleziona un file o un\'immagine esistente';
+                aggiornaContatoreDescrizioneServizio('');
+            }
+            
+            modale.style.display = 'flex';
+        }
+
+        function chiudiModaleServizio() {
+            document.getElementById('modale-servizio').style.display = 'none';
+        }
+
+        async function salvaServizio() {
+            if (window.FranklinApp && window.FranklinApp.Admin) {
+                const nome = (document.getElementById('servizio-nome').value || '').trim();
+                const categoria = (document.getElementById('servizio-categoria').value || '').trim();
+                const durataVal = document.getElementById('servizio-durata').value;
+                const durata = parseInt(durataVal, 10);
+                const prezzoVal = document.getElementById('servizio-prezzo').value;
+                const prezzo = parseFloat(prezzoVal);
+                const descrizione = (document.getElementById('servizio-descrizione').value || '').trim();
+                const immagine = (document.getElementById('servizio-immagine').value || '').trim();
+
+                if (!nome || !categoria || !durataVal || isNaN(durata) || !prezzoVal || isNaN(prezzo) || !descrizione) {
+                    if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                        window.FranklinApp.Admin.mostraToast("Tutti i campi (Categoria, Nome, Durata, Prezzo, Descrizione) sono obbligatori!", "errore");
+                    } else {
+                        alert("Compila tutti i campi obbligatori!");
+                    }
+                    return;
+                }
+
+                if (!immagine) {
+                    if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                        window.FranklinApp.Admin.mostraToast("Carica un'immagine per il servizio!", "errore");
+                    } else {
+                        alert("Seleziona un'immagine per il servizio!");
+                    }
+                    return;
+                }
+
+                if (descrizione.length > 50) {
+                    if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                        window.FranklinApp.Admin.mostraToast("La descrizione del servizio non può superare i 50 caratteri!", "errore");
+                    } else {
+                        alert("La descrizione del servizio non può superare i 50 caratteri!");
+                    }
+                    return;
+                }
+
+                if (fileCaricatoDataUrl && fileCaricatoNome) {
+                    try {
+                        const res = await fetch('/upload', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                filename: fileCaricatoNome,
+                                data: fileCaricatoDataUrl
+                            })
+                        });
+                        const resJson = await res.json();
+                        console.log("Upload eseguito su disco:", resJson);
+                    } catch(err) {
+                        console.error("Errore durante upload su disco:", err);
+                    }
+                }
+
+                const datiForm = {
+                    id: document.getElementById('servizio-id').value || null,
+                    nome: nome,
+                    categoria: categoria,
+                    durata: durata,
+                    prezzo: prezzo,
+                    descrizione: descrizione,
+                    immagine: immagine,
+                    attivo: document.getElementById('servizio-stato-hidden').value === 'true'
+                };
+                window.FranklinApp.Admin.salvaServizio(datiForm);
+                chiudiModaleServizio();
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

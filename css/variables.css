@@ -1,0 +1,63 @@
+/*
+ * Variabili globali del tema - Franklin Barber Shop
+ * Palette 60-30-10: Nero Opaco, Marrone Legno, Verde Pianta
+ * Accenti: Oro Ottone, Testo Crema
+ */
+:root {
+  /* Colori dominanti (60%) */
+  --color-black-100: #22201e;
+  --color-black-200: #1a1918;
+  --color-black-300: #121212;
+
+  /* Colori secondari - Legno (30%) */
+  --color-wood-100: #8b5a2b;
+  --color-wood-200: #633a19;
+  --color-wood-300: #4a2e1b;
+  --color-wood-400: #2b1810;
+
+  /* Colori d'accento - Verde Pianta (10%) */
+  --color-green-100: #3a7251;
+  --color-green-200: #2d5a3f;
+  
+  /* Evidenziazioni - Oro Ottone */
+  --color-brass-light: #e2c285;
+  --color-brass-base: #c5a059;
+  --color-brass-dark: #8c6f37;
+
+  /* Testo e UI */
+  --color-text-cream: #f4ebd9;
+  --color-text-muted: #a89f91;
+  --color-danger: #a52a2a; /* Rosso vintage per annullare */
+
+  /* Gradienti */
+  --gradient-brass: linear-gradient(135deg, var(--color-brass-light) 0%, var(--color-brass-base) 50%, var(--color-brass-dark) 100%);
+  --gradient-wood: linear-gradient(to bottom, var(--color-wood-300), var(--color-wood-400));
+  
+  /* Font */
+  --font-heading: 'Abril Fatface', serif;
+  --font-vintage: 'Rye', serif;
+  --font-typewriter: 'Special Elite', monospace;
+  --font-body: 'Lora', serif;
+  --font-admin: 'Montserrat', sans-serif;
+
+  /* Ombre */
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.6);
+  --shadow-lg: 0 10px 20px rgba(0,0,0,0.8);
+  --shadow-inner: inset 0 2px 4px rgba(0,0,0,0.9);
+
+  /* Bordi e Spaziature */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 2rem;
+  --spacing-xl: 4rem;
+
+  /* Transizioni */
+  --transition-fast: 0.2s ease-in-out;
+  --transition-normal: 0.3s ease-in-out;
+}

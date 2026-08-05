@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orario di Lavoro - Franklin Admin</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/variables.css?v=639214781941194254">
+    <link rel="stylesheet" href="../css/global.css?v=639214781941194254">
+    <link rel="stylesheet" href="../css/vintage-theme.css?v=639214781941194254">
+    <link rel="stylesheet" href="../css/admin.css?v=639214781941194254">
+    <!-- Blocco anti-fouc e Auth -->
+    <style id="anti-fouc">html { display: none !important; }</style>
+    <script src="../js/storage.js?v=639214781941194254"></script>
+    <script src="../js/auth.js?v=639214781941194254"></script>
+    <script>
+        if (window.FranklinApp && window.FranklinApp.Auth) {
+            if (!window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('anti-fouc').remove();
+                window.FranklinApp.Auth.verificaAccesso();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <script src="../js/components/sidebar.js?v=639214781941194254"></script>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 2rem; overflow-y: auto;">
+            <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 class="vintage-title" style="font-size: 2rem; color: var(--color-text-cream); margin-bottom: 0.2rem;">Gestione Orari</h1>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                
+                <!-- Section 3: Orari di Lavoro -->
+                <div class="vintage-card admin-form">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h4 id="totale-ore-settimana" style="color: var(--color-text-cream); margin: 0; font-family: var(--font-vintage);">Orario di Apertura - Calcolo in corso...</h4>
+                    </div>
+                    
+                    <table class="orari-editor admin-tabella" style="width: 100%; margin-bottom: 2rem;">
+                        <thead>
+                            <tr>
+                                <th>Giorno</th>
+                                <th>Chiuso</th>
+                                <th>Apertura Mattina</th>
+                                <th>Chiusura Mattina</th>
+                                <th>Apertura Pomeriggio</th>
+                                <th>Chiusura Pomeriggio</th>
+                                <th>Totale</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orari-tbody">
+                            <!-- Popolato da JS -->
+                        </tbody>
+                    </table>
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; margin-top: 2rem;">
+                        <h4 style="color: var(--color-text-cream); margin: 0; font-family: var(--font-vintage);">Giorni Festivi e Imprevisti</h4>
+                        <div style="display: flex; gap: 10px;">
+                            <button type="button" class="btn-danger" style="padding: 4px 10px; font-size: 0.85rem;" onclick="eliminaEccezioniSelezionate()" title="Elimina gli elementi selezionati">🗑️ Elimina</button>
+                            <button type="button" class="btn-secondary" style="padding: 4px 10px; font-size: 0.85rem;" onclick="ripulisciEccezioni()" title="Elimina tutto">🧹 Ripulisci</button>
+                            <button type="button" class="btn-primary" style="padding: 4px 10px; font-size: 0.85rem;" onclick="aggiungiFestivitaBase()" title="Aggiungi festività nazionali base">📅 Festività Base</button>
+                            <button type="button" class="btn-primary" onclick="apriModaleEccezione()">+ Aggiungi</button>
+                        </div>
+                    </div>
+                    
+                    <table class="orari-editor admin-tabella" style="width: 100%; margin-bottom: 0;">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllEccezioni" onclick="toggleAllEccezioni(this)"></th>
+                                <th onclick="toggleSortEccezioni()" style="cursor: pointer; user-select: none;">Data <span id="sort-icon-schedule">▲</span></th>
+                                <th>Motivo</th>
+                                <th>Tipo</th>
+                                <th>Giornata Intera</th>
+                                <th>Dalle</th>
+                                <th>Alle</th>
+                                <th>Azioni</th>
+                            </tr>
+                        </thead>
+                        <tbody id="eccezionali-tbody">
+                            <!-- Popolato da JS -->
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modale Eccezione -->
+    <div id="modale-giorno-eccezionale" class="modal-overlay" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+        <div class="modal-content vintage-card admin-form" style="width: 90%; max-width: 500px; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 class="vintage-title" id="modale-eccezione-titolo" style="margin: 0; font-size: 1.5rem;">Aggiungi Giorno Eccezionale</h2>
+                <button onclick="chiudiModaleEccezione()" style="background: none; border: none; color: var(--color-text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            
+            <form id="form-eccezione" onsubmit="event.preventDefault(); salvaGiornoEccezionale();">
+                <input type="hidden" id="eccezione-index" value="-1">
+                
+                <div style="margin-bottom: 1rem;">
+                    <label class="vintage-label">Data</label>
+                    <input type="date" id="eccezione-data" class="vintage-input" required onchange="ricalcolaModaleEccezione()">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label class="vintage-label">Motivo (es. Natale, Lavori in corso)</label>
+                    <input type="text" id="eccezione-motivo" class="vintage-input" required disabled placeholder="Inserisci la data prima">
+                </div>
+
+                <div style="margin-bottom: 1rem;">
+                    <label class="vintage-label">Tipo</label>
+                    <select id="eccezione-tipo" class="vintage-select" required disabled style="width: 100%;">
+                        <option value="Giorno Festivo">Giorno Festivo</option>
+                        <option value="Imprevisto">Imprevisto</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                    <input type="checkbox" id="eccezione-intera" class="check-chiuso" disabled onchange="ricalcolaModaleEccezione()" style="width: auto; margin: 0;">
+                    <label class="vintage-label" style="margin: 0;">Chiuso tutta la giornata</label>
+                </div>
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="flex: 1;">
+                        <label class="vintage-label">Dalle</label>
+                        <select id="eccezione-dalle" class="vintage-select" disabled onchange="ricalcolaModaleEccezione()">
+                            <!-- JS -->
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="vintage-label">Alle</label>
+                        <select id="eccezione-alle" class="vintage-select" disabled>
+                            <!-- JS -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" class="btn-secondary" onclick="chiudiModaleEccezione()">Annulla</button>
+                    <button type="submit" class="btn-primary">Salva</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/mock-data.js?v=639214781941194254"></script>
+    <script src="../js/utils/date-helpers.js?v=639214781941194254"></script>
+    <script src="../js/utils/validators.js?v=639214781941194254"></script>
+    <script src="../js/public.js?v=639214781941194254"></script>
+    <script src="../js/admin.js?v=639214781941194254"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.FranklinApp && window.FranklinApp.Auth && !window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            popolaOrari();
+        });
+
+        // --- Gestione Tabella Orario di Apertura ---
+
+        function generaOpzioniScaglioni(valoreAttuale) {
+            let html = '<option value="">--:--</option>';
+            for(let h=0; h<24; h++) {
+                for(let m=0; m<60; m+=15) {
+                    const timeStr = h.toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+                    const selected = (valoreAttuale === timeStr) ? 'selected' : '';
+                    html += `<option value="${timeStr}" ${selected}>${timeStr}</option>`;
+                }
+            }
+            return html;
+        }
+
+        function popolaOrari() {
+            if(window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                if(imp) {
+                    // Tabella 1: Orari Lavoro
+                    const orariMap = imp.orariLavoro || {};
+                    const tbody = document.getElementById('orari-tbody');
+                    tbody.innerHTML = '';
+                    const giorni = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'];
+                    giorni.forEach(giorno => {
+                        const orario = orariMap[giorno] || { chiuso: false, mattinaApertura: '', mattinaChiusura: '', pomeriggioApertura: '', pomeriggioChiusura: '' };
+                        const checked = orario.chiuso ? 'checked' : '';
+                        const disabled = orario.chiuso ? 'disabled' : '';
+                        const opacity = orario.chiuso ? 'opacity: 0.4; filter: grayscale(1);' : '';
+                        
+                        tbody.innerHTML += `
+                            <tr data-giorno="${giorno}" style="${opacity} transition: all 0.3s ease;">
+                                <td style="text-transform: capitalize;">${giorno}</td>
+                                <td><input type="checkbox" class="check-chiuso" ${checked} onchange="toggleChiusura(this)"></td>
+                                <td><select class="vintage-select m-apertura" ${disabled} onchange="autoSalvaOrari()">${generaOpzioniScaglioni(orario.mattinaApertura)}</select></td>
+                                <td><select class="vintage-select m-chiusura" ${disabled} onchange="autoSalvaOrari()">${generaOpzioniScaglioni(orario.mattinaChiusura)}</select></td>
+                                <td><select class="vintage-select p-apertura" ${disabled} onchange="autoSalvaOrari()">${generaOpzioniScaglioni(orario.pomeriggioApertura)}</select></td>
+                                <td><select class="vintage-select p-chiusura" ${disabled} onchange="autoSalvaOrari()">${generaOpzioniScaglioni(orario.pomeriggioChiusura)}</select></td>
+                                <td class="totale-ore-giorno">0h</td>
+                            </tr>
+                        `;
+                    });
+                    calcolaTotaleSettimana();
+
+                    // Tabella 2: Giorni Eccezionali
+                    let eccezioni = imp.giorniEccezionali || [];
+                    
+                    // Rimuovi eccezioni passate automaticamente (prima di oggi)
+                    const today = new Date().toISOString().split('T')[0];
+                    const originalLength = eccezioni.length;
+                    eccezioni = eccezioni.filter(e => e.data >= today);
+                    
+                    if (eccezioni.length !== originalLength) {
+                        imp.giorniEccezionali = eccezioni;
+                        window.FranklinApp.Storage.salvaImpostazioni(imp);
+                    }
+                    
+                    renderGiorniEccezionali(eccezioni);
+                }
+            }
+        }
+
+        function toggleChiusura(checkbox) {
+            const tr = checkbox.closest('tr');
+            const selects = tr.querySelectorAll('select');
+            selects.forEach(sel => {
+                sel.disabled = checkbox.checked;
+            });
+            if (checkbox.checked) {
+                tr.style.opacity = '0.4';
+                tr.style.filter = 'grayscale(1)';
+            } else {
+                tr.style.opacity = '1';
+                tr.style.filter = 'none';
+            }
+            autoSalvaOrari();
+        }
+        
+        function calcolaOre(inizio, fine) {
+            if (!inizio || !fine) return 0;
+            const [h1, m1] = inizio.split(':').map(Number);
+            const [h2, m2] = fine.split(':').map(Number);
+            let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+            return diff > 0 ? diff / 60 : 0;
+        }
+
+        function calcolaTotaleSettimana() {
+            let totaleSettimana = 0;
+            document.querySelectorAll('#orari-tbody tr').forEach(tr => {
+                const chiuso = tr.querySelector('.check-chiuso').checked;
+                let totaleGiorno = 0;
+                if (!chiuso) {
+                    const ma = tr.querySelector('.m-apertura').value;
+                    const mc = tr.querySelector('.m-chiusura').value;
+                    const pa = tr.querySelector('.p-apertura').value;
+                    const pc = tr.querySelector('.p-chiusura').value;
+                    
+                    totaleGiorno += calcolaOre(ma, mc);
+                    totaleGiorno += calcolaOre(pa, pc);
+                }
+                tr.querySelector('.totale-ore-giorno').textContent = totaleGiorno > 0 ? (Math.round(totaleGiorno * 10) / 10) + ' ore' : '0 ore';
+                totaleSettimana += totaleGiorno;
+            });
+            document.getElementById('totale-ore-settimana').textContent = `Orario di Apertura - ${Math.round(totaleSettimana * 10) / 10} ore lavorative`;
+        }
+        
+        function autoSalvaOrari() {
+            calcolaTotaleSettimana();
+            
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const orariMap = {};
+                
+                document.querySelectorAll('#orari-tbody tr').forEach(tr => {
+                    const giorno = tr.getAttribute('data-giorno');
+                    orariMap[giorno] = {
+                        chiuso: tr.querySelector('.check-chiuso').checked,
+                        mattinaApertura: tr.querySelector('.m-apertura').value,
+                        mattinaChiusura: tr.querySelector('.m-chiusura').value,
+                        pomeriggioApertura: tr.querySelector('.p-apertura').value,
+                        pomeriggioChiusura: tr.querySelector('.p-chiusura').value
+                    };
+                });
+                
+                imp.orariLavoro = orariMap;
+                window.FranklinApp.Storage.salvaImpostazioni(imp);
+                
+                if (window.FranklinApp.Admin) {
+                    window.FranklinApp.Admin.mostraToast("Orari salvati automaticamente", "successo");
+                }
+            }
+        }
+
+        // --- Gestione Giorni Eccezionali ---
+
+        let eccezioniSortAsc = true;
+        
+        function toggleSortEccezioni() {
+            eccezioniSortAsc = !eccezioniSortAsc;
+            const icon = document.getElementById('sort-icon-schedule');
+            if (icon) icon.textContent = eccezioniSortAsc ? '▲' : '▼';
+            
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                renderGiorniEccezionali(imp.giorniEccezionali || []);
+            }
+        }
+
+        function renderGiorniEccezionali(eccezionali) {
+            const tbody = document.getElementById('eccezionali-tbody');
+            tbody.innerHTML = '';
+            
+            const selectAll = document.getElementById('selectAllEccezioni');
+            if (selectAll) selectAll.checked = false;
+            
+            if (!eccezionali || eccezionali.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--color-text-muted);">Nessuna eccezione impostata</td></tr>';
+                return;
+            }
+            
+            eccezionali.sort((a, b) => {
+                const res = a.data.localeCompare(b.data);
+                return eccezioniSortAsc ? res : -res;
+            });
+            
+            eccezionali.forEach((exc, index) => {
+                const intera = exc.interaGiornata ? 'Sì' : 'No';
+                const dalle = exc.interaGiornata ? '-' : exc.dalle;
+                const alle = exc.interaGiornata ? '-' : exc.alle;
+                const tipoStr = exc.tipo || (exc.motivo && exc.motivo.toLowerCase().includes('imprevisto') ? 'Imprevisto' : 'Giorno Festivo');
+                const badgeTipo = tipoStr === 'Imprevisto' 
+                    ? '<span style="background: rgba(30,80,160,0.3); color: #64b5f6; border: 1px solid rgba(30,80,160,0.6); padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">Imprevisto</span>' 
+                    : '<span style="background: rgba(165,42,42,0.3); color: #ff8a80; border: 1px solid rgba(165,42,42,0.6); padding: 3px 8px; border-radius: 4px; font-size: 0.85rem; font-weight: bold;">Giorno Festivo</span>';
+                
+                const dataFormattata = window.FranklinApp.DateHelpers ? window.FranklinApp.DateHelpers.formattaDataSenzaGiorno(exc.data) : exc.data;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="text-align: center;"><input type="checkbox" class="eccezione-checkbox" value="${exc.data}"></td>
+                        <td style="font-weight: bold; color: var(--color-brass-light);">${dataFormattata}</td>
+                        <td>${exc.motivo}</td>
+                        <td>${badgeTipo}</td>
+                        <td>${intera}</td>
+                        <td>${dalle}</td>
+                        <td>${alle}</td>
+                        <td>
+                            <button class="azioni-btn" title="Modifica" onclick="modificaGiornoEccezionale('${exc.data}')">✏️</button>
+                            <button class="azioni-btn" style="color: var(--color-danger);" title="Elimina" onclick="eliminaGiornoEccezionale('${exc.data}')">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+        
+        function toggleAllEccezioni(source) {
+            const checkboxes = document.querySelectorAll('.eccezione-checkbox');
+            checkboxes.forEach(cb => cb.checked = source.checked);
+        }
+
+        function eliminaEccezioniSelezionate() {
+            const checkboxes = document.querySelectorAll('.eccezione-checkbox:checked');
+            if (checkboxes.length === 0) {
+                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Seleziona almeno un elemento da eliminare", "errore");
+                return;
+            }
+            
+            if (!confirm(`Sei sicuro di voler eliminare ${checkboxes.length} elementi selezionati?`)) return;
+            
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                if (!imp.giorniEccezionali) return;
+                
+                const datesToRemove = Array.from(checkboxes).map(cb => cb.value);
+                
+                imp.giorniEccezionali = imp.giorniEccezionali.filter(e => !datesToRemove.includes(e.data));
+                
+                window.FranklinApp.Storage.salvaImpostazioni(imp);
+                renderGiorniEccezionali(imp.giorniEccezionali);
+                
+                if (window.FranklinApp.Admin) {
+                    window.FranklinApp.Admin.mostraToast(`${datesToRemove.length} elementi eliminati`, "successo");
+                }
+            }
+        }
+
+        function ripulisciEccezioni() {
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                if (!imp.giorniEccezionali || imp.giorniEccezionali.length === 0) return;
+                
+                if (!confirm("Sei sicuro di voler eliminare TUTTI i giorni festivi e imprevisti? Questa azione è irreversibile.")) return;
+                
+                imp.giorniEccezionali = [];
+                window.FranklinApp.Storage.salvaImpostazioni(imp);
+                renderGiorniEccezionali(imp.giorniEccezionali);
+                
+                if (window.FranklinApp.Admin) {
+                    window.FranklinApp.Admin.mostraToast("Tutti gli elementi sono stati rimossi", "successo");
+                }
+            }
+        }
+
+        function aggiungiFestivitaBase() {
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                if (!imp.giorniEccezionali) imp.giorniEccezionali = [];
+                
+                const currentYear = new Date().getFullYear();
+                
+                const creaFest = (anno) => [
+                    { data: `${anno}-01-01`, motivo: "Capodanno", tipo: "Giorno Festivo" },
+                    { data: `${anno}-01-06`, motivo: "Epifania", tipo: "Giorno Festivo" },
+                    { data: `${anno}-04-25`, motivo: "Festa della Liberazione", tipo: "Giorno Festivo" },
+                    { data: `${anno}-05-01`, motivo: "Festa dei Lavoratori", tipo: "Giorno Festivo" },
+                    { data: `${anno}-06-02`, motivo: "Festa della Repubblica", tipo: "Giorno Festivo" },
+                    { data: `${anno}-08-15`, motivo: "Ferragosto", tipo: "Giorno Festivo" },
+                    { data: `${anno}-11-01`, motivo: "Tutti i Santi", tipo: "Giorno Festivo" },
+                    { data: `${anno}-12-08`, motivo: "Immacolata Concezione", tipo: "Giorno Festivo" },
+                    { data: `${anno}-12-25`, motivo: "Natale", tipo: "Giorno Festivo" },
+                    { data: `${anno}-12-26`, motivo: "Santo Stefano", tipo: "Giorno Festivo" }
+                ];
+                
+                const festività = creaFest(currentYear);
+                const today = new Date().toISOString().split('T')[0];
+                
+                let added = 0;
+                festività.forEach(f => {
+                    if (f.data >= today && !imp.giorniEccezionali.some(e => e.data === f.data && e.interaGiornata)) {
+                        imp.giorniEccezionali.push({
+                            data: f.data,
+                            motivo: f.motivo,
+                            tipo: f.tipo || "Giorno Festivo",
+                            interaGiornata: true,
+                            dalle: "",
+                            alle: ""
+                        });
+                        added++;
+                    }
+                });
+                
+                if (added > 0) {
+                    window.FranklinApp.Storage.salvaImpostazioni(imp);
+                    renderGiorniEccezionali(imp.giorniEccezionali);
+                    if (window.FranklinApp.Admin) {
+                        window.FranklinApp.Admin.mostraToast(`${added} festività base aggiunte`, "successo");
+                    }
+                } else {
+                    if (window.FranklinApp.Admin) {
+                        window.FranklinApp.Admin.mostraToast("Festività base già presenti", "info");
+                    }
+                }
+            }
+        }
+
+        function ottieniEccezionali() {
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                return imp.giorniEccezionali || [];
+            }
+            return [];
+        }
+        
+        function salvaEccezionali(eccezionali) {
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                imp.giorniEccezionali = eccezionali;
+                window.FranklinApp.Storage.salvaImpostazioni(imp);
+            }
+        }
+
+        function apriModaleEccezione() {
+            document.getElementById('form-eccezione').reset();
+            document.getElementById('eccezione-index').value = "-1";
+            document.getElementById('modale-eccezione-titolo').textContent = "Aggiungi Giorno Eccezionale";
+            
+            ricalcolaModaleEccezione();
+            document.getElementById('modale-giorno-eccezionale').style.display = 'flex';
+        }
+        
+        function chiudiModaleEccezione() {
+            document.getElementById('modale-giorno-eccezionale').style.display = 'none';
+        }
+        
+        function ricalcolaModaleEccezione() {
+            const dataInput = document.getElementById('eccezione-data');
+            const motivoInput = document.getElementById('eccezione-motivo');
+            const tipoSelect = document.getElementById('eccezione-tipo');
+            const interaCheck = document.getElementById('eccezione-intera');
+            const dalleSelect = document.getElementById('eccezione-dalle');
+            const alleSelect = document.getElementById('eccezione-alle');
+            
+            if (!dataInput.value) {
+                motivoInput.disabled = true;
+                tipoSelect.disabled = true;
+                interaCheck.disabled = true;
+                dalleSelect.disabled = true;
+                alleSelect.disabled = true;
+                return;
+            }
+            
+            motivoInput.disabled = false;
+            tipoSelect.disabled = false;
+            interaCheck.disabled = false;
+            
+            const dateObj = new Date(dataInput.value);
+            const numGiorno = dateObj.getDay();
+            const mapGiorni = [6, 0, 1, 2, 3, 4, 5];
+            const giorniNomi = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'];
+            const nomeGiorno = giorniNomi[mapGiorni[numGiorno]];
+            
+            let slotPermessi = [];
+            
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const orarioNormale = imp.orariLavoro ? imp.orariLavoro[nomeGiorno] : null;
+                
+                if (!orarioNormale || orarioNormale.chiuso) {
+                    interaCheck.checked = true;
+                    interaCheck.disabled = true;
+                } else {
+                    const genera = (inizio, fine) => {
+                        if (!inizio || !fine) return;
+                        const [h1, m1] = inizio.split(':').map(Number);
+                        const [h2, m2] = fine.split(':').map(Number);
+                        const startMin = h1 * 60 + m1;
+                        const endMin = h2 * 60 + m2;
+                        
+                        for (let t = startMin; t <= endMin; t += 15) {
+                            const hh = Math.floor(t / 60).toString().padStart(2, '0');
+                            const mm = (t % 60).toString().padStart(2, '0');
+                            slotPermessi.push(`${hh}:${mm}`);
+                        }
+                    };
+                    
+                    genera(orarioNormale.mattinaApertura, orarioNormale.mattinaChiusura);
+                    genera(orarioNormale.pomeriggioApertura, orarioNormale.pomeriggioChiusura);
+                }
+            }
+            
+            if (interaCheck.checked) {
+                dalleSelect.disabled = true;
+                alleSelect.disabled = true;
+                dalleSelect.innerHTML = '';
+                alleSelect.innerHTML = '';
+            } else {
+                dalleSelect.disabled = false;
+                alleSelect.disabled = false;
+                
+                const oldDalle = dalleSelect.value;
+                const oldAlle = alleSelect.value;
+                
+                dalleSelect.innerHTML = '<option value="">-- Seleziona --</option>';
+                alleSelect.innerHTML = '<option value="">-- Seleziona --</option>';
+                
+                slotPermessi.forEach(slot => {
+                    dalleSelect.innerHTML += `<option value="${slot}">${slot}</option>`;
+                });
+                
+                if (oldDalle && slotPermessi.includes(oldDalle)) {
+                    dalleSelect.value = oldDalle;
+                }
+                
+                if (dalleSelect.value) {
+                    const idx = slotPermessi.indexOf(dalleSelect.value);
+                    if (idx !== -1) {
+                        for (let i = idx + 1; i < slotPermessi.length; i++) {
+                            alleSelect.innerHTML += `<option value="${slotPermessi[i]}">${slotPermessi[i]}</option>`;
+                        }
+                    }
+                    if (oldAlle && alleSelect.querySelector(`option[value="${oldAlle}"]`)) {
+                        alleSelect.value = oldAlle;
+                    }
+                } else {
+                    alleSelect.disabled = true;
+                }
+            }
+        }
+        
+        function salvaGiornoEccezionale() {
+            const dataStr = document.getElementById('eccezione-data').value;
+            const motivo = document.getElementById('eccezione-motivo').value;
+            const tipo = document.getElementById('eccezione-tipo').value || 'Giorno Festivo';
+            const intera = document.getElementById('eccezione-intera').checked;
+            const dalle = document.getElementById('eccezione-dalle').value;
+            const alle = document.getElementById('eccezione-alle').value;
+            const indexStr = document.getElementById('eccezione-index').value;
+            
+            if (!intera && (!dalle || !alle)) {
+                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Inserisci un orario valido", "errore");
+                return;
+            }
+            
+            const eccezione = {
+                data: dataStr,
+                motivo: motivo,
+                tipo: tipo,
+                interaGiornata: intera,
+                dalle: intera ? '' : dalle,
+                alle: intera ? '' : alle
+            };
+            
+            let eccezionali = ottieniEccezionali();
+            
+            if (indexStr === "-1") {
+                const esiste = eccezionali.find(e => e.data === dataStr);
+                if (esiste) {
+                    if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Esiste già un'eccezione per questa data", "errore");
+                    return;
+                }
+                eccezionali.push(eccezione);
+            } else {
+                const oldData = indexStr;
+                const idx = eccezionali.findIndex(e => e.data === oldData);
+                if (idx !== -1) {
+                    if (oldData !== dataStr && eccezionali.find(e => e.data === dataStr)) {
+                        if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Esiste già un'eccezione per questa data", "errore");
+                        return;
+                    }
+                    eccezionali[idx] = eccezione;
+                }
+            }
+            
+            salvaEccezionali(eccezionali);
+            renderGiorniEccezionali(eccezionali);
+            chiudiModaleEccezione();
+            if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Eccezione salvata", "successo");
+        }
+        
+        function modificaGiornoEccezionale(dataStr) {
+            const eccezionali = ottieniEccezionali();
+            const exc = eccezionali.find(e => e.data === dataStr);
+            
+            if (exc) {
+                document.getElementById('eccezione-index').value = dataStr;
+                document.getElementById('modale-eccezione-titolo').textContent = "Modifica Giorno Eccezionale";
+                
+                document.getElementById('eccezione-data').value = exc.data;
+                document.getElementById('eccezione-motivo').value = exc.motivo;
+                document.getElementById('eccezione-tipo').value = exc.tipo || 'Giorno Festivo';
+                document.getElementById('eccezione-intera').checked = exc.interaGiornata;
+                
+                ricalcolaModaleEccezione();
+                
+                setTimeout(() => {
+                    if (!exc.interaGiornata) {
+                        document.getElementById('eccezione-dalle').value = exc.dalle;
+                        ricalcolaModaleEccezione();
+                        
+                        setTimeout(() => {
+                            document.getElementById('eccezione-alle').value = exc.alle;
+                        }, 50);
+                    }
+                }, 50);
+                
+                document.getElementById('modale-giorno-eccezionale').style.display = 'flex';
+            }
+        }
+        
+        function eliminaGiornoEccezionale(dataStr) {
+            if (confirm(`Sei sicuro di voler eliminare l'eccezione del ${dataStr}?`)) {
+                let eccezionali = ottieniEccezionali();
+                eccezionali = eccezionali.filter(e => e.data !== dataStr);
+                salvaEccezionali(eccezionali);
+                renderGiorniEccezionali(eccezionali);
+                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Eccezione eliminata", "successo");
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+

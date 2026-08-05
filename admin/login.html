@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Franklin Barber Shop - Area Riservata</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/variables.css?v=639214755924302358">
+    <link rel="stylesheet" href="../css/global.css?v=639214755924302358">
+    <link rel="stylesheet" href="../css/vintage-theme.css?v=639214755924302358">
+    <link rel="stylesheet" href="../css/admin.css?v=639214755924302358">
+</head>
+<body class="login-page">
+
+    <div class="login-card vintage-card">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+            <h1 class="vintage-title brass-text" style="font-size: 3rem; margin-bottom: 0.5rem;">FRANKLIN</h1>
+            <div class="vintage-subtitle" style="font-family: var(--font-admin); color: var(--color-brass-base);">Area Riservata</div>
+        </div>
+        
+        <div class="brass-divider" style="margin-bottom: 2rem;"></div>
+        
+        <form id="login-form" class="admin-form" onsubmit="event.preventDefault(); handleLogin();">
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="username" style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Username</label>
+                <input type="text" id="username" class="vintage-input" placeholder="Inserisci username..." required style="width: 100%; text-align: center; letter-spacing: 1px;">
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label for="password" style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Password di Accesso</label>
+                <div style="position: relative;">
+                    <input type="password" id="password" class="vintage-input" placeholder="Inserisci la password..." required style="width: 100%; text-align: center; letter-spacing: 2px; padding-right: 40px;">
+                    <button type="button" id="toggle-pwd-btn" onclick="togglePasswordVisibility()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--color-text-muted); padding: 0;">👁️</button>
+                </div>
+            </div>
+            
+            <div id="login-error" style="color: var(--color-danger); text-align: center; margin-bottom: 1rem; display: none; font-family: var(--font-admin); font-size: 0.9rem;">
+                Password errata. Riprova.
+            </div>
+            
+            <button type="submit" class="btn-primary" style="width: 100%; justify-content: center;">
+                ACCEDI <span style="margin-left: 8px;">🔑</span>
+            </button>
+        </form>
+        
+        <div style="text-align: center; margin-top: 2rem;">
+            <a href="../index.html" style="color: var(--color-text-cream); text-decoration: none; font-family: var(--font-admin); font-size: 0.9rem; transition: color 0.3s ease;" onmouseover="this.style.color='var(--color-brass-base)'" onmouseout="this.style.color='var(--color-text-cream)'">
+                ← Torna al sito
+            </a>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/storage.js?v=639214755924302358"></script>
+    <script src="../js/mock-data.js?v=639214755924302358"></script>
+    <script src="../js/auth.js?v=639214755924302358"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                await window.FranklinApp.Storage.inizializza();
+            }
+            
+            // Check if already logged in
+            if (window.FranklinApp && window.FranklinApp.Auth) {
+                const isAuth = await window.FranklinApp.Auth.isAutenticato();
+                if (isAuth) {
+                    window.location.href = 'appointments.html';
+                }
+            }
+        });
+
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('password');
+            const btn = document.getElementById('toggle-pwd-btn');
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                btn.textContent = '🙈'; // scimmietta o occhio sbarrato
+            } else {
+                pwdInput.type = 'password';
+                btn.textContent = '👁️';
+            }
+        }
+
+        function handleLogin() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            if (window.FranklinApp && window.FranklinApp.Auth) {
+                const res = window.FranklinApp.Auth.login(username, password);
+                if (res && res.success) {
+                    window.location.href = 'appointments.html';
+                } else {
+                    errorDiv.textContent = res ? res.message : "Errore durante il login";
+                    errorDiv.style.display = 'block';
+                    
+                    // Shake effect
+                    const card = document.querySelector('.login-card');
+                    card.style.animation = 'none';
+                    card.offsetHeight; // trigger reflow
+                    card.style.animation = 'shake 0.5s';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+

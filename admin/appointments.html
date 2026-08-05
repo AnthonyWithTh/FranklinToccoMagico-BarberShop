@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appuntamenti - Franklin Admin</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/variables.css?v=2">
+    <link rel="stylesheet" href="../css/global.css?v=2">
+    <link rel="stylesheet" href="../css/vintage-theme.css?v=2">
+    <link rel="stylesheet" href="../css/admin.css?v=2">
+    <link rel="stylesheet" href="../css/booking.css?v=2">
+
+    <!-- Blocco anti-fouc e Auth -->
+    <style id="anti-fouc">html { display: none !important; }</style>
+    <script src="../js/storage.js?v=2"></script>
+    <script src="../js/mock-data.js?v=2"></script>
+    <script src="../js/utils/date-helpers.js?v=2"></script>
+    <script src="../js/utils/validators.js?v=2"></script>
+    <script src="../js/auth.js?v=2"></script>
+    <script>
+        if (window.FranklinApp && window.FranklinApp.Auth) {
+            if (!window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('anti-fouc').remove();
+                window.FranklinApp.Auth.verificaAccesso();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <script src="../js/components/sidebar.js?v=2"></script>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 2rem; overflow-y: auto;">
+            <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 class="vintage-title" style="font-size: 2rem; color: var(--color-text-cream); margin-bottom: 0.2rem;">Agenda Appuntamenti</h1>
+                </div>
+                <button class="btn-primary" onclick="if(window.FranklinApp && window.FranklinApp.Prenotazione) window.FranklinApp.Prenotazione.apriModaleAdmin();">
+                    + Nuovo Appuntamento
+                </button>
+            </div>
+            
+            <div class="vintage-card" style="padding: 1.5rem;">
+                <!-- Controlli Agenda -->
+                <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                    
+                    <!-- Left Side: Range Orario e Salto Data -->
+                    <div style="display: flex; align-items: flex-end; gap: 20px; flex-wrap: wrap;">
+                        
+                        <!-- Filtro Barbiere e Intervallo -->
+                        <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                            <div>
+                                <label class="vintage-label" style="display: block; font-size: 0.8rem; margin-bottom: 0.3rem;">Filtra per Barbiere</label>
+                                <select id="agenda-filter-barbiere" class="vintage-select" style="min-width: 150px; padding: 0.4rem; height: auto;" onchange="Agenda.cambiaFiltri()">
+                                    <option value="tutti">Tutti i Barbieri</option>
+                                    <!-- Popolato da JS -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Range Orario -->
+                        <div style="display: flex; gap: 0.5rem; align-items: flex-end;">
+                            <div>
+                                <label class="vintage-label" style="display: block; font-size: 0.8rem; margin-bottom: 0.3rem;">Dalle</label>
+                                <select id="agenda-start-hour" class="vintage-select" style="width: 80px;" onchange="Agenda.cambiaRangeOrario()">
+                                    <!-- JS -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="vintage-label" style="display: block; font-size: 0.8rem; margin-bottom: 0.3rem;">Alle</label>
+                                <select id="agenda-end-hour" class="vintage-select" style="width: 80px;" onchange="Agenda.cambiaRangeOrario()">
+                                    <!-- JS -->
+                                </select>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    
+                    <!-- Right Side: Cambia Data -->
+                    <div style="display: flex; align-items: flex-end; gap: 0.5rem;">
+                        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" onclick="Agenda.cambiaGiorno(-7)">-1 Settimana</button>
+                        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" onclick="Agenda.cambiaGiorno(-1)">&#9664; Giorno Prec.</button>
+                        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem; font-weight: bold; color: var(--color-brass-light);" onclick="Agenda.vaiAOggi()">OGGI</button>
+                        
+                        <div style="position: relative;">
+                            <input type="date" id="agenda-date-picker" class="vintage-input" style="padding: 0.3rem 0.5rem; width: 40px; color: transparent; cursor: pointer; position: absolute; left: 0; opacity: 0; height: 100%;" onchange="Agenda.vaiAData(this.value)">
+                            <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" onclick="document.getElementById('agenda-date-picker').showPicker()">&#128197;</button>
+                        </div>
+                        
+                        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" onclick="Agenda.cambiaGiorno(1)">Giorno Succ. &#9654;</button>
+                        <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;" onclick="Agenda.cambiaGiorno(7)">+1 Settimana</button>
+                    </div>
+                    
+                </div>
+                
+                <!-- Griglia Agenda JS -->
+                <div id="agenda-container" style="overflow-x: auto; background: var(--color-black-200); border: 2px solid var(--color-wood-200); border-radius: 4px;">
+                    <!-- Generato da agenda.js -->
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- Modale Prenotazione (stesso usato dal sito pubblico) -->
+    <div id="booking-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content vintage-card booking-modal">
+            <button class="close-btn" onclick="FranklinApp.Prenotazione.chiudiModaleAdmin()" aria-label="Chiudi" 
+                    style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 2rem; color: var(--color-brass-light); cursor: pointer; z-index: 10;">
+                &times;
+            </button>
+            
+            <div style="text-align: center; margin-bottom: var(--spacing-lg);">
+                <h2 class="vintage-title" style="font-size: 1.8rem;">Nuovo Appuntamento</h2>
+                <div class="brass-divider" style="margin: var(--spacing-sm) auto;"></div>
+                <div id="booking-progress" style="font-family: var(--font-typewriter); color: var(--color-text-muted); margin-top: var(--spacing-sm);">
+                    Passo 1 di 4
+                </div>
+            </div>
+
+            <!-- Area contenuto step -->
+            <div id="booking-step-content" class="step-content">
+                <!-- Iniettato via JS -->
+            </div>
+
+            <!-- Pulsanti navigazione -->
+            <div class="booking-nav">
+                <button id="btn-booking-indietro" class="btn-secondary" onclick="FranklinApp.Prenotazione.indietro()" style="display: none;">← Indietro</button>
+                <div style="flex-grow: 1;"></div>
+                <button id="btn-booking-avanti" class="btn-primary" onclick="FranklinApp.Prenotazione.avanti()">Avanti →</button>
+                <button id="btn-booking-conferma" class="btn-primary" onclick="FranklinApp.Prenotazione.conferma()" style="display: none;">Conferma Appuntamento ✓</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="toast-container"></div>
+    <script src="../js/booking.js?v=2"></script>
+    <script src="../js/admin.js?v=2"></script>
+    <script src="../js/agenda.js?v=2"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.Agenda && typeof window.Agenda.init === 'function') {
+                window.Agenda.init();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+

@@ -1,0 +1,215 @@
+/*
+ * Componenti del tema Vintage
+ */
+
+/* Card scura con bordo in ottone e ombra profonda */
+.vintage-card {
+  background-color: var(--color-black-200);
+  border: 2px solid var(--color-brass-dark);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg), inset 0 0 10px rgba(0,0,0,0.8);
+  padding: var(--spacing-md);
+  position: relative;
+  overflow: hidden;
+}
+.vintage-card::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  border: 1px solid rgba(226, 194, 133, 0.2); /* Sottile contorno interno */
+  pointer-events: none;
+}
+
+/* Titoli con gradiente ottone */
+.vintage-title {
+  font-family: var(--font-heading);
+  background: var(--gradient-brass);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: var(--color-brass-base); /* Fallback */
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+}
+
+.vintage-subtitle {
+  font-family: var(--font-vintage);
+  color: var(--color-text-cream);
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}
+
+/* Divisore ornamentale in ottone */
+.brass-divider {
+  height: 2px;
+  background: var(--gradient-brass);
+  margin: var(--spacing-lg) 0;
+  border: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.9);
+}
+
+/* Pannello effetto legno */
+.wood-panel {
+  background: var(--gradient-wood);
+  border-top: 4px solid var(--color-brass-dark);
+  border-bottom: 4px solid var(--color-brass-dark);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.9), var(--shadow-md);
+}
+
+/* Pulsanti */
+.btn-primary {
+  background-color: var(--color-green-100);
+  color: var(--color-text-cream);
+  border: 2px solid var(--color-brass-base);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-family: var(--font-typewriter);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  border-radius: var(--border-radius-sm);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg), 0 0 15px rgba(197, 160, 89, 0.4);
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--color-brass-base);
+  border: 2px solid var(--color-brass-base);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-family: var(--font-typewriter);
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.btn-secondary:hover {
+  background-color: rgba(197, 160, 89, 0.1);
+  color: var(--color-brass-light);
+}
+
+.btn-danger {
+  background-color: var(--color-danger);
+  color: var(--color-text-cream);
+  border: 2px solid #800000;
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-typewriter);
+  cursor: pointer;
+}
+.btn-danger:hover {
+  background-color: #c9302c;
+}
+
+/* Badge di stato */
+.badge {
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-typewriter);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+}
+/* Modificatori badge */
+.badge-pending { background-color: var(--color-wood-300); color: white; }
+.badge-confirmed { background-color: var(--color-green-100); color: white; }
+.badge-completed { background-color: var(--color-brass-base); color: var(--color-black-100); }
+.badge-cancelled { background-color: var(--color-danger); color: white; }
+
+/* Stili per le card appuntamento nella griglia Agenda */
+.appointment-card {
+  transition: all var(--transition-fast) ease-in-out;
+  border-left: 4px solid var(--color-brass-base) !important;
+  color: var(--color-text-cream);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.appointment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+  filter: brightness(1.1);
+  z-index: 20;
+}
+.appointment-card.stato-richiesto { border-left-color: #f39c12 !important; }
+.appointment-card.stato-confermato { border-left-color: var(--color-green-100) !important; }
+.appointment-card.stato-cancellato { border-left-color: var(--color-danger) !important; opacity: 0.6; filter: grayscale(1); }
+.appointment-card.stato-completato { border-left-color: var(--color-wood-300) !important; opacity: 0.8; }
+
+/* Input stile vintage */
+.vintage-input, .vintage-select, .vintage-textarea {
+  background-color: var(--color-black-100);
+  border: 1px solid var(--color-wood-200);
+  color: var(--color-text-cream);
+  padding: var(--spacing-sm);
+  font-family: var(--font-body);
+  width: 100%;
+  border-radius: var(--border-radius-sm);
+  transition: border-color var(--transition-fast);
+}
+.vintage-input:focus, .vintage-select:focus, .vintage-textarea:focus {
+  outline: none;
+  border-color: var(--color-brass-base);
+  box-shadow: 0 0 5px rgba(197, 160, 89, 0.5);
+}
+.vintage-input:disabled, .vintage-select:disabled, .vintage-textarea:disabled {
+  background-color: rgba(26, 26, 26, 0.5);
+  border-color: rgba(139, 90, 43, 0.3);
+  color: rgba(245, 245, 220, 0.4);
+  cursor: not-allowed;
+  filter: grayscale(100%);
+}
+
+/* Finestre modali */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(18, 18, 18, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+.modal-content {
+  width: 90%;
+  max-width: 600px;
+}
+
+/* Etichetta a nastro */
+.vintage-ribbon {
+  position: absolute;
+  top: 15px;
+  right: -35px;
+  background: var(--color-brass-dark);
+  color: var(--color-text-cream);
+  padding: 5px 40px;
+  transform: rotate(45deg);
+  font-family: var(--font-typewriter);
+  font-size: 0.8rem;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Notifica Toast */
+.toast-notification {
+  position: fixed;
+  bottom: var(--spacing-lg);
+  right: var(--spacing-lg);
+  background: var(--color-black-200);
+  border-left: 4px solid var(--color-brass-base);
+  padding: var(--spacing-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1100;
+  font-family: var(--font-typewriter);
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}

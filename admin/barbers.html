@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Franklin - Staff</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="../css/variables.css?v=639214860969499166">
+    <link rel="stylesheet" href="../css/global.css?v=639214860969499166">
+    <link rel="stylesheet" href="../css/vintage-theme.css?v=639214860969499166">
+    <link rel="stylesheet" href="../css/admin.css?v=639214860969499166">
+    <!-- Blocco anti-fouc e Auth -->
+    <style id="anti-fouc">html { display: none !important; }</style>
+    <script src="../js/storage.js?v=639214860969499166"></script>
+    <script src="../js/auth.js?v=639214860969499166"></script>
+    <script>
+        if (window.FranklinApp && window.FranklinApp.Auth) {
+            if (!window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+            } else {
+                document.getElementById('anti-fouc').remove();
+                window.FranklinApp.Auth.verificaAccesso();
+            }
+        }
+    </script>
+</head>
+<body class="admin-body">
+    <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+    
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <script src="../js/components/sidebar.js?v=639214860969499166"></script>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 2rem; overflow-y: auto;">
+            <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 class="vintage-title" style="font-size: 2rem; color: var(--color-text-cream); margin-bottom: 0.2rem;">Gestione Staff</h1>
+                </div>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 2rem;">
+                
+                <!-- Tabella Barbieri -->
+                <div class="vintage-card admin-form">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h4 style="color: var(--color-text-cream); margin: 0; font-family: var(--font-vintage);">I tuoi Barbieri</h4>
+                        <button class="btn-primary" style="padding: 0.4rem 0.9rem; font-size: 1.2rem; font-weight: bold; line-height: 1;" onclick="apriModaleBarbiere()" title="Aggiungi Barbiere">+</button>
+                    </div>
+                    <div>
+                        <table class="admin-tabella" style="width: 100%;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 14%;">Nome</th>
+                                    <th style="width: 14%;">Cognome</th>
+                                    <th style="width: 8%;">Età</th>
+                                    <th style="width: 13%;">Ruolo</th>
+                                    <th style="width: 10%;">Ritratto</th>
+                                    <th style="width: 25%;">Descrizione</th>
+                                    <th style="width: 10%;">Stato</th>
+                                    <th style="width: 6%;">Azioni</th>
+                                </tr>
+                            </thead>
+                            <tbody id="barbieri-tbody">
+                                <!-- Popolato da JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Gestione Orari Barbiere -->
+                <div class="vintage-card admin-form">
+                    <div id="pannello-orari-barbiere">
+                          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                              <h4 style="color: var(--color-text-cream); margin: 0; font-family: var(--font-vintage);">Ferie, Malattia, Permessi e Imprevisti</h4>
+                              <div style="display: flex; gap: 10px; align-items: center;">
+                                  <select id="filtro-anno-eccezioni" class="vintage-select" style="width: 80px; min-width: auto; padding: 4px 8px; font-size: 0.9rem;" onchange="filtraEccezioniBarbieri()">
+                                      <!-- Popolato da JS -->
+                                  </select>
+                                  <select id="filtro-barbiere-eccezioni" class="vintage-select" style="min-width: 150px; padding: 4px 8px; font-size: 0.9rem;" onchange="filtraEccezioniBarbieri()">
+                                      <option value="tutti">Tutti i barbieri</option>
+                                  </select>
+                                  <button type="button" class="btn-primary" style="padding: 0.4rem 0.9rem; font-size: 1.2rem; font-weight: bold; line-height: 1;" onclick="apriModaleEccezioneBarbiere()" title="Aggiungi Richiesta">+</button>
+                              </div>
+                          </div>
+                          
+                          <table class="orari-editor admin-tabella" style="width: 100%; margin-bottom: 0;">
+                              <thead>
+                                  <tr>
+                                      <th onclick="toggleSortEccezioniBarbieri()" style="cursor: pointer; user-select: none;">Data <span id="sort-icon-barbieri">▲</span></th>
+                                      <th>Motivo</th>
+                                      <th>Giornata Intera</th>
+                                      <th>Dalle</th>
+                                      <th>Alle</th>
+                                      <th>Azioni</th>
+                                  </tr>
+                              </thead>
+                              <tbody id="eccezionali-tbody">
+                                  <!-- Popolato da JS -->
+                              </tbody>
+                          </table>
+                          
+                          <!-- Tabella Riepilogo -->
+                          <div style="margin-top: 2.5rem;">
+                              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                                  <h4 style="color: var(--color-text-cream); margin: 0; font-family: var(--font-vintage);">Riepilogo per Anno</h4>
+                                  <select id="filtro-anno-riepilogo" class="vintage-select" style="width: 80px; min-width: auto; padding: 4px 8px; font-size: 0.9rem;" onchange="filtraRiepilogoBarbieri()">
+                                      <!-- Popolato da JS -->
+                                  </select>
+                              </div>
+                              <table class="admin-tabella" style="width: 100%;">
+                                  <thead>
+                                      <tr>
+                                          <th>Barbiere</th>
+                                          <th>Ferie</th>
+                                          <th>Malattia</th>
+                                          <th>Permessi</th>
+                                          <th>Imprevisti</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody id="riepilogo-tbody">
+                                      <!-- Popolato da JS -->
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                </div>
+            </div>
+        
+            <!-- Modale Eccezione Barbiere -->
+            <div id="modale-eccezione-barbiere" class="modal-overlay" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+                <div class="modal-content vintage-card admin-form" style="width: 90%; max-width: 500px; padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 id="modale-eccezione-barbiere-titolo" class="vintage-title" style="margin: 0; text-align: center;">Aggiungi Richiesta</h2>
+                        <button onclick="chiudiModaleEccezioneBarbiere()" style="background: none; border: none; color: var(--color-text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+                    </div>
+                    
+                    <form id="form-eccezione-barbiere" onsubmit="event.preventDefault(); salvaGiornoEccezionaleBarbiere();">
+                        <input type="hidden" id="eccezione-barbiere-old-data">
+                        <input type="hidden" id="eccezione-barbiere-old-id">
+                        
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label class="vintage-label">Barbiere</label>
+                            <div id="eccezione-barbiere-select-container"></div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label class="vintage-label">Data</label>
+                            <input type="date" id="eccezione-barbiere-data" class="vintage-input" required onchange="ricalcolaModaleEccezioneBarbiere()" disabled>
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 1rem;">
+                            <label class="vintage-label">Motivo</label>
+                            <select id="eccezione-barbiere-motivo" class="vintage-select" required disabled>
+                                <option value="Ferie">Ferie</option>
+                                <option value="Malattia">Malattia</option>
+                                <option value="Permesso">Permesso</option>
+                                <option value="Imprevisto">Imprevisto</option>
+                            </select>
+                        </div>
+                        
+                        <div style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="eccezione-barbiere-intera" class="check-chiuso" disabled onchange="ricalcolaModaleEccezioneBarbiere()" style="width: auto; margin: 0;">
+                            <label class="vintage-label" style="margin: 0;">Giornata Intera</label>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div style="flex: 1;">
+                                <label class="vintage-label">Dalle</label>
+                                <select id="eccezione-barbiere-dalle" class="vintage-select" disabled onchange="ricalcolaModaleEccezioneBarbiere()">
+                                </select>
+                            </div>
+                            <div style="flex: 1;">
+                                <label class="vintage-label">Alle</label>
+                                <select id="eccezione-barbiere-alle" class="vintage-select" disabled>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                            <button type="button" class="btn-secondary" onclick="chiudiModaleEccezioneBarbiere()">Annulla</button>
+                            <button type="submit" class="btn-primary">Salva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <!-- Modale Barbiere -->
+            <div id="modale-barbiere" class="modal-overlay" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
+                <div class="modal-content vintage-card admin-form" style="width: 90%; max-width: 520px; padding: 2rem;">
+                    <h2 id="modale-barbiere-titolo" class="vintage-title" style="margin-bottom: 1.5rem; text-align: center;">Aggiungi Barbiere</h2>
+                    
+                    <form id="form-barbiere" onsubmit="event.preventDefault(); salvaBarbiere();">
+                        <input type="hidden" id="barbiere-id">
+                        
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Nome *</label>
+                                <input type="text" id="barbiere-nome" class="vintage-input" required style="width: 100%;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Cognome *</label>
+                                <input type="text" id="barbiere-cognome" class="vintage-input" required placeholder="es. Rossi" style="width: 100%;">
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="flex: 2;">
+                                <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Ruolo *</label>
+                                <input type="text" id="barbiere-ruolo" class="vintage-input" required placeholder="es. Barbiere Senior" style="width: 100%;">
+                            </div>
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Età *</label>
+                                <input type="number" id="barbiere-eta" class="vintage-input" required min="16" max="99" placeholder="es. 32" style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Ritratto Barbiere *</label>
+                            
+                            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.6rem;">
+                                <button type="button" id="btn-barbiere-tab-upload" class="tab-btn active" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;" onclick="mostraTabImmagineBarbiere('upload')">📁 Carica Nuovo File</button>
+                                <button type="button" id="btn-barbiere-tab-esistente" class="tab-btn" style="font-size: 0.8rem; padding: 4px 10px; border-radius: 4px;" onclick="mostraTabImmagineBarbiere('esistente')">🖼️ Scegli da Caricati</button>
+                            </div>
+
+                            <div id="box-barbiere-tab-upload">
+                                <input type="file" id="barbiere-file" accept="image/*" class="vintage-input" style="width: 100%; padding: 0.4rem;" onchange="gestisciCaricamentoFileBarbiere(this)">
+                            </div>
+
+                            <div id="box-barbiere-tab-esistente" style="display: none;">
+                                <select id="barbiere-immagine-esistente" class="vintage-select" style="width: 100%; font-size: 0.85rem;" onchange="selezionaImmagineEsistenteBarbiere(this.value)">
+                                    <option value="">Seleziona immagine</option>
+                                </select>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 0.8rem; margin-top: 0.8rem; background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: var(--border-radius-sm); border: 1px dashed var(--color-brass-dark);">
+                                <div id="barbiere-anteprima-box" style="width: 52px; height: 52px; flex: 0 0 52px; border-radius: 50%; border: 1.5px solid var(--color-brass-dark); overflow: hidden; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center;">
+                                    <img id="barbiere-anteprima-img" src="../assets/images/barbiere-marco.jpg" alt="Anteprima" style="width: 100%; height: 100%; object-fit: cover;">
+                                </div>
+                                <div style="font-size: 0.8rem; color: var(--color-text-cream); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                    <span id="barbiere-immagine-nome-display" style="color: var(--color-brass-light); font-weight: 500;">Nessuna nuova immagine</span>
+                                </div>
+                            </div>
+
+                            <input type="hidden" id="barbiere-foto">
+                        </div>
+
+                        <div class="form-group" style="margin-bottom: 1.5rem;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                                <label style="color: var(--color-text-cream); margin: 0;">Descrizione (Storia & Esperienza) *</label>
+                                <span id="barbiere-descrizione-counter" style="color: var(--color-text-muted); font-size: 0.78rem;">0 / 200</span>
+                            </div>
+                            <textarea id="barbiere-descrizione" class="vintage-textarea" required rows="3" maxlength="200" placeholder="Racconta la storia e l'esperienza del barbiere (max 200 caratteri)..." style="width: 100%;" oninput="aggiornaContatoreDescrizione(this.value)"></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                            <button type="button" class="btn-secondary" onclick="chiudiModaleBarbiere()">Annulla</button>
+                            <button type="submit" class="btn-primary">Salva</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/mock-data.js?v=639214860969499166"></script>
+    <script src="../js/public.js?v=639214860969499166"></script>
+    <script src="../js/admin.js?v=639214860969499166"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.FranklinApp && window.FranklinApp.Auth && !window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            caricaBarbieri();
+        });
+
+        let barbiereFileCaricatoDataUrl = null;
+        let barbiereFileCaricatoNome = null;
+        let listaImmaginiBarbieri = [];
+
+        function mostraTabImmagineBarbiere(tab) {
+            const btnUpload = document.getElementById('btn-barbiere-tab-upload');
+            const btnEsistente = document.getElementById('btn-barbiere-tab-esistente');
+            const boxUpload = document.getElementById('box-barbiere-tab-upload');
+            const boxEsistente = document.getElementById('box-barbiere-tab-esistente');
+
+            if (tab === 'upload') {
+                btnUpload.classList.add('active');
+                btnEsistente.classList.remove('active');
+                boxUpload.style.display = 'block';
+                boxEsistente.style.display = 'none';
+            } else {
+                btnUpload.classList.remove('active');
+                btnEsistente.classList.add('active');
+                boxUpload.style.display = 'none';
+                boxEsistente.style.display = 'block';
+                caricaListaImmaginiEsistentiBarbieri();
+            }
+        }
+
+        async function caricaListaImmaginiEsistentiBarbieri() {
+            const select = document.getElementById('barbiere-immagine-esistente');
+            if (!select) return;
+
+            try {
+                const res = await fetch('/list-images?folder=barbieri');
+                const data = await res.json();
+                if (data.status === 'success' && Array.isArray(data.images)) {
+                    listaImmaginiBarbieri = data.images.filter(img => img.startsWith('assets/images/barbieri/'));
+                }
+            } catch(e) {
+                console.warn("Impossibile recuperare immagini barbieri da server:", e);
+                listaImmaginiBarbieri = [];
+            }
+
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            barbieri.forEach(b => {
+                const img = b.foto || b.ritratto;
+                if (img && img.startsWith('assets/images/barbieri/') && !listaImmaginiBarbieri.includes(img)) {
+                    listaImmaginiBarbieri.push(img);
+                }
+            });
+
+            const valAttuale = document.getElementById('barbiere-foto').value;
+            let optionsHtml = '<option value="">Seleziona immagine</option>';
+            if (listaImmaginiBarbieri.length === 0) {
+                optionsHtml += '<option value="" disabled>Nessuna immagine trovata in assets/images/barbieri/</option>';
+            } else {
+                listaImmaginiBarbieri.forEach(img => {
+                    const selected = (img === valAttuale) ? 'selected' : '';
+                    const nomeFile = img.split('/').pop() || img;
+                    optionsHtml += `<option value="${img}" ${selected}>${nomeFile}</option>`;
+                });
+            }
+            select.innerHTML = optionsHtml;
+        }
+
+        function selezionaImmagineEsistenteBarbiere(val) {
+            if (!val) return;
+            barbiereFileCaricatoDataUrl = null;
+            barbiereFileCaricatoNome = null;
+            document.getElementById('barbiere-file').value = '';
+            document.getElementById('barbiere-foto').value = val;
+            
+            const anteprimaImg = document.getElementById('barbiere-anteprima-img');
+            if (anteprimaImg) {
+                anteprimaImg.src = window.FranklinApp.Storage.fixImagePath(val, true);
+            }
+            const display = document.getElementById('barbiere-immagine-nome-display');
+            if (display) {
+                const nomeFile = val.split('/').pop() || val;
+                display.textContent = nomeFile;
+            }
+        }
+
+        function gestisciCaricamentoFileBarbiere(input) {
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                barbiereFileCaricatoNome = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    barbiereFileCaricatoDataUrl = e.target.result;
+                    const relPath = 'assets/images/barbieri/' + barbiereFileCaricatoNome;
+                    document.getElementById('barbiere-foto').value = relPath;
+                    
+                    try {
+                        localStorage.setItem('img_cache_' + relPath, barbiereFileCaricatoDataUrl);
+                    } catch(err) {}
+                    
+                    const img = document.getElementById('barbiere-anteprima-img');
+                    if (img) img.src = barbiereFileCaricatoDataUrl;
+
+                    const display = document.getElementById('barbiere-immagine-nome-display');
+                    if (display) display.textContent = 'Nuovo file: ' + barbiereFileCaricatoNome;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function caricaBarbieri() {
+            if(window.FranklinApp && window.FranklinApp.Storage) {
+                const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+                const tbody = document.getElementById('barbieri-tbody');
+                
+                if (barbieri.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">Nessun barbiere trovato</td></tr>';
+                    return;
+                }
+                
+                caricaEccezioniGlobali(barbieri);
+                tbody.innerHTML = barbieri.map(b => {
+                    const opacity = b.attivo === false ? 'opacity: 0.4;' : '';
+                    const rawFoto = (b.foto && b.foto.trim()) ? b.foto : (b.ritratto && b.ritratto.trim()) ? b.ritratto : 'assets/images/barbiere-marco.jpg';
+                    const fotoUrl = window.FranklinApp.Storage.fixImagePath(rawFoto, true);
+                    const fallbackFoto = '../assets/images/barbiere-marco.jpg';
+                    
+                    let n = b.nome || '';
+                    let c = b.cognome || '';
+                    if (!c && n.includes(' ')) {
+                        const parti = n.split(' ');
+                        n = parti[0];
+                        c = parti.slice(1).join(' ');
+                    }
+
+                    const selectStato = `
+                        <select class="vintage-select" style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; height: auto;" onchange="cambiaStatoBarbiere('${b.id}', this.value)">
+                            <option value="true" ${b.attivo !== false ? 'selected' : ''}>Disponibile</option>
+                            <option value="false" ${b.attivo === false ? 'selected' : ''}>Non Disponibile</option>
+                        </select>
+                    `;
+                    return `
+                    <tr style="${opacity}">
+                        <td><strong>${n}</strong></td>
+                        <td><strong>${c || '-'}</strong></td>
+                        <td>${b.eta ? b.eta + ' anni' : '-'}</td>
+                        <td>${b.ruolo || 'Barbiere'}</td>
+                        <td>
+                            <div style="display: flex; align-items: center; justify-content: center;">
+                                <img src="${fotoUrl}" alt="${b.nome}" 
+                                     onerror="this.onerror=null; this.src='${fallbackFoto}';"
+                                     style="width: 52px; height: 52px; object-fit: cover; border-radius: 50%; border: 1.5px solid var(--color-brass-dark); box-shadow: 0 3px 8px rgba(0,0,0,0.5); transition: transform 0.2s ease, border-color 0.2s ease; cursor: pointer;"
+                                     onmouseover="this.style.transform='scale(1.15)'; this.style.borderColor='var(--color-brass-light)';" 
+                                     onmouseout="this.style.transform='scale(1)'; this.style.borderColor='var(--color-brass-dark)';"
+                                     onclick="window.open('${fotoUrl}', '_blank')"
+                                     title="Clicca per ingrandire">
+                            </div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.85rem; color: var(--color-text-cream); line-height: 1.35; max-height: 48px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${b.descrizione || '<span style="color:var(--color-text-muted); font-style:italic;">Nessuna descrizione</span>'}</div>
+                        </td>
+                        <td>${selectStato}</td>
+                        <td style="white-space: nowrap;">
+                            <button class="azioni-btn" title="Modifica" onclick="apriModaleBarbiere('${b.id}')">✏️</button>
+                            <button class="azioni-btn" title="Duplica" onclick="duplicaBarbiere('${b.id}')">📋</button>
+                            <button class="azioni-btn" title="Elimina" style="color: var(--color-danger);" onclick="eliminaBarbiere('${b.id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `}).join('');
+            }
+        }
+
+        function duplicaBarbiere(id) {
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            const barbiereOriginale = barbieri.find(b => b.id === id);
+            
+            if (!barbiereOriginale) return;
+            
+            const barbiereClonato = JSON.parse(JSON.stringify(barbiereOriginale));
+            barbiereClonato.id = 'bar_' + Date.now();
+            barbiereClonato.nome = (barbiereClonato.nome || '') + ' (Copia)';
+            
+            barbieri.push(barbiereClonato);
+            window.FranklinApp.Storage.salvaBarbieri(barbieri);
+            
+            if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                window.FranklinApp.Admin.mostraToast("Barbiere duplicato con successo", "successo");
+            }
+            caricaBarbieri();
+        }
+
+        function eliminaBarbiere(id) {
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            const barbiere = barbieri.find(b => b.id === id);
+            const nome = barbiere ? (barbiere.nome + (barbiere.cognome ? ' ' + barbiere.cognome : '')) : 'Sconosciuto';
+            
+            if (!confirm('Sei sicuro di voler eliminare "' + nome + '"?\n\nVerranno eliminati anche tutti i suoi appuntamenti e dati correlati.\nQuesta azione è irreversibile.')) return;
+            
+            const nuoviBarbieri = barbieri.filter(b => b.id !== id);
+            window.FranklinApp.Storage.salvaBarbieri(nuoviBarbieri);
+            
+            const appuntamenti = window.FranklinApp.Storage.ottieniAppuntamenti() || [];
+            const nuoviAppuntamenti = appuntamenti.filter(a => a.barbiereId !== id);
+            window.FranklinApp.Storage.salvaAppuntamenti(nuoviAppuntamenti);
+            
+            const appEliminati = appuntamenti.length - nuoviAppuntamenti.length;
+            
+            if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                let msg = 'Barbiere eliminato';
+                if (appEliminati > 0) msg += ' (+ ' + appEliminati + ' appuntamenti rimossi)';
+                window.FranklinApp.Admin.mostraToast(msg, 'successo');
+            }
+            caricaBarbieri();
+        }
+
+        function aggiornaContatoreDescrizione(val = '') {
+            const counter = document.getElementById('barbiere-descrizione-counter');
+            if (counter) {
+                const len = (val || '').length;
+                counter.textContent = `${len} / 200`;
+                if (len >= 200) {
+                    counter.style.color = 'var(--color-danger)';
+                } else {
+                    counter.style.color = 'var(--color-text-muted)';
+                }
+            }
+        }
+
+        function apriModaleBarbiere(id = null) {
+            const modale = document.getElementById('modale-barbiere');
+            const form = document.getElementById('form-barbiere');
+            const titolo = document.getElementById('modale-barbiere-titolo');
+            const anteprimaImg = document.getElementById('barbiere-anteprima-img');
+            const fileInput = document.getElementById('barbiere-file');
+            const display = document.getElementById('barbiere-immagine-nome-display');
+            
+            form.reset();
+            barbiereFileCaricatoDataUrl = null;
+            barbiereFileCaricatoNome = null;
+            if (fileInput) fileInput.value = '';
+            mostraTabImmagineBarbiere('upload');
+            
+            if (id) {
+                titolo.textContent = "Modifica Barbiere";
+                const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+                const b = barbieri.find(x => x.id === id);
+                if (b) {
+                    let n = b.nome || '';
+                    let c = b.cognome || '';
+                    if (!c && n.includes(' ')) {
+                        const parti = n.split(' ');
+                        n = parti[0];
+                        c = parti.slice(1).join(' ');
+                    }
+                    document.getElementById('barbiere-id').value = b.id;
+                    document.getElementById('barbiere-nome').value = n;
+                    document.getElementById('barbiere-cognome').value = c;
+                    document.getElementById('barbiere-eta').value = b.eta || '';
+                    document.getElementById('barbiere-ruolo').value = b.ruolo || '';
+                    const fotoVal = b.foto || b.ritratto || '';
+                    document.getElementById('barbiere-foto').value = fotoVal;
+                    document.getElementById('barbiere-descrizione').value = b.descrizione || '';
+                    
+                    if (anteprimaImg) {
+                        anteprimaImg.src = window.FranklinApp.Storage.fixImagePath(fotoVal, true);
+                    }
+                    if (display) {
+                        const nomeFile = fotoVal.split('/').pop() || 'Nessuna immagine';
+                        display.textContent = nomeFile;
+                    }
+                    aggiornaContatoreDescrizione(b.descrizione || '');
+                }
+            } else {
+                titolo.textContent = "Aggiungi Barbiere";
+                document.getElementById('barbiere-id').value = '';
+                document.getElementById('barbiere-nome').value = '';
+                document.getElementById('barbiere-cognome').value = '';
+                document.getElementById('barbiere-eta').value = '';
+                document.getElementById('barbiere-ruolo').value = '';
+                document.getElementById('barbiere-foto').value = '';
+                document.getElementById('barbiere-descrizione').value = '';
+                if (anteprimaImg) {
+                    anteprimaImg.src = '../assets/images/barbiere-marco.jpg';
+                }
+                if (display) display.textContent = 'Seleziona un file o un\'immagine esistente';
+                aggiornaContatoreDescrizione('');
+            }
+            
+            modale.style.display = 'flex';
+        }
+
+        function chiudiModaleBarbiere() {
+            document.getElementById('modale-barbiere').style.display = 'none';
+        }
+
+        async function salvaBarbiere() {
+            const id = document.getElementById('barbiere-id').value;
+            const nome = (document.getElementById('barbiere-nome').value || '').trim();
+            const cognome = (document.getElementById('barbiere-cognome').value || '').trim();
+            const etaVal = document.getElementById('barbiere-eta').value;
+            const eta = parseInt(etaVal, 10);
+            const ruolo = (document.getElementById('barbiere-ruolo').value || '').trim();
+            const foto = (document.getElementById('barbiere-foto').value || '').trim();
+            const descrizione = (document.getElementById('barbiere-descrizione').value || '').trim();
+            
+            if (!nome || !cognome || !etaVal || isNaN(eta) || !ruolo || !descrizione) {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Tutti i campi (Nome, Cognome, Età, Ruolo, Descrizione) sono obbligatori!", "errore");
+                } else {
+                    alert("Tutti i campi sono obbligatori!");
+                }
+                return;
+            }
+
+            if (!foto) {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("Seleziona o carica un ritratto per il barbiere!", "errore");
+                } else {
+                    alert("Seleziona o carica un ritratto per il barbiere!");
+                }
+                return;
+            }
+
+            if (descrizione.length > 200) {
+                if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                    window.FranklinApp.Admin.mostraToast("La descrizione non può superare i 200 caratteri!", "errore");
+                } else {
+                    alert("La descrizione non può superare i 200 caratteri!");
+                }
+                return;
+            }
+
+            if (barbiereFileCaricatoDataUrl && barbiereFileCaricatoNome) {
+                try {
+                    const res = await fetch('/upload', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            filename: barbiereFileCaricatoNome,
+                            data: barbiereFileCaricatoDataUrl,
+                            folder: 'barbieri'
+                        })
+                    });
+                    const resJson = await res.json();
+                    console.log("Upload ritratto eseguito su disco in barbieri:", resJson);
+                } catch(err) {
+                    console.error("Errore durante upload ritratto su disco:", err);
+                }
+            }
+
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            
+            if (id) {
+                const index = barbieri.findIndex(b => b.id === id);
+                if (index !== -1) {
+                    barbieri[index].nome = nome;
+                    barbieri[index].cognome = cognome;
+                    barbieri[index].eta = eta;
+                    barbieri[index].ruolo = ruolo;
+                    barbieri[index].foto = foto;
+                    barbieri[index].ritratto = foto;
+                    barbieri[index].descrizione = descrizione;
+                }
+            } else {
+                const nuovoId = 'bar_' + Date.now();
+                barbieri.push({
+                    id: nuovoId,
+                    nome: nome,
+                    cognome: cognome,
+                    eta: eta,
+                    ruolo: ruolo,
+                    foto: foto,
+                    ritratto: foto,
+                    descrizione: descrizione,
+                    attivo: true
+                });
+            }
+            
+            window.FranklinApp.Storage.salvaBarbieri(barbieri);
+            
+            if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                window.FranklinApp.Admin.mostraToast("Barbiere salvato con successo", "successo");
+            }
+            
+            chiudiModaleBarbiere();
+            caricaBarbieri();
+        }
+
+        function cambiaStatoBarbiere(id, value) {
+            const isActive = value === "true";
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            const index = barbieri.findIndex(b => b.id === id);
+            if (index !== -1) {
+                barbieri[index].attivo = isActive;
+                window.FranklinApp.Storage.salvaBarbieri(barbieri);
+                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Stato barbiere aggiornato", "successo");
+                caricaBarbieri();
+            }
+        }
+
+        let tutteEccezioniBarbieri = [];
+        let eccezioniBarbieriSortAsc = true;
+        
+        function caricaEccezioniGlobali(barbieri) {
+            tutteEccezioniBarbieri = [];
+            
+            const filtroSelect = document.getElementById('filtro-barbiere-eccezioni');
+            const oldValue = filtroSelect.value;
+            filtroSelect.innerHTML = '<option value="tutti">Tutti i barbieri</option>';
+            
+            barbieri.forEach(b => {
+                if (b.attivo !== false) {
+                    filtroSelect.innerHTML += `<option value="${b.id}">${b.nome}</option>`;
+                }
+                const ecc = b.giorniEccezionali || [];
+                ecc.forEach(e => {
+                    tutteEccezioniBarbieri.push({
+                        ...e,
+                        barbiereId: b.id,
+                        barbiereNome: b.nome
+                    });
+                });
+            });
+            
+            const annoSelectEcc = document.getElementById('filtro-anno-eccezioni');
+            const annoSelectRiep = document.getElementById('filtro-anno-riepilogo');
+            
+            if (annoSelectEcc.options.length === 0) {
+                const curYear = new Date().getFullYear();
+                let yearOptions = '<option value="tutti">Tutti gli anni</option>';
+                for (let y = curYear - 1; y <= curYear + 2; y++) {
+                    const isSelected = y === curYear ? 'selected' : '';
+                    yearOptions += `<option value="${y}" ${isSelected}>${y}</option>`;
+                }
+                annoSelectEcc.innerHTML = yearOptions;
+                annoSelectRiep.innerHTML = yearOptions.replace('<option value="tutti">Tutti gli anni</option>', '');
+            }
+            
+            if (oldValue && filtroSelect.querySelector(`option[value="${oldValue}"]`)) {
+                filtroSelect.value = oldValue;
+            }
+            
+            filtraEccezioniBarbieri();
+            filtraRiepilogoBarbieri();
+        }
+
+        function filtraEccezioniBarbieri() {
+            const filtroId = document.getElementById('filtro-barbiere-eccezioni').value;
+            const filtroAnno = document.getElementById('filtro-anno-eccezioni').value;
+            
+            let filtrate = tutteEccezioniBarbieri;
+            
+            if (filtroId !== 'tutti') {
+                filtrate = filtrate.filter(e => e.barbiereId === filtroId);
+            }
+            if (filtroAnno !== 'tutti') {
+                filtrate = filtrate.filter(e => e.data.startsWith(filtroAnno));
+            }
+            
+            renderGiorniEccezionali(filtrate);
+        }
+
+        function filtraRiepilogoBarbieri() {
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            renderRiepilogoBarbieri(tutteEccezioniBarbieri, barbieri);
+        }
+
+        function toggleSortEccezioniBarbieri() {
+            eccezioniBarbieriSortAsc = !eccezioniBarbieriSortAsc;
+            const icon = document.getElementById('sort-icon-barbieri');
+            if (icon) icon.textContent = eccezioniBarbieriSortAsc ? '▲' : '▼';
+            filtraEccezioniBarbieri();
+        }
+
+        function renderRiepilogoBarbieri(eccezionali, barbieri) {
+            const tbody = document.getElementById('riepilogo-tbody');
+            tbody.innerHTML = '';
+            
+            const selectedYear = document.getElementById('filtro-anno-riepilogo').value || new Date().getFullYear().toString();
+            
+            barbieri.forEach(b => {
+                if (b.attivo === false) return;
+                
+                const eccBarbiere = eccezionali.filter(e => e.barbiereId === b.id && e.data.startsWith(selectedYear));
+                
+                let ferie = 0, malattia = 0, permessi = 0, imprevisti = 0;
+                
+                eccBarbiere.forEach(e => {
+                    const conteggio = e.interaGiornata ? 1 : 0.5;
+                    if (e.motivo === 'Ferie') ferie += conteggio;
+                    else if (e.motivo === 'Malattia') malattia += conteggio;
+                    else if (e.motivo === 'Permesso') permessi += conteggio;
+                    else if (e.motivo === 'Imprevisto') imprevisti += conteggio;
+                });
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: bold; color: var(--color-brass-light);">${b.nome}</td>
+                        <td>${ferie} giorni</td>
+                        <td>${malattia} giorni</td>
+                        <td>${permessi} giorni</td>
+                        <td>${imprevisti} giorni</td>
+                    </tr>
+                `;
+            });
+            
+            if (tbody.innerHTML === '') {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--color-text-muted);">Nessun dato disponibile</td></tr>';
+            }
+        }
+
+        function renderGiorniEccezionali(eccezionali) {
+            const tbody = document.getElementById('eccezionali-tbody');
+            tbody.innerHTML = '';
+            
+            if (eccezionali.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--color-text-muted);">Nessuna richiesta inserita</td></tr>';
+                return;
+            }
+            
+            eccezionali.sort((a, b) => {
+                const res = a.data.localeCompare(b.data);
+                return eccezioniBarbieriSortAsc ? res : -res;
+            });
+            
+            eccezionali.forEach((exc, index) => {
+                const intera = exc.interaGiornata ? 'Sì' : 'No';
+                const dalle = exc.interaGiornata ? '-' : exc.dalle;
+                const alle = exc.interaGiornata ? '-' : exc.alle;
+                
+                const dataFormattata = window.FranklinApp.DateHelpers ? window.FranklinApp.DateHelpers.formattaDataSenzaGiorno(exc.data) : exc.data;
+                const filtroId = document.getElementById('filtro-barbiere-eccezioni').value;
+                const motivoConBarbiere = filtroId === 'tutti' ? `${exc.motivo} <small style="color:var(--color-text-muted);">(${exc.barbiereNome})</small>` : exc.motivo;
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-weight: bold; color: var(--color-brass-light);">${dataFormattata}</td>
+                        <td>${motivoConBarbiere}</td>
+                        <td>${intera}</td>
+                        <td>${dalle}</td>
+                        <td>${alle}</td>
+                        <td>
+                            <button type="button" class="azioni-btn" onclick="modificaGiornoEccezionaleBarbiere('${exc.barbiereId}', '${exc.data}')" title="Modifica">✏️</button>
+                            <button type="button" class="azioni-btn btn-danger" onclick="eliminaGiornoEccezionaleBarbiere('${exc.barbiereId}', '${exc.data}')" title="Elimina">🗑️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function generaSelectBarbiere(barbieri, selectedId = "") {
+            let options = '<option value="">-- Seleziona Barbiere --</option>';
+            barbieri.forEach(b => {
+                if (b.attivo || b.id === selectedId) {
+                    const isSelected = b.id === selectedId ? 'selected' : '';
+                    options += `<option value="${b.id}" ${isSelected}>${b.nome}</option>`;
+                }
+            });
+            return `<select id="eccezione-barbiere-id" class="vintage-select" style="width: 100%;" required onchange="ricalcolaModaleEccezioneBarbiere()">${options}</select>`;
+        }
+
+        function apriModaleEccezioneBarbiere() {
+            document.getElementById('form-eccezione-barbiere').reset();
+            document.getElementById('eccezione-barbiere-old-data').value = "";
+            document.getElementById('eccezione-barbiere-old-id').value = "";
+            document.getElementById('modale-eccezione-barbiere-titolo').textContent = "Aggiungi Richiesta";
+            
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            document.getElementById('eccezione-barbiere-select-container').innerHTML = generaSelectBarbiere(barbieri);
+            
+            ricalcolaModaleEccezioneBarbiere();
+            document.getElementById('modale-eccezione-barbiere').style.display = 'flex';
+        }
+        
+        function chiudiModaleEccezioneBarbiere() {
+            document.getElementById('modale-eccezione-barbiere').style.display = 'none';
+        }
+        
+        function ricalcolaModaleEccezioneBarbiere() {
+            const barbiereSelect = document.getElementById('eccezione-barbiere-id');
+            const dataInput = document.getElementById('eccezione-barbiere-data');
+            const motivoSelect = document.getElementById('eccezione-barbiere-motivo');
+            const interaCheck = document.getElementById('eccezione-barbiere-intera');
+            const dalleSelect = document.getElementById('eccezione-barbiere-dalle');
+            const alleSelect = document.getElementById('eccezione-barbiere-alle');
+            
+            if (!barbiereSelect || !barbiereSelect.value) {
+                dataInput.disabled = true;
+                motivoSelect.disabled = true;
+                interaCheck.disabled = true;
+                dalleSelect.disabled = true;
+                alleSelect.disabled = true;
+                return;
+            }
+            
+            dataInput.disabled = false;
+            
+            if (!dataInput.value) {
+                motivoSelect.disabled = true;
+                interaCheck.disabled = true;
+                dalleSelect.disabled = true;
+                alleSelect.disabled = true;
+                return;
+            }
+            
+            motivoSelect.disabled = false;
+            interaCheck.disabled = false;
+            
+            const dateObj = new Date(dataInput.value);
+            const numGiorno = dateObj.getDay(); 
+            const mapGiorni = [6, 0, 1, 2, 3, 4, 5]; 
+            const giorniNomi = ['lunedi', 'martedi', 'mercoledi', 'giovedi', 'venerdi', 'sabato', 'domenica'];
+            const nomeGiorno = giorniNomi[mapGiorni[numGiorno]];
+            
+            let slotPermessi = [];
+            
+            if (window.FranklinApp && window.FranklinApp.Storage) {
+                const imp = window.FranklinApp.Storage.ottieniImpostazioni();
+                const orarioNormale = imp.orariLavoro ? imp.orariLavoro[nomeGiorno] : null;
+                
+                if (!orarioNormale || orarioNormale.chiuso) {
+                    interaCheck.checked = true;
+                    interaCheck.disabled = true;
+                } else {
+                    const genera = (inizio, fine) => {
+                        if (!inizio || !fine) return;
+                        const [h1, m1] = inizio.split(':').map(Number);
+                        const [h2, m2] = fine.split(':').map(Number);
+                        const startMin = h1 * 60 + m1;
+                        const endMin = h2 * 60 + m2;
+                        
+                        for (let t = startMin; t <= endMin; t += 15) {
+                            const hh = Math.floor(t / 60).toString().padStart(2, '0');
+                            const mm = (t % 60).toString().padStart(2, '0');
+                            slotPermessi.push(`${hh}:${mm}`);
+                        }
+                    };
+                    genera(orarioNormale.mattinaApertura, orarioNormale.mattinaChiusura);
+                    genera(orarioNormale.pomeriggioApertura, orarioNormale.pomeriggioChiusura);
+                }
+            }
+            
+            if (interaCheck.checked) {
+                dalleSelect.disabled = true;
+                alleSelect.disabled = true;
+                dalleSelect.innerHTML = '';
+                alleSelect.innerHTML = '';
+            } else {
+                dalleSelect.disabled = false;
+                alleSelect.disabled = false;
+                
+                const oldDalle = dalleSelect.value;
+                const oldAlle = alleSelect.value;
+                
+                dalleSelect.innerHTML = '<option value="">-- Seleziona --</option>';
+                alleSelect.innerHTML = '<option value="">-- Seleziona --</option>';
+                
+                slotPermessi.forEach(slot => {
+                    dalleSelect.innerHTML += `<option value="${slot}">${slot}</option>`;
+                });
+                
+                if (oldDalle && slotPermessi.includes(oldDalle)) {
+                    dalleSelect.value = oldDalle;
+                }
+                
+                if (dalleSelect.value) {
+                    const idx = slotPermessi.indexOf(dalleSelect.value);
+                    if (idx !== -1) {
+                        for (let i = idx + 1; i < slotPermessi.length; i++) {
+                            alleSelect.innerHTML += `<option value="${slotPermessi[i]}">${slotPermessi[i]}</option>`;
+                        }
+                    }
+                    if (oldAlle && alleSelect.querySelector(`option[value="${oldAlle}"]`)) {
+                        alleSelect.value = oldAlle;
+                    }
+                } else {
+                    alleSelect.disabled = true;
+                }
+            }
+        }
+        
+        function salvaGiornoEccezionaleBarbiere() {
+            const barbiereId = document.getElementById('eccezione-barbiere-id').value;
+            const dataStr = document.getElementById('eccezione-barbiere-data').value;
+            const motivo = document.getElementById('eccezione-barbiere-motivo').value;
+            const intera = document.getElementById('eccezione-barbiere-intera').checked;
+            const dalle = document.getElementById('eccezione-barbiere-dalle').value;
+            const alle = document.getElementById('eccezione-barbiere-alle').value;
+            
+            const oldData = document.getElementById('eccezione-barbiere-old-data').value;
+            const oldId = document.getElementById('eccezione-barbiere-old-id').value;
+            
+            if (!intera && (!dalle || !alle)) {
+                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Inserisci un orario valido", "errore");
+                return;
+            }
+            
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            
+            if (oldData && oldId) {
+                const oldB = barbieri.find(b => b.id === oldId);
+                if (oldB) {
+                    oldB.giorniEccezionali = (oldB.giorniEccezionali || []).filter(e => e.data !== oldData);
+                }
+            }
+            
+            const bIndex = barbieri.findIndex(b => b.id === barbiereId);
+            if (bIndex !== -1) {
+                if (!barbieri[bIndex].giorniEccezionali) barbieri[bIndex].giorniEccezionali = [];
+                
+                const esiste = barbieri[bIndex].giorniEccezionali.find(e => e.data === dataStr);
+                if (esiste) {
+                    if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Questo barbiere ha già un'eccezione in questa data", "errore");
+                    return;
+                }
+                
+                barbieri[bIndex].giorniEccezionali.push({
+                    data: dataStr,
+                    motivo: motivo,
+                    interaGiornata: intera,
+                    dalle: intera ? '' : dalle,
+                    alle: intera ? '' : alle
+                });
+                
+                window.FranklinApp.Storage.salvaBarbieri(barbieri);
+                chiudiModaleEccezioneBarbiere();
+                if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Richiesta salvata", "successo");
+                caricaBarbieri();
+            }
+        }
+        
+        function modificaGiornoEccezionaleBarbiere(barbiereId, dataStr) {
+            const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+            const b = barbieri.find(x => x.id === barbiereId);
+            if (!b) return;
+            
+            const exc = (b.giorniEccezionali || []).find(e => e.data === dataStr);
+            if (exc) {
+                document.getElementById('eccezione-barbiere-old-data').value = dataStr;
+                document.getElementById('eccezione-barbiere-old-id').value = barbiereId;
+                document.getElementById('modale-eccezione-barbiere-titolo').textContent = "Modifica Richiesta";
+                
+                document.getElementById('eccezione-barbiere-select-container').innerHTML = generaSelectBarbiere(barbieri, barbiereId);
+                
+                document.getElementById('eccezione-barbiere-data').value = exc.data;
+                document.getElementById('eccezione-barbiere-data').disabled = false;
+                
+                document.getElementById('eccezione-barbiere-motivo').value = exc.motivo;
+                document.getElementById('eccezione-barbiere-intera').checked = exc.interaGiornata;
+                
+                ricalcolaModaleEccezioneBarbiere(); 
+                
+                setTimeout(() => {
+                    if (!exc.interaGiornata) {
+                        document.getElementById('eccezione-barbiere-dalle').value = exc.dalle;
+                        ricalcolaModaleEccezioneBarbiere();
+                        setTimeout(() => {
+                            document.getElementById('eccezione-barbiere-alle').value = exc.alle;
+                        }, 50);
+                    }
+                }, 50);
+                
+                document.getElementById('modale-eccezione-barbiere').style.display = 'flex';
+            }
+        }
+        
+        function eliminaGiornoEccezionaleBarbiere(barbiereId, dataStr) {
+            if (confirm(`Sei sicuro di voler eliminare la richiesta per il ${dataStr}?`)) {
+                const barbieri = window.FranklinApp.Storage.ottieniBarbieri() || [];
+                const b = barbieri.find(x => x.id === barbiereId);
+                if (b) {
+                    b.giorniEccezionali = (b.giorniEccezionali || []).filter(e => e.data !== dataStr);
+                    window.FranklinApp.Storage.salvaBarbieri(barbieri);
+                    if(window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Richiesta eliminata", "successo");
+                    caricaBarbieri();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

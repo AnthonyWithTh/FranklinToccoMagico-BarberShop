@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Franklin Barber Shop - L'Arte della Rasatura dal 1952. Prenota il tuo appuntamento nel nostro salone vintage nel cuore della città.">
+    <title>Franklin Barber Shop | L'Arte della Rasatura dal 1952</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/variables.css?v=639214885235285493">
+    <link rel="stylesheet" href="css/global.css?v=639214885235285493">
+    <link rel="stylesheet" href="css/vintage-theme.css?v=639214885235285493">
+    <link rel="stylesheet" href="css/landing.css?v=639214885235285493">
+    <link rel="stylesheet" href="css/booking.css?v=639214885235285493">
+</head>
+<body>
+
+    <!-- Barra di Navigazione (Solo Servizi e Contatti) -->
+    <header>
+        <nav class="navbar" id="main-nav">
+            <div class="nav-brand">
+                <a href="#">FRANKLIN</a>
+            </div>
+            
+            <button class="menu-toggle hamburger" id="mobile-menu-btn" aria-label="Menu">☰</button>
+
+            <ul class="nav-menu" id="nav-menu">
+                <li><a href="#servizi">Servizi</a></li>
+                <li><a href="#contatti">Contatti</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Contenuto Principale -->
+    <main>
+        <!-- Sezione Hero -->
+        <section class="hero" id="home">
+            <div class="hero-content">
+                <h1 class="vintage-title" style="font-size: clamp(2.2rem, 5vw, 4rem); margin-bottom: 0;">FRANKLIN BARBER SHOP</h1>
+                <div class="brass-divider" style="margin: var(--spacing-sm) auto; width: 60%;"></div>
+                <h2 class="vintage-subtitle" style="font-family: var(--font-vintage); font-size: clamp(1.1rem, 2.5vw, 1.8rem); color: var(--color-brass-light); margin-bottom: var(--spacing-sm);">L'Arte della Rasatura dal 1952</h2>
+                <p style="font-family: var(--font-typewriter); font-size: 1.05rem; max-width: 650px; margin: 0 auto; color: var(--color-text-muted);">
+                    L'eleganza di un tempo, la precisione di oggi. Un'esperienza curata nei dettagli per il gentiluomo moderno.
+                </p>
+            </div>
+        </section>
+
+        <!-- Sezione Carosello Servizi Infinito con Filtro Categoria Compatto -->
+        <section id="servizi" style="padding: var(--spacing-xl) 0;">
+            <div class="section-heading">
+                <h2>I Nostri Servizi</h2>
+                <div class="brass-divider" style="width: 150px; margin: 0 auto 1.2rem auto;"></div>
+                
+                <!-- Menu Categoria Compatto e Centrato -->
+                <div style="display: flex; justify-content: center; margin-top: 1rem;">
+                    <select id="filtro-categoria-servizi" class="vintage-select" aria-label="Seleziona Categoria" style="width: auto; max-width: 210px; padding: 0.5rem 1.4rem; font-size: 0.95rem; border-radius: 20px; font-family: var(--font-admin); border: 1.5px solid var(--color-brass-base); text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.3); cursor: pointer;" onchange="FranklinApp.Pubblico.filtraServiziPerCategoria(this.value)">
+                        <option value="tutti">Tutte le Categorie</option>
+                        <option value="capelli">Capelli</option>
+                        <option value="barba">Barba</option>
+                        <option value="trattamenti">Trattamenti</option>
+                        <option value="combo">Combo</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="carousel-wrapper">
+                <div id="servizi-container" class="servizi-carousel">
+                    <!-- Caricato dinamicamente -->
+                </div>
+            </div>
+
+            <!-- Pulsante Unico per la card selezionata -->
+            <div style="text-align: center; margin-top: var(--spacing-md);">
+                <button id="btn-prenota-selezionato" class="btn-primary" style="font-size: 1.15rem; padding: 0.9rem 2.8rem; box-shadow: 0 4px 20px rgba(197, 160, 89, 0.3);" onclick="FranklinApp.Pubblico.prenotaServizioSelezionato()">
+                    Prenota Ora
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Piè di Pagina (3 Colonne: Chi Siamo con Carosello Barbieri, Orari, Dove Siamo e Link Utili) -->
+    <footer id="contatti" class="footer wood-panel">
+        <!-- Colonna 1: Chi Siamo (Carosello Barbieri) -->
+        <div id="footer-col-chi-siamo">
+            <!-- Popolato da JS -->
+        </div>
+
+        <!-- Colonna 2: Dove siamo e Link Utili (Centro) -->
+        <div id="footer-col-contatti-link">
+            <!-- Popolato da JS -->
+        </div>
+
+        <!-- Colonna 3: Orari (Destra) -->
+        <div id="footer-col-orari">
+            <!-- Popolato da JS -->
+        </div>
+
+        <div style="grid-column: 1 / -1; text-align: center; padding-top: var(--spacing-md); border-top: 1px solid var(--color-brass-dark); margin-top: var(--spacing-md);">
+            <p style="font-family: var(--font-typewriter); color: var(--color-text-muted); font-size: 0.9rem;">
+                &copy; 2026 Franklin Barber Shop. Tutti i diritti riservati.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Modale Prenotazione -->
+    <div id="booking-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content vintage-card booking-modal">
+            <button class="close-btn" onclick="FranklinApp.Pubblico.chiudiPrenotazione()" aria-label="Chiudi" 
+                    style="position: absolute; top: 15px; right: 20px; background: none; border: none; font-size: 2rem; color: var(--color-brass-light); cursor: pointer; z-index: 10;">
+                &times;
+            </button>
+            
+            <div style="text-align: center; margin-bottom: var(--spacing-lg);">
+                <h2 class="vintage-title" style="font-size: 1.8rem;">Prenota il Tuo Appuntamento</h2>
+                <div class="brass-divider" style="margin: var(--spacing-sm) auto;"></div>
+                <div id="booking-progress" style="font-family: var(--font-typewriter); color: var(--color-text-muted); margin-top: var(--spacing-sm);">
+                    Passo 1 di 4
+                </div>
+            </div>
+
+            <!-- Area contenuto step -->
+            <div id="booking-step-content" class="step-content">
+                <!-- Iniettato via JS -->
+            </div>
+
+            <!-- Pulsanti navigazione -->
+            <div class="booking-nav">
+                <button id="btn-booking-indietro" class="btn-secondary" onclick="FranklinApp.Prenotazione.indietro()" style="display: none;">← Indietro</button>
+                <div style="flex-grow: 1;"></div>
+                <button id="btn-booking-avanti" class="btn-primary" onclick="FranklinApp.Prenotazione.avanti()">Avanti →</button>
+                <button id="btn-booking-conferma" class="btn-primary" onclick="FranklinApp.Prenotazione.conferma()" style="display: none;">Conferma Prenotazione ✓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenitore Toast -->
+    <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999;"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/storage.js?v=639214885235285493"></script>
+    <script src="js/mock-data.js?v=639214885235285493"></script>
+    <script src="js/utils/date-helpers.js?v=639214885235285493"></script>
+    <script src="js/utils/validators.js?v=639214885235285493"></script>
+    <script src="js/auth.js?v=639214885235285493"></script>
+    <script src="js/booking.js?v=639214885235285493"></script>
+    <script src="js/public.js?v=639214885235285493"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
