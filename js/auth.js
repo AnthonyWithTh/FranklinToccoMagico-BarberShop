@@ -21,6 +21,9 @@ FranklinApp.Auth = {
   },
 
   async verificaAccesso() {
+    if (window.FranklinApp && window.FranklinApp.Storage && !window.FranklinApp.Storage.supabase) {
+        await window.FranklinApp.Storage.inizializza();
+    }
     const isAuth = await this.isAutenticato();
     if (!isAuth) {
       document.documentElement.style.display = 'none';

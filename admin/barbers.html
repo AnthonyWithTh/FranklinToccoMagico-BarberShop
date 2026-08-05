@@ -282,6 +282,8 @@
 
         let barbiereFileDaUploadare = null;
         let barbiereFileCaricatoNome = null;
+        let tutteEccezioniBarbieri = [];
+        let eccezioniBarbieriSortAsc = false;
 
         function mostraTabImmagineBarbiere(tab) {
             const btnUpload = document.getElementById('btn-barbiere-tab-upload');
@@ -365,6 +367,9 @@
 
         async function caricaBarbieri() {
             if(window.FranklinApp && window.FranklinApp.Storage) {
+                if (!window.FranklinApp.Storage.supabase) {
+                    await window.FranklinApp.Storage.inizializza();
+                }
                 const barbieri = await window.FranklinApp.Storage.ottieniBarbieri() || [];
                 const tbody = document.getElementById('barbieri-tbody');
                 

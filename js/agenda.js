@@ -283,7 +283,7 @@ window.Agenda = (function() {
             }
             
             if (startCell) {
-                const statoStr = app.stato || 'confermato';
+                const statoStr = (app.stato || 'Confermato').toLowerCase();
                 const isRichiesta = (statoStr === 'richiesto' || statoStr === 'in_attesa');
                 
                 let bg;
