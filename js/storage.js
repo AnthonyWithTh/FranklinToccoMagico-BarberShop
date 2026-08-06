@@ -306,6 +306,15 @@ FranklinApp.Storage = {
     return !error;
   },
 
+  async ottieniVetrina() {
+    const { data: imp, error } = await sbClient.from('vetrina').select('*').eq('id', 1).single();
+    if (error) {
+        console.error("Errore fetch vetrina:", error);
+        return null;
+    }
+    return imp || {};
+  },
+
   async ottieniImpostazioni() {
     // 1. Impostazioni Base da Vetrina
     const { data: imp, error } = await sbClient.from('vetrina').select('*').eq('id', 1).single();
