@@ -165,6 +165,7 @@
                                         { id: 'nav-services', perm: 'services' },
                                         { id: 'nav-schedule', perm: 'schedule' },
                                         { id: 'nav-barbers', perm: 'barbers' },
+                                        { id: 'nav-storico', perm: 'storico' },
                                         { id: 'nav-users', perm: 'users' },
                                         { id: 'nav-vetrina', perm: 'vetrina' },
                                         { id: 'nav-settings', perm: 'settings' }
