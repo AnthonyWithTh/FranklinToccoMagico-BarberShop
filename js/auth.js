@@ -43,7 +43,8 @@ FranklinApp.Auth = {
       'users.html': 'users',
       'settings.html': 'settings',
       'vetrina.html': 'vetrina',
-      'storico.html': 'storico'
+      'storico.html': 'storico',
+      'eventi.html': 'eventi'
       // index.html e personale.html sono sempre accessibili se si ha fatto login
     };
 

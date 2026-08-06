@@ -251,6 +251,43 @@ FranklinApp.Storage = {
     return { incasso, clienti: count || 0 };
   },
 
+  // --- METODI EVENTI ---
+  async ottieniEventi() {
+    const { data, error } = await sbClient.from('eventi').select('*').order('data_inizio', { ascending: false });
+    if (error) { console.error("Errore fetch eventi:", error); return []; }
+    return data;
+  },
+
+  async aggiungiEvento(dati) {
+    const payload = {
+      titolo: dati.titolo,
+      descrizione: dati.descrizione,
+      data_inizio: dati.data_inizio,
+      data_fine: dati.data_fine,
+      attivo: dati.attivo
+    };
+    const { data, error } = await sbClient.from('eventi').insert([payload]).select();
+    if (error) { console.error("Errore aggiunta evento:", error); return null; }
+    return data[0].id;
+  },
+
+  async aggiornaEvento(id, dati) {
+    const payload = { aggiornato_il: new Date().toISOString() };
+    if (dati.titolo !== undefined) payload.titolo = dati.titolo;
+    if (dati.descrizione !== undefined) payload.descrizione = dati.descrizione;
+    if (dati.data_inizio !== undefined) payload.data_inizio = dati.data_inizio;
+    if (dati.data_fine !== undefined) payload.data_fine = dati.data_fine;
+    if (dati.attivo !== undefined) payload.attivo = dati.attivo;
+
+    const { error } = await sbClient.from('eventi').update(payload).eq('id', id);
+    return !error;
+  },
+
+  async eliminaEvento(id) {
+    const { error } = await sbClient.from('eventi').delete().eq('id', id);
+    return !error;
+  },
+
   async ottieniImpostazioni() {
     // 1. Impostazioni Base da Vetrina
     const { data: imp, error } = await sbClient.from('vetrina').select('*').eq('id', 1).single();

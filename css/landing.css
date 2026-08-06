@@ -431,3 +431,93 @@
     font-size: 1.1rem !important;
   }
 }
+
+/* ======================================================================= */
+/* Event Popup Balloon */
+/* ======================================================================= */
+.event-popup-container {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 100;
+  max-width: 320px;
+  background-color: var(--color-wood-100);
+  border: 2px solid var(--color-brass-base);
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(197, 160, 89, 0.2);
+  color: var(--color-text-cream);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease, transform 0.5s ease, visibility 0.5s;
+}
+
+.event-popup-container.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  animation: balloonBounce 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.event-popup-container::after {
+  content: '';
+  position: absolute;
+  bottom: -12px;
+  right: 30px;
+  width: 0;
+  height: 0;
+  border-left: 12px solid transparent;
+  border-right: 12px solid transparent;
+  border-top: 12px solid var(--color-brass-base);
+}
+
+.event-popup-close {
+  position: absolute;
+  top: 8px;
+  right: 12px;
+  background: none;
+  border: none;
+  color: var(--color-brass-light);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.3s ease;
+}
+
+.event-popup-close:hover {
+  color: var(--color-danger);
+}
+
+.event-popup-title {
+  font-family: var(--font-heading);
+  color: var(--color-brass-light);
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+  padding-right: 1rem;
+}
+
+.event-popup-desc {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
+  opacity: 0.9;
+}
+
+@keyframes balloonBounce {
+  0% { transform: translateY(30px) scale(0.9); opacity: 0; }
+  60% { transform: translateY(-10px) scale(1.02); opacity: 1; }
+  100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.event-slide-fade {
+  animation: slideFadeIn 0.8s ease forwards;
+}
+
+@keyframes slideFadeIn {
+  from { opacity: 0; transform: translateX(10px); }
+  to { opacity: 1; transform: translateX(0); }
+}

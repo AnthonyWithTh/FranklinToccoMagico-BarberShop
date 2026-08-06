@@ -25,6 +25,7 @@ FranklinApp.Pubblico = {
     this.setupSmoothScroll();
     this.setupCarouselEvents();
     this.setupHeroBackgroundCarousel();
+    this.inizializzaEventiPopup();
     
     document.addEventListener('DOMContentLoaded', () => {
       document.body.addEventListener('click', (e) => {
@@ -99,6 +100,63 @@ FranklinApp.Pubblico = {
             activeLayer = 1;
         }
     }, 40000);
+  },
+
+  async inizializzaEventiPopup() {
+    if (sessionStorage.getItem('franklin_event_closed') === 'true') return;
+    const popup = document.getElementById('hero-event-popup');
+    if (!popup) return;
+
+    let tuttiEventi = await window.FranklinApp.Storage.ottieniEventi();
+    if (!tuttiEventi || tuttiEventi.length === 0) return;
+
+    const oggi = new Date().toISOString().split('T')[0];
+    const eventiAttivi = tuttiEventi.filter(e => e.attivo && oggi >= e.data_inizio && oggi <= e.data_fine);
+
+    if (eventiAttivi.length === 0) return;
+
+    this.eventiPopupAttivi = eventiAttivi;
+    this.currentEventoPopupIndex = 0;
+
+    this.mostraEventoPopup(0);
+    popup.classList.add('show');
+
+    if (this.eventiPopupAttivi.length > 1) {
+        this.eventoPopupInterval = setInterval(() => {
+            this.currentEventoPopupIndex = (this.currentEventoPopupIndex + 1) % this.eventiPopupAttivi.length;
+            this.mostraEventoPopup(this.currentEventoPopupIndex);
+        }, 7000); // Cambia ogni 7 secondi
+    }
+  },
+
+  mostraEventoPopup(index) {
+    const titleEl = document.getElementById('event-popup-title');
+    const descEl = document.getElementById('event-popup-desc');
+    const contentEl = document.getElementById('event-popup-content');
+    if (!titleEl || !descEl || !contentEl) return;
+
+    const ev = this.eventiPopupAttivi[index];
+    
+    // Rimuove e riaggiunge l'animazione
+    contentEl.classList.remove('event-slide-fade');
+    void contentEl.offsetWidth; // Trigger reflow
+    
+    titleEl.textContent = ev.titolo;
+    descEl.textContent = ev.descrizione;
+    
+    contentEl.classList.add('event-slide-fade');
+  },
+
+  chiudiEventPopup() {
+    sessionStorage.setItem('franklin_event_closed', 'true');
+    const popup = document.getElementById('hero-event-popup');
+    if (popup) {
+      popup.classList.remove('show');
+      setTimeout(() => popup.style.display = 'none', 500);
+    }
+    if (this.eventoPopupInterval) {
+        clearInterval(this.eventoPopupInterval);
+    }
   },
 
   async renderServizi() {

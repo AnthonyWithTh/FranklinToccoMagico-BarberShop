@@ -16,6 +16,7 @@
             { id: 'nav-schedule', url: 'schedule.html', icon: '🕒', text: 'Orario di Lavoro', perm: 'schedule' },
             { id: 'nav-barbers', url: 'barbers.html', icon: '💈', text: 'Staff', perm: 'barbers' },
             { id: 'nav-storico', url: 'storico.html', icon: '⏳', text: 'Storico', perm: 'storico' },
+            { id: 'nav-eventi', url: 'eventi.html', icon: '📢', text: 'Eventi', perm: 'eventi' },
             { id: 'nav-users', url: 'users.html', icon: '👤', text: 'Amministrazione', perm: 'users' },
             { id: 'nav-vetrina', url: 'vetrina.html', icon: '🌐', text: 'Vetrina', perm: 'vetrina' },
             { id: 'nav-settings', url: 'settings.html', icon: '⚙️', text: 'Impostazioni', perm: 'settings' }
@@ -166,6 +167,7 @@
                                         { id: 'nav-schedule', perm: 'schedule' },
                                         { id: 'nav-barbers', perm: 'barbers' },
                                         { id: 'nav-storico', perm: 'storico' },
+                                        { id: 'nav-eventi', perm: 'eventi' },
                                         { id: 'nav-users', perm: 'users' },
                                         { id: 'nav-vetrina', perm: 'vetrina' },
                                         { id: 'nav-settings', perm: 'settings' }
