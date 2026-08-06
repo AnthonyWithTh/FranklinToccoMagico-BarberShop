@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storico - Franklin Admin</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Lora:ital,wght@0,400..700;1,400..700&family=Montserrat:wght@400;500;600;700&family=Rye&family=Special+Elite&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../css/variables.css">
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/vintage-theme.css">
+    <link rel="stylesheet" href="../css/admin.css">
+    <!-- Blocco anti-fouc e Auth -->
+    <style id="anti-fouc">html { display: none !important; }</style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/storage.js"></script>
+    <script src="../js/auth.js"></script>
+    <script>
+        if (window.FranklinApp && window.FranklinApp.Auth) {
+            if (!window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+            } else {
+                window.FranklinApp.Auth.verificaAccesso();
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <script src="../js/components/sidebar.js"></script>
+
+        <!-- Main Content -->
+        <main class="main-content" style="padding: 2rem; overflow-y: auto;">
+            <div class="admin-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h1 class="vintage-title" style="font-size: 2rem; color: var(--color-text-cream); margin-bottom: 0.2rem;">Storico Appuntamenti</h1>
+                    <p style="font-family: var(--font-admin); color: var(--color-brass-light);">Consultazione degli appuntamenti passati archiviati.</p>
+                </div>
+            </div>
+
+            <!-- Filtri -->
+            <div class="vintage-card" style="margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-end;">
+                <div class="form-group" style="flex: 1; max-width: 250px;">
+                    <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Data</label>
+                    <input type="date" id="filtro-data" class="vintage-input" style="width: 100%;" onchange="aggiornaStorico()">
+                </div>
+                <div class="form-group" style="flex: 1; max-width: 250px;">
+                    <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Barbiere</label>
+                    <select id="filtro-barbiere" class="vintage-select" style="width: 100%;" onchange="aggiornaStorico()">
+                        <option value="tutti">Tutti i barbieri</option>
+                        <!-- Popolato via JS -->
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <button class="btn-primary" onclick="resetFiltri()">Reset Filtri</button>
+                </div>
+            </div>
+            
+            <!-- Statistiche -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                <div class="vintage-card stat-card" style="text-align: center; border-color: var(--color-brass-base);">
+                    <h3 style="font-family: var(--font-vintage); color: var(--color-brass-light); margin-bottom: 0.5rem; font-size: 1.1rem;">Totale Incasso Stimato</h3>
+                    <div style="font-family: var(--font-heading); color: var(--color-text-cream); font-size: 2.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">
+                        € <span id="stat-incasso">0.00</span>
+                    </div>
+                </div>
+                
+                <div class="vintage-card stat-card" style="text-align: center; border-color: var(--color-green-100);">
+                    <h3 style="font-family: var(--font-vintage); color: var(--color-green-100); margin-bottom: 0.5rem; font-size: 1.1rem;">Clienti Serviti</h3>
+                    <div style="font-family: var(--font-heading); color: var(--color-text-cream); font-size: 2.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">
+                        <span id="stat-clienti">0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tabella Storico -->
+            <div class="vintage-card">
+                <div class="admin-tabella-container">
+                    <table class="admin-tabella">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Ora</th>
+                                <th>Cliente</th>
+                                <th>Telefono</th>
+                                <th>Barbiere</th>
+                                <th>Servizio</th>
+                                <th>Costo</th>
+                                <th>Stato</th>
+                                <th>Note</th>
+                            </tr>
+                        </thead>
+                        <tbody id="storico-tbody">
+                            <!-- Popolato via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/mock-data.js"></script>
+    <script src="../js/public.js"></script>
+    <script src="../js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.FranklinApp && window.FranklinApp.Auth && !window.FranklinApp.Auth.isAutenticato()) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Imposta data di default a ieri
+            const ieri = new Date();
+            ieri.setDate(ieri.getDate() - 1);
+            document.getElementById('filtro-data').value = ieri.toISOString().split('T')[0];
+            
+            await caricaFiltroBarbieri();
+            aggiornaStorico();
+        });
+
+        async function caricaFiltroBarbieri() {
+            if(window.FranklinApp && window.FranklinApp.Storage) {
+                const barbieri = await window.FranklinApp.Storage.ottieniBarbieri();
+                const sel = document.getElementById('filtro-barbiere');
+                if(barbieri && sel) {
+                    barbieri.forEach(b => {
+                        if(b.attivo !== false) {
+                            sel.innerHTML += `<option value="${b.id}">${b.nome} ${b.cognome}</option>`;
+                        }
+                    });
+                }
+            }
+        }
+
+        function resetFiltri() {
+            document.getElementById('filtro-data').value = '';
+            document.getElementById('filtro-barbiere').value = 'tutti';
+            aggiornaStorico();
+        }
+
+        async function aggiornaStorico() {
+            if(!window.FranklinApp || !window.FranklinApp.Storage) return;
+
+            const dateStr = document.getElementById('filtro-data').value || 'tutte';
+            const bId = document.getElementById('filtro-barbiere').value;
+            
+            const tbody = document.getElementById('storico-tbody');
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Caricamento in corso...</td></tr>';
+
+            // Carica Dati
+            const appuntamenti = await window.FranklinApp.Storage.ottieniStoricoAppuntamenti(dateStr, bId);
+            const stats = await window.FranklinApp.Storage.ottieniStatisticheStorico(dateStr, bId);
+
+            // Aggiorna Stats
+            document.getElementById('stat-incasso').textContent = stats.incasso.toFixed(2);
+            document.getElementById('stat-clienti').textContent = stats.clienti;
+
+            // Aggiorna Tabella
+            tbody.innerHTML = '';
+            if(!appuntamenti || appuntamenti.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Nessun appuntamento in archivio per i filtri selezionati.</td></tr>';
+                return;
+            }
+
+            appuntamenti.forEach(app => {
+                let badgeClass = 'badge';
+                if(app.stato === 'Completato') badgeClass = 'badge-completed';
+                else if(app.stato === 'Cancellato') badgeClass = 'badge-cancelled';
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td style="font-family: var(--font-typewriter);">${app.data}</td>
+                        <td style="font-family: var(--font-typewriter);">${app.ora}</td>
+                        <td style="font-weight: bold; color: var(--color-brass-light);">${app.clienteNome}</td>
+                        <td style="font-family: var(--font-typewriter);">${app.clienteTelefono || '-'}</td>
+                        <td>${app.barbiereNome}</td>
+                        <td>${app.servizioNome}</td>
+                        <td style="font-family: var(--font-typewriter);">€ ${parseFloat(app.servizioCosto).toFixed(2)}</td>
+                        <td><span class="${badgeClass}">${app.stato}</span></td>
+                        <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${app.note || ''}">${app.note || '-'}</td>
+                    </tr>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>

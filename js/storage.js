@@ -192,6 +192,65 @@ FranklinApp.Storage = {
     return !error;
   },
 
+  // --- METODI STORICO APPUNTAMENTI ---
+  async ottieniStoricoAppuntamenti(dataFiltro, barbiereFiltro) {
+    let query = sbClient.from('appuntamenti_storico').select(`
+      id, barbiere_id, servizio_nome, servizio_durata, servizio_costo,
+      data, ora, cliente_nome, cliente_telefono, note, stato, confermato_da, inserito_da,
+      barbieri ( nome, cognome )
+    `).order('data', { ascending: false }).order('ora', { ascending: true });
+
+    if (dataFiltro && dataFiltro !== 'tutte') {
+        query = query.eq('data', dataFiltro);
+    }
+    if (barbiereFiltro && barbiereFiltro !== 'tutti') {
+        query = query.eq('barbiere_id', barbiereFiltro);
+    }
+
+    const { data, error } = await query;
+    if (error) {
+        console.error("Errore fetch storico appuntamenti:", error);
+        return [];
+    }
+
+    return data.map(app => ({
+      id: app.id,
+      barbiereId: app.barbiere_id,
+      barbiereNome: app.barbieri ? `${app.barbieri.nome} ${app.barbieri.cognome}` : 'N/A',
+      servizioNome: app.servizio_nome,
+      servizioDurata: app.servizio_durata,
+      servizioCosto: app.servizio_costo,
+      data: app.data,
+      ora: app.ora,
+      clienteNome: app.cliente_nome,
+      clienteTelefono: app.cliente_telefono,
+      note: app.note,
+      stato: app.stato,
+      confermatoDa: app.confermato_da,
+      inseritoDa: app.inserito_da
+    }));
+  },
+
+  async ottieniStatisticheStorico(dataFiltro, barbiereFiltro) {
+    let query = sbClient.from('appuntamenti_storico').select('costo:servizio_costo', { count: 'exact' }).eq('stato', 'Completato');
+    
+    if (dataFiltro && dataFiltro !== 'tutte') {
+        query = query.eq('data', dataFiltro);
+    }
+    if (barbiereFiltro && barbiereFiltro !== 'tutti') {
+        query = query.eq('barbiere_id', barbiereFiltro);
+    }
+
+    const { data, count, error } = await query;
+    if (error) {
+        console.error("Errore fetch statistiche storico:", error);
+        return { incasso: 0, clienti: 0 };
+    }
+
+    const incasso = data.reduce((sum, item) => sum + (parseFloat(item.costo) || 0), 0);
+    return { incasso, clienti: count || 0 };
+  },
+
   async ottieniImpostazioni() {
     // 1. Impostazioni Base da Vetrina
     const { data: imp, error } = await sbClient.from('vetrina').select('*').eq('id', 1).single();

@@ -35,14 +35,15 @@ FranklinApp.Auth = {
     const path = window.location.pathname;
     const pageName = path.split('/').pop();
     
-    // Mappa tra il nome della pagina e il permesso richiesto
     const pagePermissions = {
       'appointments.html': 'appointments',
       'services.html': 'services',
       'schedule.html': 'schedule',
       'barbers.html': 'barbers',
       'users.html': 'users',
-      'settings.html': 'settings'
+      'settings.html': 'settings',
+      'vetrina.html': 'vetrina',
+      'storico.html': 'storico'
       // index.html e personale.html sono sempre accessibili se si ha fatto login
     };
 
