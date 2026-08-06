@@ -752,28 +752,54 @@
             
             const selectedYear = document.getElementById('filtro-anno-riepilogo').value || new Date().getFullYear().toString();
             
+            function formattaTempo(giorni, minutiTotali) {
+                let parts = [];
+                let ore = Math.floor(minutiTotali / 60);
+                let minuti = minutiTotali % 60;
+                
+                if (giorni > 0) parts.push(`${giorni} giorn${giorni === 1 ? 'o' : 'i'}`);
+                if (ore > 0) parts.push(`${ore} or${ore === 1 ? 'a' : 'e'}`);
+                if (minuti > 0) parts.push(`${minuti} minut${minuti === 1 ? 'o' : 'i'}`);
+                
+                if (parts.length === 0) return "-";
+                if (parts.length === 1) return parts[0];
+                let ultimaParte = parts.pop();
+                return parts.join(", ") + " e " + ultimaParte;
+            }
+
             barbieri.forEach(b => {
                 if (b.attivo === false) return;
                 
                 const eccBarbiere = eccezionali.filter(e => e.barbiereId === b.id && e.data.startsWith(selectedYear));
                 
-                let ferie = 0, malattia = 0, permessi = 0, imprevisti = 0;
+                let stats = {
+                    'Ferie': { giorni: 0, minuti: 0 },
+                    'Malattia': { giorni: 0, minuti: 0 },
+                    'Permesso': { giorni: 0, minuti: 0 },
+                    'Imprevisto': { giorni: 0, minuti: 0 }
+                };
                 
                 eccBarbiere.forEach(e => {
-                    const conteggio = e.interaGiornata ? 1 : 0.5;
-                    if (e.motivo === 'Ferie') ferie += conteggio;
-                    else if (e.motivo === 'Malattia') malattia += conteggio;
-                    else if (e.motivo === 'Permesso') permessi += conteggio;
-                    else if (e.motivo === 'Imprevisto') imprevisti += conteggio;
+                    let cat = e.motivo;
+                    if (!stats[cat]) return;
+                    
+                    if (e.interaGiornata || e.intera_giornata) {
+                        stats[cat].giorni += 1;
+                    } else if (e.dalle && e.alle) {
+                        const [h1, m1] = e.dalle.split(':').map(Number);
+                        const [h2, m2] = e.alle.split(':').map(Number);
+                        let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+                        if (diff > 0) stats[cat].minuti += diff;
+                    }
                 });
                 
                 tbody.innerHTML += `
                     <tr>
                         <td style="font-weight: bold; color: var(--color-brass-light);">${b.nome}</td>
-                        <td>${ferie} giorni</td>
-                        <td>${malattia} giorni</td>
-                        <td>${permessi} giorni</td>
-                        <td>${imprevisti} giorni</td>
+                        <td>${formattaTempo(stats['Ferie'].giorni, stats['Ferie'].minuti)}</td>
+                        <td>${formattaTempo(stats['Malattia'].giorni, stats['Malattia'].minuti)}</td>
+                        <td>${formattaTempo(stats['Permesso'].giorni, stats['Permesso'].minuti)}</td>
+                        <td>${formattaTempo(stats['Imprevisto'].giorni, stats['Imprevisto'].minuti)}</td>
                     </tr>
                 `;
             });
