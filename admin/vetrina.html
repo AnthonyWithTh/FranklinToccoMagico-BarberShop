@@ -75,6 +75,7 @@
                                     <select id="hero-image-select" class="vintage-select" style="min-width: 200px;" onchange="selezionaImmagineEsistente(this.value)">
                                         <option value="">-- Seleziona esistente --</option>
                                     </select>
+                                    <button class="btn-primary" style="background: var(--color-danger); border-color: var(--color-danger); padding: 0.3rem 0.6rem;" onclick="eliminaImmagineSelezionata()" title="Elimina Immagine">🗑️</button>
                                     <span style="color: var(--color-text-muted); font-size: 0.9rem;">oppure</span>
                                     <input type="file" id="hero-image-upload" style="display: none;" accept="image/jpeg, image/png, image/webp" onchange="gestisciUploadImmagineUnica(this)">
                                     <button class="btn-primary" onclick="document.getElementById('hero-image-upload').click()">Carica Nuova</button>
@@ -235,6 +236,36 @@
             document.getElementById('hero-immagine').value = url;
             document.getElementById('anteprima-hero').src = url;
             salvaVetrina();
+        }
+
+        async function eliminaImmagineSelezionata() {
+            const select = document.getElementById('hero-image-select');
+            const url = select.value;
+            if (!url) {
+                alert("Seleziona prima un'immagine dal menu a tendina");
+                return;
+            }
+            if (!confirm("Sei sicuro di voler eliminare questa immagine dal server?")) return;
+            
+            const nomeFile = url.split('/').pop().split('?')[0];
+            const successo = await window.FranklinApp.Storage.eliminaImmagine('immagini_vetrina', nomeFile);
+            if (successo) {
+                window.FranklinApp.Admin.mostraToast("Immagine eliminata", "successo");
+                document.getElementById('hero-immagine').value = '';
+                document.getElementById('anteprima-hero').src = '';
+                select.value = '';
+                
+                // Ricarica la lista per aggiornare la tendina
+                select.innerHTML = '<option value="">-- Seleziona esistente --</option>';
+                const immagini = await window.FranklinApp.Storage.listaImmagini('immagini_vetrina');
+                if (immagini && immagini.length > 0) {
+                    immagini.forEach(imgUrl => {
+                        const fileN = imgUrl.split('/').pop().split('?')[0] || imgUrl;
+                        select.innerHTML += `<option value="${imgUrl}">${fileN}</option>`;
+                    });
+                }
+                salvaVetrina();
+            }
         }
 
         async function salvaVetrina() {
