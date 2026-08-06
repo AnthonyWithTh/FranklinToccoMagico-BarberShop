@@ -222,7 +222,7 @@
                         <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                             <div style="flex: 1;">
                                 <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Contatto (Telefono)</label>
-                                <input type="text" id="barbiere-contatto" class="vintage-input" placeholder="es. 333 1234567" style="width: 100%;">
+                                <input type="text" id="barbiere-contatto" class="vintage-input" placeholder="es. 333 1234567" style="width: 100%;" required>
                             </div>
                         </div>
 
@@ -596,9 +596,9 @@
             const foto = (document.getElementById('barbiere-foto').value || '').trim();
             const descrizione = (document.getElementById('barbiere-descrizione').value || '').trim();
             
-            if (!nome || !cognome || !dataNascita || !ruolo || !descrizione) {
+            if (!nome || !cognome || !dataNascita || !ruolo || !descrizione || !contatto) {
                 if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
-                    window.FranklinApp.Admin.mostraToast("Tutti i campi (Nome, Cognome, Data Nascita, Ruolo, Descrizione) sono obbligatori!", "errore");
+                    window.FranklinApp.Admin.mostraToast("I campi Nome, Cognome, Data Nascita, Ruolo, Contatto e Descrizione sono obbligatori!", "errore");
                 } else {
                     alert("Tutti i campi sono obbligatori!");
                 }

@@ -47,7 +47,7 @@
                 
                 <!-- Section 1: Barra di navigazione -->
                 <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Barra di navigazione ??</h3>
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Barra di navigazione </h3>
                     <form id="form-header" onsubmit="event.preventDefault();">
                         <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
                             <div class="form-group" style="flex: 1;">
@@ -64,16 +64,22 @@
 
                 <!-- Section 2: Sezione Introduttiva -->
                 <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Sezione Introduttiva ???</h3>
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Sezione Introduttiva </h3>
                     
                     <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-brass-dark);">
                         <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Immagine di Sfondo</label>
-                        <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
                             <img id="anteprima-hero" src="../assets/images/hero-bg.jpg" alt="Hero" style="width: 160px; height: 90px; object-fit: cover; border: 2px solid var(--color-brass-base); border-radius: var(--border-radius-sm);">
-                            <div>
-                                <input type="file" id="hero-image-upload" style="display: none;" accept="image/jpeg, image/png, image/webp" onchange="gestisciUploadImmagineUnica(this)">
-                                <button class="btn-primary" onclick="document.getElementById('hero-image-upload').click()">Cambia Immagine</button>
-                                <div id="upload-status" style="color: var(--color-brass-base); font-size: 0.85rem; margin-top: 0.5rem;"></div>
+                            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                                    <select id="hero-image-select" class="vintage-select" style="min-width: 200px;" onchange="selezionaImmagineEsistente(this.value)">
+                                        <option value="">-- Seleziona esistente --</option>
+                                    </select>
+                                    <span style="color: var(--color-text-muted); font-size: 0.9rem;">oppure</span>
+                                    <input type="file" id="hero-image-upload" style="display: none;" accept="image/jpeg, image/png, image/webp" onchange="gestisciUploadImmagineUnica(this)">
+                                    <button class="btn-primary" onclick="document.getElementById('hero-image-upload').click()">Carica Nuova</button>
+                                </div>
+                                <div id="upload-status" style="color: var(--color-brass-base); font-size: 0.85rem;"></div>
                             </div>
                         </div>
                         <input type="hidden" id="hero-immagine" onchange="salvaVetrina()">
@@ -90,7 +96,7 @@
                                 <input type="text" id="hero-sottotitolo" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 1;">
-                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Tipo Attività</label>
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Tipo Attivitï¿½</label>
                                 <input type="text" id="hero-sottotitoletto" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                         </div>
@@ -107,7 +113,7 @@
 
                 <!-- Section 3: Contatti & Social -->
                 <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Contatti & Social ??</h3>
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Contatti & Social </h3>
                     <form id="form-contatti" onsubmit="event.preventDefault();">
                         
                         <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
@@ -127,7 +133,7 @@
                                 <input type="text" id="info-cap" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 2;">
-                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Città</label>
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Cittï¿½</label>
                                 <input type="text" id="info-citta" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 1;">
@@ -178,8 +184,21 @@
         });
 
         async function caricaVetrina() {
-            if (window.FranklinApp && window.FranklinApp.Storage) {
-                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
+            try {
+                const selectElement = document.getElementById('hero-image-select');
+                if (window.FranklinApp.Storage.listaImmagini && selectElement) {
+                    const immagini = await window.FranklinApp.Storage.listaImmagini('immagini_vetrina');
+                    if (immagini && immagini.length > 0) {
+                        immagini.forEach(img => {
+                            if (img.name !== '.emptyFolderPlaceholder') {
+                                const url = `${window.FranklinApp.Storage.supabase.storageUrl}/object/public/immagini_vetrina/${img.name}`;
+                                selectElement.innerHTML += `<option value="${url}">${img.name}</option>`;
+                            }
+                        });
+                    }
+                }
+
+                const imp = await window.FranklinApp.Storage.ottieniVetrina();
                 if (imp) {
                     document.getElementById('logo-titolo').value = imp.logo_titolo || '';
                     document.getElementById('logo-sottotitolo').value = imp.logo_sottotitolo || '';
@@ -202,12 +221,22 @@
                     
                     const heroImgInput = document.getElementById('hero-immagine');
                     const heroPreview = document.getElementById('anteprima-hero');
-                    if (imp.hero_immagine) {
-                        heroImgInput.value = imp.hero_immagine;
-                        heroPreview.src = imp.hero_immagine;
+                    if (imp.hero_background) {
+                        heroImgInput.value = imp.hero_background;
+                        heroPreview.src = imp.hero_background;
                     }
                 }
+            } catch (e) {
+                console.error("Errore caricamento impostazioni:", e);
+                window.FranklinApp.Admin.mostraToast("Errore durante il caricamento dei dati", "errore");
             }
+        }
+
+        function selezionaImmagineEsistente(url) {
+            if (!url) return;
+            document.getElementById('hero-immagine').value = url;
+            document.getElementById('anteprima-hero').src = url;
+            salvaVetrina();
         }
 
         async function salvaVetrina() {
@@ -231,7 +260,7 @@
                 social_instagram: document.getElementById('social-instagram').value,
                 social_facebook: document.getElementById('social-facebook').value,
                 
-                hero_immagine: document.getElementById('hero-immagine').value
+                hero_background: document.getElementById('hero-immagine').value
             };
             
             if (window.FranklinApp && window.FranklinApp.Storage) {

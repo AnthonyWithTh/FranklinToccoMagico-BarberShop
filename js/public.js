@@ -65,7 +65,7 @@ FranklinApp.Pubblico = {
     if (!layer1) return;
     
     const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
-    const heroImgUrl = imp && imp.hero_immagine ? imp.hero_immagine : 'assets/images/hero-bg.jpg';
+    const heroImgUrl = imp && imp.hero_background ? imp.hero_background : 'assets/images/hero-bg.jpg';
     
     layer1.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${heroImgUrl}')`;
     layer1.style.opacity = 1;
@@ -665,18 +665,37 @@ FranklinApp.Pubblico = {
     }
     const fotoUrl = (b.foto && b.foto.trim()) ? b.foto : (b.ritratto && b.ritratto.trim()) ? b.ritratto : 'assets/images/barbiere-marco.jpg';
 
+    let currentIndex = this.barberCarouselState.barbieri.findIndex(x => x.id === id);
+    let navButtonsHtml = '';
+    if (this.barberCarouselState.barbieri.length > 1 && currentIndex !== -1) {
+      const prevIdx = (currentIndex - 1 + this.barberCarouselState.barbieri.length) % this.barberCarouselState.barbieri.length;
+      const nextIdx = (currentIndex + 1) % this.barberCarouselState.barbieri.length;
+      const prevId = this.barberCarouselState.barbieri[prevIdx].id;
+      const nextId = this.barberCarouselState.barbieri[nextIdx].id;
+      
+      navButtonsHtml = `
+        <div style="display: flex; justify-content: space-between; position: absolute; top: 50%; left: 10px; right: 10px; transform: translateY(-50%); pointer-events: none;">
+          <button onclick="window.FranklinApp.Pubblico.apriModaleInfoBarbiere('${prevId}')" style="background: var(--color-brass-base); color: var(--color-black-100); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: auto;">&lt;</button>
+          <button onclick="window.FranklinApp.Pubblico.apriModaleInfoBarbiere('${nextId}')" style="background: var(--color-brass-base); color: var(--color-black-100); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: auto;">&gt;</button>
+        </div>
+      `;
+    }
+
+    content.style.position = 'relative'; // Ensure absolute buttons are relative to this container
+
     content.innerHTML = `
+        ${navButtonsHtml}
         <div style="width: 120px; height: 120px; margin: 0 auto 1.5rem auto;">
             <img src="${fotoUrl}" alt="${nomeCompleto}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid var(--color-brass-base); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
         </div>
         <h3 class="vintage-title" style="font-size: 1.8rem; color: var(--color-brass-light); margin-bottom: 0.5rem;">${nomeCompleto}</h3>
         <div style="font-family: var(--font-admin); font-size: 0.9rem; text-transform: uppercase; color: var(--color-brass-base); letter-spacing: 0.1em; margin-bottom: 1.5rem; font-weight: 600;">
             ${b.ruolo || 'Barbiere'}${etaStr ? ' • <span style="text-transform: none;">' + etaStr + '</span>' : ''}
+            ${b.contatto ? `<div style="font-family: var(--font-typewriter); font-size: 0.95rem; color: var(--color-text-cream); margin-top: 0.4rem; text-transform: none; letter-spacing: normal;">${b.contatto}</div>` : ''}
         </div>
         <p style="font-family: var(--font-body); font-size: 0.95rem; line-height: 1.6; color: var(--color-text-cream); text-align: left; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: var(--border-radius-sm); border: 1px solid var(--color-brass-dark); margin-bottom: 1.5rem;">
             ${b.descrizione || 'Esperto barbiere e stilista del nostro salone.'}
         </p>
-        ${b.contatto ? `<div style="font-family: var(--font-typewriter); font-size: 1.1rem; color: var(--color-brass-light); background: var(--color-black-200); padding: 0.8rem; border-radius: var(--border-radius-sm); border-left: 4px solid var(--color-brass-base); display: inline-block;">📞 ${b.contatto}</div>` : ''}
     `;
     modal.style.display = 'flex';
   },

@@ -170,12 +170,16 @@
 
                 <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                     <div class="form-group" style="flex: 1; margin: 0;">
-                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Barbiere (ID/Nome)</label>
-                        <input type="text" id="storico-barbiere" class="vintage-input" style="width: 100%;" required>
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Barbiere</label>
+                        <select id="storico-barbiere" class="vintage-select" style="width: 100%;" required>
+                            <option value="">-- Seleziona --</option>
+                        </select>
                     </div>
                     <div class="form-group" style="flex: 1; margin: 0;">
-                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Servizio (Nome)</label>
-                        <input type="text" id="storico-servizio" class="vintage-input" style="width: 100%;" required>
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Servizio</label>
+                        <select id="storico-servizio" class="vintage-select" style="width: 100%;" required onchange="aggiornaCostoStorico()">
+                            <option value="">-- Seleziona --</option>
+                        </select>
                     </div>
                 </div>
 
@@ -188,8 +192,7 @@
                         <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Stato</label>
                         <select id="storico-stato" class="vintage-select" style="width: 100%;" required>
                             <option value="Completato">Completato</option>
-                            <option value="Non Presentato">Non Presentato</option>
-                            <option value="Cancellato">Cancellato</option>
+                            <option value="Non Confermato">Non Confermato</option>
                         </select>
                     </div>
                 </div>
@@ -207,10 +210,15 @@
     <script src="../js/public.js"></script>
     <script src="../js/admin.js"></script>
     <script>
+        let tuttiServizi = [];
+
         document.addEventListener('DOMContentLoaded', async () => {
-            if (window.FranklinApp && window.FranklinApp.Auth && !window.FranklinApp.Auth.isAutenticato()) {
-                window.location.href = 'login.html';
-                return;
+            if (window.FranklinApp && window.FranklinApp.Auth) {
+                if (!window.FranklinApp.Auth.isAutenticato()) {
+                    window.location.href = 'login.html';
+                    return;
+                }
+                window.FranklinApp.Auth.caricaMenuSidebar();
             }
 
             // Imposta data di default a ieri
@@ -219,6 +227,7 @@
             document.getElementById('filtro-data').value = ieri.toISOString().split('T')[0];
             
             await caricaFiltroBarbieri();
+            await caricaServiziPerModale();
             aggiornaStorico();
         });
 
@@ -226,20 +235,43 @@
             if(window.FranklinApp && window.FranklinApp.Storage) {
                 const barbieri = await window.FranklinApp.Storage.ottieniBarbieri();
                 const sel = document.getElementById('filtro-barbiere');
-                if(barbieri && sel) {
+                const modalSel = document.getElementById('storico-barbiere');
+                if(barbieri) {
                     barbieri.forEach(b => {
                         if(b.attivo !== false) {
-                            sel.innerHTML += `<option value="${b.id}">${b.nome} ${b.cognome}</option>`;
+                            if (sel) sel.innerHTML += `<option value="${b.id}">${b.nome} ${b.cognome}</option>`;
+                            if (modalSel) modalSel.innerHTML += `<option value="${b.nome} ${b.cognome}">${b.nome} ${b.cognome}</option>`;
                         }
                     });
                 }
             }
         }
 
+        async function caricaServiziPerModale() {
+            if(window.FranklinApp && window.FranklinApp.Storage) {
+                tuttiServizi = await window.FranklinApp.Storage.ottieniServizi() || [];
+                const modalSel = document.getElementById('storico-servizio');
+                if (modalSel) {
+                    tuttiServizi.forEach(s => {
+                        if (s.attivo !== false) {
+                            modalSel.innerHTML += `<option value="${s.nome}" data-prezzo="${s.prezzo}">${s.nome}</option>`;
+                        }
+                    });
+                }
+            }
+        }
+
+        function aggiornaCostoStorico() {
+            const sel = document.getElementById('storico-servizio');
+            const opt = sel.options[sel.selectedIndex];
+            if (opt && opt.dataset.prezzo) {
+                document.getElementById('storico-costo').value = opt.dataset.prezzo;
+            }
+        }
+
         async function salvaImpostazionePulizia() {
             const ora = document.getElementById('input-ora-pulizia').value;
             if (!ora) return;
-            // Esempio logica per salvare l'impostazione su Supabase o chiamare una Edge Function
             // window.FranklinApp.Storage.salvaOraPulizia(ora);
             if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
                 window.FranklinApp.Admin.mostraToast("Orario pulizia salvato con successo!", "successo");

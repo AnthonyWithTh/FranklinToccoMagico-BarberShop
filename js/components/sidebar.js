@@ -165,6 +165,7 @@
                                         { id: 'nav-eventi', perm: 'eventi' },
                                         { id: 'nav-storico', perm: 'storico' },
                                         { id: 'nav-barbers', perm: 'barbers' },
+                                        { id: 'nav-schedule', perm: 'schedule' },
                                         { id: 'nav-services', perm: 'services' },
                                         { id: 'nav-vetrina', perm: 'vetrina' },
                                         { id: 'nav-users', perm: 'users' }
