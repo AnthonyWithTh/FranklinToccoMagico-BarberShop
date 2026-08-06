@@ -38,8 +38,10 @@ FranklinApp.Pubblico = {
   },
 
   async renderTestiVetrina() {
-    const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
+    const imp = await window.FranklinApp.Storage.ottieniVetrina();
     if (!imp) return;
+    
+    document.title = `${imp.logo_titolo || 'FRANKLIN'} - ${imp.logo_sottotitolo || 'Tocco Magico'}`;
     
     // Aggiorna Logo
     const logoTitolo = document.getElementById('ui-logo-titolo');
@@ -64,7 +66,7 @@ FranklinApp.Pubblico = {
     const layer1 = document.getElementById('hero-bg-layer1');
     if (!layer1) return;
     
-    const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
+    const imp = await window.FranklinApp.Storage.ottieniVetrina();
     const heroImgUrl = imp && imp.hero_background ? imp.hero_background : 'assets/images/hero-bg.jpg';
     
     layer1.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${heroImgUrl}')`;
@@ -667,6 +669,11 @@ FranklinApp.Pubblico = {
 
     let currentIndex = this.barberCarouselState.barbieri.findIndex(x => x.id === id);
     let navButtonsHtml = '';
+    
+    // Remove existing nav buttons if any
+    const existingNav = document.getElementById('barber-nav-buttons');
+    if (existingNav) existingNav.remove();
+
     if (this.barberCarouselState.barbieri.length > 1 && currentIndex !== -1) {
       const prevIdx = (currentIndex - 1 + this.barberCarouselState.barbieri.length) % this.barberCarouselState.barbieri.length;
       const nextIdx = (currentIndex + 1) % this.barberCarouselState.barbieri.length;
@@ -674,17 +681,15 @@ FranklinApp.Pubblico = {
       const nextId = this.barberCarouselState.barbieri[nextIdx].id;
       
       navButtonsHtml = `
-        <div style="display: flex; justify-content: space-between; position: absolute; top: 50%; left: 10px; right: 10px; transform: translateY(-50%); pointer-events: none;">
-          <button onclick="window.FranklinApp.Pubblico.apriModaleInfoBarbiere('${prevId}')" style="background: var(--color-brass-base); color: var(--color-black-100); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: auto;">&lt;</button>
-          <button onclick="window.FranklinApp.Pubblico.apriModaleInfoBarbiere('${nextId}')" style="background: var(--color-brass-base); color: var(--color-black-100); border: none; border-radius: 50%; width: 36px; height: 36px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.5); pointer-events: auto;">&gt;</button>
+        <div id="barber-nav-buttons" style="position: absolute; top: 50%; left: 5%; right: 5%; display: flex; justify-content: space-between; transform: translateY(-50%); pointer-events: none; z-index: 1000;">
+          <button onclick="window.FranklinApp.Pubblico.apriModaleInfoBarbiere('${prevId}')" style="background: var(--color-brass-base); color: var(--color-black-100); border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.8); pointer-events: auto;">&lt;</button>
+          <button onclick="window.FranklinApp.Pubblico.apriModaleInfoBarbiere('${nextId}')" style="background: var(--color-brass-base); color: var(--color-black-100); border: none; border-radius: 50%; width: 45px; height: 45px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.8); pointer-events: auto;">&gt;</button>
         </div>
       `;
+      modal.insertAdjacentHTML('beforeend', navButtonsHtml);
     }
 
-    content.style.position = 'relative'; // Ensure absolute buttons are relative to this container
-
     content.innerHTML = `
-        ${navButtonsHtml}
         <div style="width: 120px; height: 120px; margin: 0 auto 1.5rem auto;">
             <img src="${fotoUrl}" alt="${nomeCompleto}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid var(--color-brass-base); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
         </div>
@@ -703,6 +708,8 @@ FranklinApp.Pubblico = {
   chiudiModaleInfoBarbiere() {
     const modal = document.getElementById('barber-info-modal');
     if (modal) modal.style.display = 'none';
+    const existingNav = document.getElementById('barber-nav-buttons');
+    if (existingNav) existingNav.remove();
   },
 
   startBarberCarouselAutoPlay() {

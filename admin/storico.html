@@ -254,7 +254,7 @@
                 if (modalSel) {
                     tuttiServizi.forEach(s => {
                         if (s.attivo !== false) {
-                            modalSel.innerHTML += `<option value="${s.nome}" data-prezzo="${s.prezzo}">${s.nome}</option>`;
+                            modalSel.innerHTML += `<option value="${s.nome}" data-prezzo="${s.prezzo}">${s.nome} - €${parseFloat(s.prezzo).toFixed(2)}</option>`;
                         }
                     });
                 }

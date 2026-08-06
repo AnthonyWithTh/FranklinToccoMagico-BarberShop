@@ -366,9 +366,10 @@ window.FranklinApp.Admin = {
     if (srv) {
       const nuovoServizio = {
         ...srv,
-        id: 'srv_' + Date.now(),
         nome: srv.nome + ' (Copia)'
       };
+      delete nuovoServizio.id;
+      delete nuovoServizio.created_at;
       await window.FranklinApp.Storage.aggiungiServizio(nuovoServizio);
       await this.renderServizi();
       this.mostraToast("Servizio duplicato con successo", "successo");
@@ -842,3 +843,21 @@ window.FranklinApp.Admin = {
         }
   }
 };
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (window.FranklinApp && window.FranklinApp.Storage) {
+        try {
+            const imp = await window.FranklinApp.Storage.ottieniVetrina();
+            if (imp) {
+                let pageName = document.title;
+                if (pageName.includes('|')) {
+                    pageName = pageName.split('|').pop().trim();
+                }
+                const titleStr = `${imp.logo_titolo || 'FRANKLIN'} - ${imp.logo_sottotitolo || 'Tocco Magico'}`;
+                if (!document.title.startsWith(titleStr)) {
+                    document.title = `${titleStr} | ${pageName}`;
+                }
+            }
+        } catch(e) {}
+    }
+});
