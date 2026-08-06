@@ -842,6 +842,200 @@ window.FranklinApp.Admin = {
             window.Agenda.render();
         }
   }
+        // Funzione helper per generare orari a step di 15 min
+        const generaSlot = (inizioStr, fineStr) => {
+            if (!inizioStr || !fineStr) return [];
+            let slot = [];
+            let [hI, mI] = inizioStr.split(':').map(Number);
+            let [hF, mF] = fineStr.split(':').map(Number);
+            let dI = new Date(); dI.setHours(hI, mI, 0, 0);
+            let dF = new Date(); dF.setHours(hF, mF, 0, 0);
+            
+            while (dI < dF) {
+                let h = dI.getHours().toString().padStart(2, '0');
+                let m = dI.getMinutes().toString().padStart(2, '0');
+                slot.push(`${h}:${m}`);
+                dI.setMinutes(dI.getMinutes() + 15); // Step di 15 min
+            }
+            return slot;
+        };
+
+        // Genera tutti gli slot della giornata
+        let slotMattina = [];
+        if (orariNegozio.orarioMattina && orariNegozio.orarioMattina.includes('-')) {
+            const parts = orariNegozio.orarioMattina.split('-');
+            slotMattina = generaSlot(parts[0], parts[1]);
+        }
+        
+        let slotPomeriggio = [];
+        if (orariNegozio.orarioPomeriggio && orariNegozio.orarioPomeriggio.includes('-')) {
+            const parts = orariNegozio.orarioPomeriggio.split('-');
+            slotPomeriggio = generaSlot(parts[0], parts[1]);
+        }
+        
+        let tuttiSlot = [...slotMattina, ...slotPomeriggio];
+        
+        // Filtra in base agli imprevisti parziali
+        const isTimeInException = (time, exc) => {
+            if (!exc || exc.interaGiornata || !exc.dalle || !exc.alle) return false;
+            return time >= exc.dalle && time < exc.alle;
+        };
+
+        const eccNegozioParziale = imp.giorniEccezionali ? imp.giorniEccezionali.find(e => e.data === dataStr && !e.interaGiornata) : null;
+        
+        tuttiSlot = tuttiSlot.filter(t => !isTimeInException(t, eccNegozioParziale) && !isTimeInException(t, eccBarbiere));
+
+        // 4. Sottrai appuntamenti esistenti (verificando la durata e l'overlap)
+        // Se siamo in modalità modifica, escludiamo l'appuntamento corrente dal calcolo overlap
+        const modalRef = document.getElementById('modale-nuovo-appuntamento');
+        const editingId = modalRef ? modalRef.dataset.editingId : null;
+        const appuntamentiData = await window.FranklinApp.Storage.ottieniAppuntamenti();
+        const appuntamenti = appuntamentiData.filter(a => a.data === dataStr && a.barbiereId === barbiereId && a.stato !== 'cancellato' && a.id !== editingId);
+        
+        const isOverlap = (newStart, newDuration, existingStart, existingDuration) => {
+            const [nsH, nsM] = newStart.split(':').map(Number);
+            const [esH, esM] = existingStart.split(':').map(Number);
+            const nsMins = nsH * 60 + nsM;
+            const esMins = esH * 60 + esM;
+            
+            return (nsMins < (esMins + existingDuration)) && ((nsMins + newDuration) > esMins);
+        };
+
+        const isOut = (newStart, newDuration) => {
+             const [nsH, nsM] = newStart.split(':').map(Number);
+             const nsMins = nsH * 60 + nsM;
+             const endMins = nsMins + newDuration;
+             
+             // Controllo che non sfori la chiusura del mattino (se inizia al mattino)
+             if (orariNegozio.mattinaChiusura) {
+                 const [mChH, mChM] = orariNegozio.mattinaChiusura.split(':').map(Number);
+                 const mChMins = mChH * 60 + mChM;
+                 if (nsMins < mChMins && endMins > mChMins) return true;
+             }
+             
+             // Controllo che non sfori la chiusura del pomeriggio
+             if (orariNegozio.pomeriggioChiusura) {
+                 const [pChH, pChM] = orariNegozio.pomeriggioChiusura.split(':').map(Number);
+                 const pChMins = pChH * 60 + pChM;
+                 if (endMins > pChMins) return true;
+             }
+             return false;
+        };
+
+        const slotDisponibili = tuttiSlot.filter(slot => {
+            // Controlla se sfora l'orario di lavoro
+            if (isOut(slot, durataMinuti)) return false;
+            
+            // Controlla overlap con altri appuntamenti
+            for (let a of appuntamenti) {
+                const srv = servizi.find(s => s.id === a.servizioId);
+                const exDurata = srv ? parseInt(srv.durata) : 30; // fallback
+                if (isOverlap(slot, durataMinuti, a.ora, exDurata)) return false;
+            }
+            return true;
+        });
+
+        selectOra.innerHTML = '';
+        if (slotDisponibili.length === 0) {
+            selectOra.innerHTML = '<option value="">Nessun orario disponibile</option>';
+        } else {
+            selectOra.innerHTML = '<option value="">Seleziona orario...</option>';
+            slotDisponibili.forEach(slot => {
+                const opt = document.createElement('option');
+                opt.value = slot;
+                opt.textContent = slot;
+                selectOra.appendChild(opt);
+            });
+            selectOra.disabled = false;
+        }
+  },
+
+  chiudiModaleNuovoAppuntamento() {
+        const modal = document.getElementById('modale-nuovo-appuntamento');
+        if (modal) {
+            modal.style.display = 'none';
+            document.getElementById('form-nuovo-appuntamento').reset();
+            // Puliamo lo stato di modifica
+            delete modal.dataset.editingId;
+            // Ripristiniamo il titolo originale
+            const titoloModale = modal.querySelector('h2, .vintage-title');
+            if (titoloModale) titoloModale.textContent = 'Nuovo Appuntamento';
+        }
+  },
+  
+  async salvaNuovoAppuntamento(event) {
+        if (event && typeof event.preventDefault === 'function') {
+            event.preventDefault();
+        }
+        
+        const servizioId = document.getElementById('nuovo-appuntamento-servizio').value;
+        const barbiereId = document.getElementById('nuovo-appuntamento-barbiere').value;
+        const dataStr = document.getElementById('nuovo-appuntamento-data').value;
+        const oraStr = document.getElementById('nuovo-appuntamento-ora').value;
+        const nomeCliente = document.getElementById('nuovo-appuntamento-cliente').value;
+        const telCliente = document.getElementById('nuovo-appuntamento-telefono').value;
+        
+        const servizi = await window.FranklinApp.Storage.ottieniServizi();
+        const servizio = servizi.find(s => s.id === servizioId);
+        
+        // Controlliamo se siamo in modalità modifica
+        const modal = document.getElementById('modale-nuovo-appuntamento');
+        const editingId = modal ? modal.dataset.editingId : null;
+        
+        if (editingId) {
+            // MODIFICA: aggiorniamo l'appuntamento esistente
+            const appuntamenti = await window.FranklinApp.Storage.ottieniAppuntamenti();
+            const appIndex = appuntamenti.findIndex(a => a.id === editingId);
+            if (appIndex > -1) {
+                const appAggiornato = {
+                    servizioNome: servizio ? servizio.nome : 'Sconosciuto',
+                    servizioDurata: servizio ? servizio.durata : 30,
+                    servizioCosto: servizio ? servizio.prezzo : 0,
+                    barbiereId: barbiereId,
+                    data: dataStr,
+                    ora: oraStr,
+                    clienteNome: nomeCliente,
+                    clienteTelefono: telCliente
+                };
+                await window.FranklinApp.Storage.aggiornaAppuntamento(editingId, appAggiornato);
+                this.mostraToast('Appuntamento modificato con successo!', 'successo');
+            }
+            // Puliamo l'attributo di modifica
+            delete modal.dataset.editingId;
+        } else {
+            // NUOVO: creiamo un nuovo appuntamento
+            let nomeAdmin = 'Admin';
+            const utenteLoggato = window.FranklinApp.Auth ? await window.FranklinApp.Auth.getUtenteLoggato() : null;
+            if (utenteLoggato) {
+                const { data: prof } = await window.FranklinApp.Storage.supabase.from('utenti').select('*').eq('id', utenteLoggato.id).single();
+                if (prof) {
+                    nomeAdmin = `${prof.nome || ''} ${prof.cognome || ''}`.trim() || prof.username || 'Admin';
+                }
+            }
+            
+            const nuovoApp = {
+                clienteNome: nomeCliente,
+                clienteTelefono: telCliente,
+                servizioNome: servizio ? servizio.nome : 'Sconosciuto',
+                servizioDurata: servizio ? servizio.durata : 30,
+                servizioCosto: servizio ? servizio.prezzo : 0,
+                barbiereId: barbiereId,
+                data: dataStr,
+                ora: oraStr,
+                stato: document.getElementById('nuovo-appuntamento-stato') ? document.getElementById('nuovo-appuntamento-stato').value : 'Confermato',
+                inseritoDa: nomeAdmin,
+                confermatoDa: nomeAdmin
+            };
+            await window.FranklinApp.Storage.aggiungiAppuntamento(nuovoApp);
+            this.mostraToast('Appuntamento salvato con successo!', 'successo');
+        }
+        
+        this.chiudiModaleNuovoAppuntamento();
+        
+        if (window.Agenda && typeof window.Agenda.render === 'function') {
+            window.Agenda.render();
+        }
+  }
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -852,6 +1046,11 @@ document.addEventListener('DOMContentLoaded', async () => {
                 let pageName = document.title;
                 if (pageName.includes('|')) {
                     pageName = pageName.split('|').pop().trim();
+                } else {
+                    pageName = pageName.replace(' - Franklin Admin', '')
+                                       .replace('Franklin - ', '')
+                                       .replace('Franklin Barber Shop - ', '')
+                                       .trim();
                 }
                 const titleStr = `${imp.logo_titolo || 'FRANKLIN'} - ${imp.logo_sottotitolo || 'Tocco Magico'}`;
                 if (!document.title.startsWith(titleStr)) {
