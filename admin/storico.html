@@ -48,25 +48,7 @@
             <!-- Filtri e Statistiche -->
             <div class="vintage-card" style="margin-bottom: 2rem;">
                 <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
-                    <!-- Filtri (Sinistra) -->
-                    <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
-                        <div class="form-group" style="margin: 0;">
-                            <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.3rem;">Data</label>
-                            <input type="date" id="filtro-data" class="vintage-input" style="padding: 0.3rem 0.6rem;" onchange="aggiornaStorico()">
-                        </div>
-                        <div class="form-group" style="margin: 0;">
-                            <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.3rem;">Barbiere</label>
-                            <select id="filtro-barbiere" class="vintage-select" style="padding: 0.3rem 0.6rem;" onchange="aggiornaStorico()">
-                                <option value="tutti">Tutti i barbieri</option>
-                                <!-- Popolato via JS -->
-                            </select>
-                        </div>
-                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end;">
-                            <button class="btn-primary" onclick="resetFiltri()">Reset Filtri</button>
-                        </div>
-                    </div>
-
-                    <!-- Statistiche come Badge (Destra) -->
+                    <!-- Statistiche come Badge (Sinistra ora) -->
                     <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
                         <div class="badge" style="background: var(--color-black-100); border-color: var(--color-brass-base); color: var(--color-brass-light); padding: 0.5rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; height: 38px;">
                             <span style="font-family: var(--font-vintage); opacity: 0.8;">Incasso Stimato:</span> 
@@ -118,6 +100,24 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h3 style="font-family: var(--font-vintage); color: var(--color-green-100); margin: 0;">Appuntamenti Storico</h3>
                     <button class="btn-primary" onclick="apriModaleStorico()" style="padding: 0.4rem 0.9rem; font-size: 1.2rem; font-weight: bold; line-height: 1;" title="Aggiungi Appuntamento">+</button>
+                </div>
+                
+                <!-- Filtri -->
+                <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="margin: 0;">
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.3rem;">Data</label>
+                        <input type="date" id="filtro-data" class="vintage-input" style="padding: 0.3rem 0.6rem;" onchange="aggiornaStorico()">
+                    </div>
+                    <div class="form-group" style="margin: 0;">
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.3rem;">Barbiere</label>
+                        <select id="filtro-barbiere" class="vintage-select" style="padding: 0.3rem 0.6rem;" onchange="aggiornaStorico()">
+                            <option value="tutti">Tutti i barbieri</option>
+                            <!-- Popolato via JS -->
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end;">
+                        <button class="btn-primary" onclick="resetFiltri()">Reset Filtri</button>
+                    </div>
                 </div>
                 <div class="admin-tabella-container">
                     <table class="admin-tabella">
@@ -210,6 +210,7 @@
     <script src="../js/public.js"></script>
     <script src="../js/admin.js"></script>
     <script>
+        let datiStoricoCorrenti = [];
         let tuttiServizi = [];
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -268,6 +269,12 @@
             }
         }
 
+        function resetFiltri() {
+            document.getElementById('filtro-data').value = '';
+            document.getElementById('filtro-barbiere').value = 'tutti';
+            aggiornaStorico();
+        }
+
         async function salvaImpostazionePulizia() {
             const ora = document.getElementById('input-ora-pulizia').value;
             if (!ora) return;
@@ -277,12 +284,6 @@
             } else {
                 alert("Orario pulizia salvato: " + ora);
             }
-        }
-
-        function resetFiltri() {
-            document.getElementById('filtro-data').value = '';
-            document.getElementById('filtro-barbiere').value = 'tutti';
-            aggiornaStorico();
         }
 
         let storicoChartInstance = null;
@@ -301,6 +302,7 @@
 
             // Carica Dati
             const appuntamenti = await window.FranklinApp.Storage.ottieniStoricoAppuntamenti(dateStr, bId);
+            datiStoricoCorrenti = appuntamenti;
             const stats = await window.FranklinApp.Storage.ottieniStatisticheStorico(dateStr, bId);
 
             // Aggiorna Badges Filtri
@@ -351,6 +353,7 @@
                         <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${app.note || ''}">${app.note || '-'}</td>
                         <td style="white-space: nowrap;">
                             <button class="azioni-btn" title="Modifica" onclick="apriModaleStorico('${app.id}')">✏️</button>
+                            <button class="azioni-btn" title="Duplica" onclick="duplicaRecordStorico('${app.id}')">📋</button>
                             <button class="azioni-btn" title="Elimina" style="color: var(--color-danger);" onclick="eliminaRecordStorico('${app.id}')">🗑️</button>
                         </td>
                     </tr>
@@ -378,7 +381,7 @@
                     document.getElementById('storico-data').value = rec.data;
                     document.getElementById('storico-ora').value = rec.ora;
                     document.getElementById('storico-cliente').value = rec.clienteNome;
-                    document.getElementById('storico-barbiere').value = rec.barbiereNome;
+                    document.getElementById('storico-barbiere').value = rec.barbiereId;
                     document.getElementById('storico-servizio').value = rec.servizioNome;
                     document.getElementById('storico-costo').value = rec.servizioCosto;
                     document.getElementById('storico-stato').value = rec.stato;
@@ -419,6 +422,12 @@
                 console.error(e);
                 if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Errore salvataggio record", "errore");
             }
+        }
+
+        function duplicaRecordStorico(id) {
+            apriModaleStorico(id);
+            document.getElementById('modal-storico-titolo').textContent = 'Duplica Storico';
+            document.getElementById('storico-id').value = '';
         }
 
         async function eliminaRecordStorico(id) {
