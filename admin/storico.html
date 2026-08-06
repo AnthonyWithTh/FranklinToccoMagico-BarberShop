@@ -424,10 +424,34 @@
             }
         }
 
-        function duplicaRecordStorico(id) {
-            apriModaleStorico(id);
-            document.getElementById('modal-storico-titolo').textContent = 'Duplica Storico';
-            document.getElementById('storico-id').value = '';
+        async function duplicaRecordStorico(id) {
+            const rec = datiStoricoCorrenti.find(x => x.id === id);
+            if (!rec) return;
+
+            const dati = {
+                data: rec.data,
+                ora: rec.ora,
+                cliente_nome: rec.clienteNome,
+                cliente_telefono: rec.clienteTelefono,
+                barbiere_id: rec.barbiereId,
+                servizio_nome: rec.servizioNome,
+                servizio_durata: rec.servizioDurata,
+                servizio_costo: rec.servizioCosto,
+                note: rec.note,
+                stato: rec.stato,
+                confermato_da: rec.confermatoDa,
+                inserito_da: rec.inseritoDa
+            };
+
+            try {
+                const { error } = await window.FranklinApp.Storage.supabase.from('appuntamenti_storico').insert([dati]);
+                if (error) throw error;
+                if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Record duplicato con successo", "successo");
+                aggiornaStorico();
+            } catch(e) {
+                console.error(e);
+                if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Errore duplicazione record", "errore");
+            }
         }
 
         async function eliminaRecordStorico(id) {
