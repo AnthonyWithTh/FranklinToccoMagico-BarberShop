@@ -180,6 +180,9 @@
                         <label style="color: var(--color-text-cream); display: flex; align-items: center; gap: 8px;">
                             <input type="checkbox" name="ruolo-permessi" value="personale"> Personale
                         </label>
+                        <label style="color: var(--color-text-cream); display: flex; align-items: center; gap: 8px;">
+                            <input type="checkbox" name="ruolo-permessi" value="storico"> Storico
+                        </label>
                     </div>
                 </div>
                 
@@ -382,7 +385,8 @@
                 'users': 'Amministrazione',
                 'vetrina': 'Vetrina',
                 'settings': 'Impostazioni',
-                'personale': 'Personale'
+                'personale': 'Personale',
+                'storico': 'Storico'
             };
 
             (ruoli || []).forEach(ruolo => {

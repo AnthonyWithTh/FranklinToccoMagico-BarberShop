@@ -15,7 +15,7 @@
             { id: 'nav-services', url: 'services.html', icon: '✂️', text: 'Servizi', perm: 'services' },
             { id: 'nav-schedule', url: 'schedule.html', icon: '🕒', text: 'Orario di Lavoro', perm: 'schedule' },
             { id: 'nav-barbers', url: 'barbers.html', icon: '💈', text: 'Staff', perm: 'barbers' },
-            { id: 'nav-storico', url: 'storico.html', icon: '📚', text: 'Storico', perm: 'storico' },
+            { id: 'nav-storico', url: 'storico.html', icon: '⏳', text: 'Storico', perm: 'storico' },
             { id: 'nav-users', url: 'users.html', icon: '👤', text: 'Amministrazione', perm: 'users' },
             { id: 'nav-vetrina', url: 'vetrina.html', icon: '🌐', text: 'Vetrina', perm: 'vetrina' },
             { id: 'nav-settings', url: 'settings.html', icon: '⚙️', text: 'Impostazioni', perm: 'settings' }
