@@ -321,18 +321,21 @@ window.Agenda = (function() {
                 
                 // Tasti piccoli e laterali in basso a destra:
                 let pulsantiHtml = '';
-                if (!isCompletato) {
+                if (!isCompletato && app.stato !== 'Cancellato') {
                     const btnCommonStyle = 'width:24px; height:24px; min-width:24px; border-radius:4px; padding:0; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.5); font-size: 0.72rem; transition: transform 0.15s ease;';
                     
                     if (isRichiesta) {
                         pulsantiHtml = `
+                            <button onclick="event.stopPropagation(); window.Agenda.modificaAppuntamento('${app.id}')" 
+                                    style="${btnCommonStyle} background:rgba(184,134,11,0.75); border:1px solid #c5a059;" 
+                                    title="Modifica">&#x270F;&#xFE0F;</button>
                             <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Confermato')" 
                                     style="${btnCommonStyle} background:rgba(46,125,50,0.85); border:1px solid #4caf50;" 
                                     title="Accetta e Conferma">&#x2705;</button>
                             <button onclick="event.stopPropagation(); window.Agenda.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" 
                                     style="${btnCommonStyle} background:rgba(180,40,40,0.85); border:1px solid #e53935;" 
                                     title="Rifiuta e Cancella">&#x274C;</button>`;
-                    } else {
+                    } else if (app.stato === 'Confermato') {
                         pulsantiHtml = `
                             <button onclick="event.stopPropagation(); window.Agenda.modificaAppuntamento('${app.id}')" 
                                     style="${btnCommonStyle} background:rgba(184,134,11,0.75); border:1px solid #c5a059;" 

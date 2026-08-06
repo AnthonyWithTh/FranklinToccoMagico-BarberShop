@@ -45,62 +45,68 @@
                 </div>
             </div>
 
-            <!-- Filtri -->
-            <div class="vintage-card" style="margin-bottom: 2rem; display: flex; gap: 1rem; align-items: flex-end;">
-                <div class="form-group" style="flex: 1; max-width: 250px;">
-                    <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Data</label>
-                    <input type="date" id="filtro-data" class="vintage-input" style="width: 100%;" onchange="aggiornaStorico()">
-                </div>
-                <div class="form-group" style="flex: 1; max-width: 250px;">
-                    <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Barbiere</label>
-                    <select id="filtro-barbiere" class="vintage-select" style="width: 100%;" onchange="aggiornaStorico()">
-                        <option value="tutti">Tutti i barbieri</option>
-                        <!-- Popolato via JS -->
-                    </select>
-                </div>
-                <div style="flex: 1;">
-                    <button class="btn-primary" onclick="resetFiltri()">Reset Filtri</button>
-                </div>
-            </div>
-            
-            <!-- Statistiche -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
-                <div class="vintage-card stat-card" style="text-align: center; border-color: var(--color-brass-base);">
-                    <h3 style="font-family: var(--font-vintage); color: var(--color-brass-light); margin-bottom: 0.5rem; font-size: 1.1rem;">Totale Incasso Stimato</h3>
-                    <div style="font-family: var(--font-heading); color: var(--color-text-cream); font-size: 2.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">
-                        € <span id="stat-incasso">0.00</span>
+            <!-- Filtri e Statistiche -->
+            <div class="vintage-card" style="margin-bottom: 2rem;">
+                <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                    <div class="form-group" style="flex: 1; min-width: 150px; max-width: 250px;">
+                        <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Data</label>
+                        <input type="date" id="filtro-data" class="vintage-input" style="width: 100%;" onchange="aggiornaStorico()">
+                    </div>
+                    <div class="form-group" style="flex: 1; min-width: 150px; max-width: 250px;">
+                        <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Barbiere</label>
+                        <select id="filtro-barbiere" class="vintage-select" style="width: 100%;" onchange="aggiornaStorico()">
+                            <option value="tutti">Tutti i barbieri</option>
+                            <!-- Popolato via JS -->
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end;">
+                        <button class="btn-primary" onclick="resetFiltri()">Reset Filtri</button>
                     </div>
                 </div>
                 
-                <div class="vintage-card stat-card" style="text-align: center; border-color: var(--color-green-100);">
-                    <h3 style="font-family: var(--font-vintage); color: var(--color-green-100); margin-bottom: 0.5rem; font-size: 1.1rem;">Clienti Serviti</h3>
-                    <div style="font-family: var(--font-heading); color: var(--color-text-cream); font-size: 2.5rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">
-                        <span id="stat-clienti">0</span>
+                <!-- Statistiche come Badge -->
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
+                    <div class="badge" style="background: var(--color-black-100); border-color: var(--color-brass-base); color: var(--color-brass-light); padding: 0.5rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-family: var(--font-vintage); opacity: 0.8;">Incasso:</span> 
+                        <strong style="font-family: var(--font-typewriter);">€ <span id="stat-incasso">0.00</span></strong>
+                    </div>
+                    <div class="badge" style="background: var(--color-black-100); border-color: var(--color-green-100); color: var(--color-green-200); padding: 0.5rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-family: var(--font-vintage); opacity: 0.8;">Clienti:</span> 
+                        <strong style="font-family: var(--font-typewriter);"><span id="stat-clienti">0</span></strong>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Fisarmonica per la pulizia schedulata -->
-            <div class="vintage-card" style="margin-bottom: 2rem; padding: 0;">
-                <button onclick="document.getElementById('accordion-pulizia').classList.toggle('hidden')" style="width: 100%; text-align: left; background: none; border: none; padding: 1rem 1.5rem; color: var(--color-text-cream); font-family: var(--font-vintage); font-size: 1.2rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    Impostazioni Pulizia Schedulata (Automatico)
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                </button>
-                <div id="accordion-pulizia" class="hidden" style="padding: 0 1.5rem 1.5rem 1.5rem;">
-                    <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
-                        La copia degli appuntamenti nello storico e la pulizia di quelli passati avviene automaticamente ogni giorno tramite <strong>pg_cron</strong>.
-                        L'orario impostato attualmente è: <strong style="color: var(--color-brass-light);" id="display-orario-pulizia">06:01</strong>
-                    </p>
+
+                <!-- Fisarmonica per la pulizia schedulata compressa -->
+                <div style="border: 1px solid var(--color-wood-300); border-radius: var(--border-radius-sm); overflow: hidden;">
+                    <button onclick="document.getElementById('accordion-pulizia').classList.toggle('hidden')" style="width: 100%; text-align: left; background: rgba(0,0,0,0.2); border: none; padding: 0.8rem 1rem; color: var(--color-text-muted); font-family: var(--font-admin); font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                        <span>⚙️ Impostazioni Pulizia Schedulata (pg_cron)</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </button>
+                    <div id="accordion-pulizia" class="hidden" style="padding: 1rem; background: rgba(0,0,0,0.1);">
+                        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">
+                            La copia degli appuntamenti nello storico e la pulizia di quelli passati avviene automaticamente ogni giorno tramite <strong>pg_cron</strong>.
+                            L'orario impostato attualmente è: <strong style="color: var(--color-brass-light);" id="display-orario-pulizia">06:01</strong>
+                        </p>
+                    </div>
                 </div>
             </div>
             
             <!-- Grafico -->
             <div class="vintage-card" style="margin-bottom: 2rem;">
-                <h3 style="font-family: var(--font-vintage); color: var(--color-text-muted); margin-bottom: 1rem;">Andamento (Ultimi 7 giorni)</h3>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                    <h3 style="font-family: var(--font-vintage); color: var(--color-text-muted); margin: 0;">Andamento Incassi</h3>
+                    <select id="filtro-periodo-grafico" class="vintage-select" style="padding: 0.3rem 0.6rem; min-width: 120px;" onchange="aggiornaStorico()">
+                        <option value="7">Ultimi 7 giorni</option>
+                        <option value="30">Ultimo mese</option>
+                        <option value="90">Ultimi 3 mesi</option>
+                        <option value="180">Ultimi 6 mesi</option>
+                        <option value="365">Ultimo anno</option>
+                    </select>
+                </div>
                 <canvas id="storicoChart" style="max-height: 300px;"></canvas>
             </div>
             
-            <!-- Badges filtri attivi -->
+            <!-- Badges filtri attivi Tabella -->
             <div id="badges-filtri" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;"></div>
 
             <!-- Tabella Storico -->
@@ -235,44 +241,77 @@
                 `;
             });
 
-            disegnaGrafico(appuntamenti);
+            aggiornaGrafico(bId);
         }
 
-        function disegnaGrafico(appuntamenti) {
+        async function aggiornaGrafico(barbiereFiltro) {
             const ctx = document.getElementById('storicoChart');
             if (!ctx) return;
+
+            const periodoSelect = document.getElementById('filtro-periodo-grafico');
+            const giorniPeriodo = periodoSelect ? parseInt(periodoSelect.value) : 7;
+            
+            const chartData = await window.FranklinApp.Storage.ottieniStoricoGrafico(giorniPeriodo, barbiereFiltro);
 
             if (storicoChartInstance) {
                 storicoChartInstance.destroy();
             }
 
-            // Raggruppa per data (ultimi 7 giorni)
-            const ultimi7Giorni = {};
-            for (let i = 6; i >= 0; i--) {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                const isoDate = d.toISOString().split('T')[0];
-                ultimi7Giorni[isoDate] = 0;
-            }
+            let labels = [];
+            let data = [];
+            let labelGrafico = 'Incasso (€)';
 
-            appuntamenti.forEach(app => {
-                if (app.stato === 'Completato' && ultimi7Giorni[app.data] !== undefined) {
-                    ultimi7Giorni[app.data] += parseFloat(app.servizioCosto) || 0;
+            if (giorniPeriodo > 31) {
+                // Raggruppa per mese
+                const perMese = {};
+                for (let i = giorniPeriodo - 1; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const meseKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                    if (!perMese[meseKey]) perMese[meseKey] = 0;
                 }
-            });
-
-            const labels = Object.keys(ultimi7Giorni).map(d => {
-                const dateObj = new Date(d);
-                return dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
-            });
-            const data = Object.values(ultimi7Giorni);
+                chartData.forEach(app => {
+                    if (app.stato === 'Completato') {
+                        const appMeseKey = app.data.substring(0, 7);
+                        if (perMese[appMeseKey] !== undefined) {
+                            perMese[appMeseKey] += parseFloat(app.servizio_costo) || 0;
+                        }
+                    }
+                });
+                labels = Object.keys(perMese).map(m => {
+                    const d = new Date(m + '-01');
+                    return d.toLocaleDateString('it-IT', { month: 'short', year: '2-digit' });
+                });
+                data = Object.values(perMese);
+                labelGrafico = 'Incasso Mensile (€)';
+            } else {
+                // Raggruppa per giorno
+                const ultimiGiorni = {};
+                for (let i = giorniPeriodo - 1; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const isoDate = d.toISOString().split('T')[0];
+                    ultimiGiorni[isoDate] = 0;
+                }
+                chartData.forEach(app => {
+                    if (app.stato === 'Completato' && ultimiGiorni[app.data] !== undefined) {
+                        ultimiGiorni[app.data] += parseFloat(app.servizio_costo) || 0;
+                    }
+                });
+                labels = Object.keys(ultimiGiorni).map(d => {
+                    const dateObj = new Date(d);
+                    return dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+                });
+                data = Object.values(ultimiGiorni);
+                labelGrafico = 'Incasso Giornaliero (€)';
+            }
 
             storicoChartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Incasso Giornaliero (€)',
+                        label: labelGrafico,
                         data: data,
                         backgroundColor: 'rgba(212, 175, 55, 0.5)', // Brass con opacità
                         borderColor: 'rgba(212, 175, 55, 1)', // Brass solido

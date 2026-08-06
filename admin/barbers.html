@@ -54,6 +54,7 @@
                         <table class="admin-tabella" style="width: 100%;">
                             <thead>
                                 <tr>
+                                    <th style="width: 5%;">Foto</th>
                                     <th style="width: 14%;">Nome</th>
                                     <th style="width: 14%;">Cognome</th>
                                     <th style="width: 13%;">Data di nascita</th>
@@ -422,12 +423,6 @@
                     `;
                     return `
                     <tr style="${opacity}">
-                        <td><strong>${n}</strong></td>
-                        <td><strong>${c || '-'}</strong></td>
-                        <td>${dataNascitaDisplay}</td>
-                        <td>${etaDisplay}</td>
-                        <td>${b.ruolo || 'Barbiere'}</td>
-                        <td><span style="font-family: var(--font-typewriter); font-size: 0.9rem;">${b.contatto || '-'}</span></td>
                         <td>
                             <div style="display: flex; align-items: center; justify-content: center;">
                                 <img src="${fotoUrl}" alt="${b.nome}" 
@@ -439,6 +434,12 @@
                                      title="Clicca per ingrandire">
                             </div>
                         </td>
+                        <td><strong>${n}</strong></td>
+                        <td><strong>${c || '-'}</strong></td>
+                        <td>${dataNascitaDisplay}</td>
+                        <td>${etaDisplay}</td>
+                        <td>${b.ruolo || 'Barbiere'}</td>
+                        <td><span style="font-family: var(--font-typewriter); font-size: 0.9rem;">${b.contatto || '-'}</span></td>
                         <td>
                             <div style="font-size: 0.85rem; color: var(--color-text-cream); line-height: 1.35; max-height: 48px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${b.descrizione || '<span style="color:var(--color-text-muted); font-style:italic;">Nessuna descrizione</span>'}</div>
                         </td>

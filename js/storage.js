@@ -251,6 +251,24 @@ FranklinApp.Storage = {
     return { incasso, clienti: count || 0 };
   },
 
+  async ottieniStoricoGrafico(giorniPeriodo, barbiereFiltro) {
+    const dataLimite = new Date();
+    dataLimite.setDate(dataLimite.getDate() - giorniPeriodo);
+    const dataStr = dataLimite.toISOString().split('T')[0];
+    
+    let query = sbClient.from('appuntamenti_storico').select('data, servizio_costo, stato')
+        .eq('stato', 'Completato')
+        .gte('data', dataStr);
+        
+    if (barbiereFiltro && barbiereFiltro !== 'tutti') {
+        query = query.eq('barbiere_id', barbiereFiltro);
+    }
+    
+    const { data, error } = await query;
+    if (error) return [];
+    return data;
+  },
+
   // --- METODI EVENTI ---
   async ottieniEventi() {
     const { data, error } = await sbClient.from('eventi').select('*').order('data_inizio', { ascending: false });

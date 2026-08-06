@@ -569,8 +569,8 @@ FranklinApp.Pubblico = {
     }
     const nomeCompleto = (n + ' ' + c).trim();
     let etaStr = '';
-    if (b.dataDiNascita) {
-      const birth = new Date(b.dataDiNascita);
+    if (b.data_nascita) {
+      const birth = new Date(b.data_nascita);
       const today = new Date();
       let age = today.getFullYear() - birth.getFullYear();
       const m = today.getMonth() - birth.getMonth();
@@ -654,8 +654,8 @@ FranklinApp.Pubblico = {
     let c = b.cognome || '';
     const nomeCompleto = (n + ' ' + c).trim();
     let etaStr = '';
-    if (b.dataDiNascita) {
-      const birth = new Date(b.dataDiNascita);
+    if (b.data_nascita) {
+      const birth = new Date(b.data_nascita);
       const today = new Date();
       let age = today.getFullYear() - birth.getFullYear();
       const m = today.getMonth() - birth.getMonth();

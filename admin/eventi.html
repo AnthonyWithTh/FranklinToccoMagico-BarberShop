@@ -269,7 +269,7 @@
             document.getElementById('evento-id').value = '';
             document.getElementById('modal-titolo').textContent = 'Nuovo Evento';
             
-            if(id) {
+            if(id && typeof id === 'string') {
                 const e = tuttiEventi.find(x => x.id === id);
                 if(e) {
                     document.getElementById('modal-titolo').textContent = 'Modifica Evento';
