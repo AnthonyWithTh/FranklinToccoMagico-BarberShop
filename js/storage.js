@@ -196,8 +196,7 @@ FranklinApp.Storage = {
   async ottieniStoricoAppuntamenti(dataFiltro, barbiereFiltro) {
     let query = sbClient.from('appuntamenti_storico').select(`
       id, barbiere_id, servizio_nome, servizio_durata, servizio_costo,
-      data, ora, cliente_nome, cliente_telefono, note, stato, confermato_da, inserito_da,
-      barbieri ( nome, cognome )
+      data, ora, cliente_nome, cliente_telefono, note, stato, confermato_da, inserito_da
     `).order('data', { ascending: false }).order('ora', { ascending: true });
 
     if (dataFiltro && dataFiltro !== 'tutte') {
@@ -212,23 +211,28 @@ FranklinApp.Storage = {
         console.error("Errore fetch storico appuntamenti:", error);
         return [];
     }
+    
+    const barbieri = await this.ottieniBarbieri();
 
-    return data.map(app => ({
-      id: app.id,
-      barbiereId: app.barbiere_id,
-      barbiereNome: app.barbieri ? `${app.barbieri.nome} ${app.barbieri.cognome}` : 'N/A',
-      servizioNome: app.servizio_nome,
-      servizioDurata: app.servizio_durata,
-      servizioCosto: app.servizio_costo,
-      data: app.data,
-      ora: app.ora,
-      clienteNome: app.cliente_nome,
-      clienteTelefono: app.cliente_telefono,
-      note: app.note,
-      stato: app.stato,
-      confermatoDa: app.confermato_da,
-      inseritoDa: app.inserito_da
-    }));
+    return data.map(app => {
+      const b = barbieri.find(x => x.id === app.barbiere_id);
+      return {
+        id: app.id,
+        barbiereId: app.barbiere_id,
+        barbiereNome: b ? `${b.nome} ${b.cognome}` : 'N/A',
+        servizioNome: app.servizio_nome,
+        servizioDurata: app.servizio_durata,
+        servizioCosto: app.servizio_costo,
+        data: app.data,
+        ora: app.ora,
+        clienteNome: app.cliente_nome,
+        clienteTelefono: app.cliente_telefono,
+        note: app.note,
+        stato: app.stato,
+        confermatoDa: app.confermato_da,
+        inseritoDa: app.inserito_da
+      };
+    });
   },
 
   async ottieniStatisticheStorico(dataFiltro, barbiereFiltro) {

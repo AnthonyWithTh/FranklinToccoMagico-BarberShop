@@ -239,7 +239,7 @@
                     barbieri.forEach(b => {
                         if(b.attivo !== false) {
                             if (sel) sel.innerHTML += `<option value="${b.id}">${b.nome} ${b.cognome}</option>`;
-                            if (modalSel) modalSel.innerHTML += `<option value="${b.nome} ${b.cognome}">${b.nome} ${b.cognome}</option>`;
+                            if (modalSel) modalSel.innerHTML += `<option value="${b.id}">${b.nome} ${b.cognome}</option>`;
                         }
                     });
                 }
@@ -396,8 +396,9 @@
                 data: document.getElementById('storico-data').value,
                 ora: document.getElementById('storico-ora').value,
                 cliente_nome: document.getElementById('storico-cliente').value,
-                barbiere_nome: document.getElementById('storico-barbiere').value,
+                barbiere_id: document.getElementById('storico-barbiere').value,
                 servizio_nome: document.getElementById('storico-servizio').value,
+                servizio_durata: 30, // Valore di default
                 servizio_costo: parseFloat(document.getElementById('storico-costo').value),
                 stato: document.getElementById('storico-stato').value
             };
