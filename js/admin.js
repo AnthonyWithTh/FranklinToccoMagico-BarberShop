@@ -188,6 +188,7 @@ window.FranklinApp.Admin = {
         azioniBtns = `
           <button class="btn-primary" style="background:#2e7d32; border-color:#4caf50; padding:4px 8px; font-size:1.05rem;" onclick="window.FranklinApp.Admin.cambiaStatoAppuntamento('${app.id}', 'Confermato')" title="Accetta e Conferma">✅</button>
           <button class="btn-danger" style="padding:4px 8px; font-size:1.05rem;" onclick="window.FranklinApp.Admin.cambiaStatoAppuntamento('${app.id}', 'Cancellato')" title="Rifiuta e Cancella">❌</button>
+          <button class="btn-secondary" style="padding:4px 8px; font-size:0.95rem;" onclick="if(window.Agenda && window.Agenda.modificaAppuntamento) window.Agenda.modificaAppuntamento('${app.id}');" title="Modifica">✏️</button>
         `;
       } else {
         azioniBtns = `

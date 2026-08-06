@@ -62,44 +62,13 @@ FranklinApp.Pubblico = {
 
   async setupHeroBackgroundCarousel() {
     const layer1 = document.getElementById('hero-bg-layer1');
-    const layer2 = document.getElementById('hero-bg-layer2');
-    if (!layer1 || !layer2) return;
+    if (!layer1) return;
     
-    let images = [];
-    if (window.FranklinApp.Storage.listaImmagini) {
-        images = await window.FranklinApp.Storage.listaImmagini('immagini_vetrina');
-    }
+    const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
+    const heroImgUrl = imp && imp.hero_immagine ? imp.hero_immagine : 'assets/images/hero-bg.jpg';
     
-    if (images && images.length > 0) {
-        images = images.filter(url => url && !url.includes('.emptyFolderPlaceholder'));
-    }
-    
-    if (images && images.length > 0) {
-        layer1.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${images[0]}')`;
-        layer1.style.opacity = 1;
-    }
-    
-    if (images.length <= 1) return;
-    
-    let currentIndex = 0;
-    let activeLayer = 1;
-    
-    setInterval(() => {
-        currentIndex = (currentIndex + 1) % images.length;
-        const newBg = images[currentIndex];
-        
-        if (activeLayer === 1) {
-            layer2.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${newBg}')`;
-            layer2.style.opacity = 1;
-            layer1.style.opacity = 0;
-            activeLayer = 2;
-        } else {
-            layer1.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${newBg}')`;
-            layer1.style.opacity = 1;
-            layer2.style.opacity = 0;
-            activeLayer = 1;
-        }
-    }, 40000);
+    layer1.style.backgroundImage = `linear-gradient(rgba(18, 18, 18, 0.65), rgba(18, 18, 18, 0.85)), url('${heroImgUrl}')`;
+    layer1.style.opacity = 1;
   },
 
   async inizializzaEventiPopup() {
@@ -495,17 +464,17 @@ FranklinApp.Pubblico = {
       this.barberCarouselState.barbieri = barbieri;
       this.stopBarberCarouselAutoPlay();
 
-      const titoloChi = barbieri.length === 1 ? 'Chi Sono' : 'Chi Siamo';
+      const titoloChi = 'Scegli il barbiere per informazioni';
 
       if (barbieri.length === 0) {
         colChiSiamo.innerHTML = `
-          <h3 style="font-family: var(--font-heading); color: var(--color-brass-light); margin-bottom: 1rem;">${titoloChi}</h3>
+          <h3 style="font-family: var(--font-heading); color: var(--color-brass-light); margin-bottom: 1rem; font-size: 1.1rem;">${titoloChi}</h3>
           <p style="color: var(--color-text-muted);">Lo staff del nostro salone vintage.</p>
         `;
       } else {
         const mostraDots = barbieri.length > 1;
         colChiSiamo.innerHTML = `
-          <h3 style="font-family: var(--font-heading); color: var(--color-brass-light); margin-bottom: 1rem;">${titoloChi}</h3>
+          <h3 style="font-family: var(--font-heading); color: var(--color-brass-light); margin-bottom: 1rem; font-size: 1.1rem;">${titoloChi}</h3>
           <div id="barber-carousel-container" style="position: relative; background: rgba(18, 18, 18, 0.6); border: 1px solid var(--color-brass-dark); border-radius: var(--border-radius-md); padding: 1.4rem; min-height: 220px; display: flex; flex-direction: column; justify-content: center; box-shadow: 0 4px 15px rgba(0,0,0,0.4); transition: opacity 0.4s ease-in-out;">
             <!-- Slide del barbiere iniettata qui -->
           </div>
@@ -559,10 +528,17 @@ FranklinApp.Pubblico = {
     // 3. Colonna 2 (Centro): Dove Siamo e Social
     const colContattiLink = document.getElementById('footer-col-contatti-link');
     if (colContattiLink) {
+      const addrVia = imp.info_via || 'Via Roma';
+      const addrNum = imp.info_numero || '12';
+      const addrCap = imp.info_cap || '20121';
+      const addrCitta = imp.info_citta || 'Milano';
+      const addrProv = (imp.info_provincia || 'MI').toUpperCase();
+      const addrCompleto = `${addrVia} n. ${addrNum}, ${addrCap} ${addrCitta} (${addrProv})`;
+
       colContattiLink.innerHTML = `
         <h3 style="font-family: var(--font-heading); color: var(--color-brass-light); font-size: 1.3rem; margin-bottom: 1rem;">Dove siamo</h3>
         <ul style="list-style: none; padding: 0; margin-bottom: 1.2rem;">
-          <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">📍 ${imp.info_indirizzo || 'Via Roma 12, Milano'}</li>
+          <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">📍 ${addrCompleto}</li>
           <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">📞 ${imp.info_telefono || '+39 02 1234567'}</li>
           <li style="margin-bottom: 0.4rem; font-size: 0.92rem;">✉️ ${imp.info_email || 'info@franklinbarber.it'}</li>
         </ul>
@@ -606,9 +582,14 @@ FranklinApp.Pubblico = {
     const fotoUrl = (b.foto && b.foto.trim()) ? b.foto : (b.ritratto && b.ritratto.trim()) ? b.ritratto : 'assets/images/barbiere-marco.jpg';
 
     const buildHTML = () => `
-      <div style="display: flex; align-items: stretch; justify-content: space-between; gap: 1.2rem; width: 100%; text-align: left; min-height: 160px;">
+      <div class="barber-carousel-card" onclick="FranklinApp.Pubblico.apriModaleInfoBarbiere('${b.id}')" style="display: flex; align-items: stretch; justify-content: flex-start; gap: 1.2rem; width: 100%; text-align: left; min-height: 160px; cursor: pointer;">
         
-        <!-- Testo a sinistra (giustificato a sinistra) -->
+        <!-- Immagine a sinistra con cornice quadrata che riempie tutta l'altezza -->
+        <div style="flex: 0 0 130px; width: 130px; display: flex; align-items: stretch;">
+          <img src="${fotoUrl}" alt="${nomeCompleto}" style="width: 100%; height: 100%; min-height: 140px; object-fit: cover; border-radius: var(--border-radius-sm); border: 2px solid var(--color-brass-light); box-shadow: 0 4px 15px rgba(0,0,0,0.6);">
+        </div>
+
+        <!-- Testo a destra (giustificato a sinistra) -->
         <div style="flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; text-align: left;">
           <h4 style="font-family: var(--font-heading); color: var(--color-brass-light); font-size: 1.15rem; margin: 0 0 2px 0; line-height: 1.25;">
             ${nomeCompleto}
@@ -616,14 +597,9 @@ FranklinApp.Pubblico = {
           <div style="font-family: var(--font-admin); font-size: 0.82rem; text-transform: uppercase; color: var(--color-brass-base); letter-spacing: 0.08em; margin-bottom: 0.5rem; font-weight: 600;">
             ${b.ruolo || 'Barbiere'}${etaStr ? ' • <span style="text-transform: none;">' + etaStr + '</span>' : ''}
           </div>
-          <p style="font-family: var(--font-body); font-size: 0.85rem; color: var(--color-text-cream); margin: 0; line-height: 1.45; text-align: left;">
-            ${b.descrizione || 'Esperto barbiere e stilista del nostro salone.'}
+          <p style="font-family: var(--font-body); font-size: 0.85rem; color: var(--color-text-cream); margin: 0; line-height: 1.45; text-align: left; opacity: 0.7; font-style: italic;">
+            Clicca per scoprire di più
           </p>
-        </div>
-
-        <!-- Immagine a destra con cornice quadrata che riempie tutta l'altezza -->
-        <div style="flex: 0 0 130px; width: 130px; display: flex; align-items: stretch;">
-          <img src="${fotoUrl}" alt="${nomeCompleto}" style="width: 100%; height: 100%; min-height: 140px; object-fit: cover; border-radius: var(--border-radius-sm); border: 2px solid var(--color-brass-light); box-shadow: 0 4px 15px rgba(0,0,0,0.6);">
         </div>
 
       </div>
@@ -656,6 +632,57 @@ FranklinApp.Pubblico = {
   selezionaBarbiereSlide(idx) {
     this.barberCarouselState.currentIndex = idx;
     this.renderBarberSlide(true);
+  },
+
+  async apriModaleInfoBarbiere(id) {
+    const modal = document.getElementById('barber-info-modal');
+    const content = document.getElementById('barber-info-content');
+    if (!modal || !content) return;
+
+    // Fetch the single barber data to have real-time info including contatto
+    let b;
+    try {
+      const { data, error } = await sbClient.from('barbieri').select('*').eq('id', id).single();
+      if (!error && data) {
+        b = data;
+      }
+    } catch(e) {}
+
+    if (!b) return;
+
+    let n = b.nome || '';
+    let c = b.cognome || '';
+    const nomeCompleto = (n + ' ' + c).trim();
+    let etaStr = '';
+    if (b.dataDiNascita) {
+      const birth = new Date(b.dataDiNascita);
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      const m = today.getMonth() - birth.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+      etaStr = `${age} anni`;
+    }
+    const fotoUrl = (b.foto && b.foto.trim()) ? b.foto : (b.ritratto && b.ritratto.trim()) ? b.ritratto : 'assets/images/barbiere-marco.jpg';
+
+    content.innerHTML = `
+        <div style="width: 120px; height: 120px; margin: 0 auto 1.5rem auto;">
+            <img src="${fotoUrl}" alt="${nomeCompleto}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid var(--color-brass-base); box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
+        </div>
+        <h3 class="vintage-title" style="font-size: 1.8rem; color: var(--color-brass-light); margin-bottom: 0.5rem;">${nomeCompleto}</h3>
+        <div style="font-family: var(--font-admin); font-size: 0.9rem; text-transform: uppercase; color: var(--color-brass-base); letter-spacing: 0.1em; margin-bottom: 1.5rem; font-weight: 600;">
+            ${b.ruolo || 'Barbiere'}${etaStr ? ' • <span style="text-transform: none;">' + etaStr + '</span>' : ''}
+        </div>
+        <p style="font-family: var(--font-body); font-size: 0.95rem; line-height: 1.6; color: var(--color-text-cream); text-align: left; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: var(--border-radius-sm); border: 1px solid var(--color-brass-dark); margin-bottom: 1.5rem;">
+            ${b.descrizione || 'Esperto barbiere e stilista del nostro salone.'}
+        </p>
+        ${b.contatto ? `<div style="font-family: var(--font-typewriter); font-size: 1.1rem; color: var(--color-brass-light); background: var(--color-black-200); padding: 0.8rem; border-radius: var(--border-radius-sm); border-left: 4px solid var(--color-brass-base); display: inline-block;">📞 ${b.contatto}</div>` : ''}
+    `;
+    modal.style.display = 'flex';
+  },
+
+  chiudiModaleInfoBarbiere() {
+    const modal = document.getElementById('barber-info-modal');
+    if (modal) modal.style.display = 'none';
   },
 
   startBarberCarouselAutoPlay() {

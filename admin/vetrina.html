@@ -45,115 +45,120 @@
             
             <div style="display: flex; flex-direction: column; gap: 2rem;">
                 
-                <!-- Section 1: Header / Logo -->
+                <!-- Section 1: Barra di navigazione -->
                 <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Header & Logo 🎩</h3>
-                    <form id="form-header" onsubmit="event.preventDefault(); salvaVetrina();">
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Barra di navigazione ??</h3>
+                    <form id="form-header" onsubmit="event.preventDefault();">
                         <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
                             <div class="form-group" style="flex: 1;">
                                 <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Titolo Logo</label>
-                                <input type="text" id="logo-titolo" class="vintage-input" style="width: 100%;">
+                                <input type="text" id="logo-titolo" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 1;">
                                 <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Sottotitolo Logo</label>
-                                <input type="text" id="logo-sottotitolo" class="vintage-input" style="width: 100%;">
+                                <input type="text" id="logo-sottotitolo" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                         </div>
                     </form>
                 </div>
 
-                <!-- Section 2: Immagini Hero -->
+                <!-- Section 2: Sezione Introduttiva -->
                 <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Immagini Sfondo Hero 🖼️</h3>
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Sezione Introduttiva ???</h3>
                     
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; align-items: center;">
-                        <input type="file" id="hero-image-upload" style="display: none;" accept="image/jpeg, image/png, image/webp" onchange="gestisciUploadImmagine(this)">
-                        <button class="btn-primary" onclick="document.getElementById('hero-image-upload').click()">Carica Nuova Immagine</button>
-                        <span id="upload-status" style="color: var(--color-brass-base); font-size: 0.9rem;"></span>
+                    <div style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-brass-dark);">
+                        <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Immagine di Sfondo</label>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <img id="anteprima-hero" src="../assets/images/hero-bg.jpg" alt="Hero" style="width: 160px; height: 90px; object-fit: cover; border: 2px solid var(--color-brass-base); border-radius: var(--border-radius-sm);">
+                            <div>
+                                <input type="file" id="hero-image-upload" style="display: none;" accept="image/jpeg, image/png, image/webp" onchange="gestisciUploadImmagineUnica(this)">
+                                <button class="btn-primary" onclick="document.getElementById('hero-image-upload').click()">Cambia Immagine</button>
+                                <div id="upload-status" style="color: var(--color-brass-base); font-size: 0.85rem; margin-top: 0.5rem;"></div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="hero-immagine" onchange="salvaVetrina()">
                     </div>
 
-                    <details style="margin-bottom: 1rem;">
-                        <summary style="font-family: var(--font-admin); color: var(--color-brass-light); cursor: pointer; padding: 0.5rem; background: rgba(0,0,0,0.2); border-radius: var(--border-radius-sm);">Mostra Immagini Caricate</summary>
-                        <div class="admin-tabella-container" style="margin-top: 1rem;">
-                            <table class="admin-tabella">
-                                <thead>
-                                    <tr>
-                                        <th>Anteprima</th>
-                                        <th>URL Immagine</th>
-                                        <th>Azioni</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tabella-immagini">
-                                    <!-- Immagini generate via JS -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </details>
-                </div>
-
-                <!-- Section 3: Testi Hero -->
-                <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Testi Hero 🖋️</h3>
-                    <form id="form-hero" onsubmit="event.preventDefault(); salvaVetrina();">
+                    <form id="form-hero" onsubmit="event.preventDefault();">
                         <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                             <div class="form-group" style="flex: 1;">
                                 <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Titolo Principale</label>
-                                <input type="text" id="hero-titolo" class="vintage-input" style="width: 100%;">
+                                <input type="text" id="hero-titolo" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 1;">
                                 <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Sottotitolo</label>
-                                <input type="text" id="hero-sottotitolo" class="vintage-input" style="width: 100%;">
+                                <input type="text" id="hero-sottotitolo" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 1;">
-                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Sottotitoletto</label>
-                                <input type="text" id="hero-sottotitoletto" class="vintage-input" style="width: 100%;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Tipo Attivit�</label>
+                                <input type="text" id="hero-sottotitoletto" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                         </div>
                         <div class="form-group" style="margin-bottom: 1rem;">
                             <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Sottotitolo Promozionale</label>
-                            <input type="text" id="hero-promo" class="vintage-input" style="width: 100%;">
+                            <input type="text" id="hero-promo" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                         </div>
                         <div class="form-group" style="margin-bottom: 1.5rem;">
                             <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Testo Descrittivo</label>
-                            <textarea id="hero-descrizione" class="vintage-textarea" rows="3" style="width: 100%;"></textarea>
+                            <textarea id="hero-descrizione" class="vintage-textarea" rows="3" style="width: 100%;" onchange="salvaVetrina()"></textarea>
                         </div>
                     </form>
                 </div>
 
-                <!-- Section 4: Informazioni & Contatti (Footer) -->
+                <!-- Section 3: Contatti & Social -->
                 <div class="vintage-card admin-form">
-                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Contatti & Social (Footer) 📍</h3>
-                    <form id="form-contatti" onsubmit="event.preventDefault(); salvaVetrina();">
+                    <h3 class="vintage-title" style="color: var(--color-brass-base); margin-bottom: 1rem;">Contatti & Social ??</h3>
+                    <form id="form-contatti" onsubmit="event.preventDefault();">
+                        
                         <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
                             <div class="form-group" style="flex: 2;">
-                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Indirizzo Completo</label>
-                                <input type="text" id="info-indirizzo" class="vintage-input" style="width: 100%;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Via/Piazza</label>
+                                <input type="text" id="info-via" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Numero</label>
+                                <input type="text" id="info-numero" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">CAP</label>
+                                <input type="text" id="info-cap" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
+                            </div>
+                            <div class="form-group" style="flex: 2;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Citt�</label>
+                                <input type="text" id="info-citta" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
+                            </div>
+                            <div class="form-group" style="flex: 1;">
+                                <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Provincia</label>
+                                <input type="text" id="info-provincia" class="vintage-input" style="width: 100%; text-transform: uppercase;" maxlength="2" onchange="salvaVetrina()">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="form-group" style="flex: 1;">
                                 <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Telefono</label>
-                                <input type="text" id="info-telefono" class="vintage-input" style="width: 100%;">
+                                <input type="text" id="info-telefono" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 1;">
                                 <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Email</label>
-                                <input type="email" id="info-email" class="vintage-input" style="width: 100%;">
+                                <input type="email" id="info-email" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                         </div>
                         <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
                             <div class="form-group" style="flex: 1;">
                                 <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Link Instagram</label>
-                                <input type="text" id="social-instagram" class="vintage-input" style="width: 100%;">
+                                <input type="text" id="social-instagram" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                             <div class="form-group" style="flex: 1;">
                                 <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Link Facebook</label>
-                                <input type="text" id="social-facebook" class="vintage-input" style="width: 100%;">
+                                <input type="text" id="social-facebook" class="vintage-input" style="width: 100%;" onchange="salvaVetrina()">
                             </div>
                         </div>
                     </form>
                 </div>
                 
-                <div style="display: flex; justify-content: flex-end;">
-                    <button class="btn-primary" style="font-size: 1.2rem; padding: 1rem 3rem;" onclick="salvaVetrina()">Salva Tutto</button>
-                </div>
             </div>
         </main>
     </div>
@@ -170,12 +175,10 @@
                 return;
             }
             caricaVetrina();
-            caricaImmagini();
         });
 
         async function caricaVetrina() {
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                // Sfruttiamo ottieniImpostazioni() che ora legge dalla tabella vetrina
                 const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
                 if (imp) {
                     document.getElementById('logo-titolo').value = imp.logo_titolo || '';
@@ -185,11 +188,24 @@
                     document.getElementById('hero-sottotitoletto').value = imp.hero_sottotitoletto || '';
                     document.getElementById('hero-promo').value = imp.hero_promo || '';
                     document.getElementById('hero-descrizione').value = imp.hero_descrizione || '';
-                    document.getElementById('info-indirizzo').value = imp.info_indirizzo || '';
+                    
+                    document.getElementById('info-via').value = imp.info_via || '';
+                    document.getElementById('info-numero').value = imp.info_numero || '';
+                    document.getElementById('info-cap').value = imp.info_cap || '';
+                    document.getElementById('info-citta').value = imp.info_citta || '';
+                    document.getElementById('info-provincia').value = imp.info_provincia || '';
+                    
                     document.getElementById('info-telefono').value = imp.info_telefono || '';
                     document.getElementById('info-email').value = imp.info_email || '';
                     document.getElementById('social-instagram').value = imp.social_instagram || '';
                     document.getElementById('social-facebook').value = imp.social_facebook || '';
+                    
+                    const heroImgInput = document.getElementById('hero-immagine');
+                    const heroPreview = document.getElementById('anteprima-hero');
+                    if (imp.hero_immagine) {
+                        heroImgInput.value = imp.hero_immagine;
+                        heroPreview.src = imp.hero_immagine;
+                    }
                 }
             }
         }
@@ -203,77 +219,45 @@
                 hero_sottotitoletto: document.getElementById('hero-sottotitoletto').value,
                 hero_promo: document.getElementById('hero-promo').value,
                 hero_descrizione: document.getElementById('hero-descrizione').value,
-                info_indirizzo: document.getElementById('info-indirizzo').value,
+                
+                info_via: document.getElementById('info-via').value,
+                info_numero: document.getElementById('info-numero').value,
+                info_cap: document.getElementById('info-cap').value,
+                info_citta: document.getElementById('info-citta').value,
+                info_provincia: document.getElementById('info-provincia').value.toUpperCase(),
+                
                 info_telefono: document.getElementById('info-telefono').value,
                 info_email: document.getElementById('info-email').value,
                 social_instagram: document.getElementById('social-instagram').value,
-                social_facebook: document.getElementById('social-facebook').value
+                social_facebook: document.getElementById('social-facebook').value,
+                
+                hero_immagine: document.getElementById('hero-immagine').value
             };
             
             if (window.FranklinApp && window.FranklinApp.Storage) {
-                const res = await window.FranklinApp.Storage.salvaVetrina(data);
-                if (res && window.FranklinApp.Admin) {
-                    window.FranklinApp.Admin.mostraToast("Vetrina aggiornata con successo!", "successo");
-                }
+                // Autosave silezioso, senza toast per evitare spam.
+                await window.FranklinApp.Storage.salvaVetrina(data);
             }
         }
 
-        async function caricaImmagini() {
-            const tbody = document.getElementById('tabella-immagini');
-            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Caricamento immagini...</td></tr>';
-            
-            if (window.FranklinApp && window.FranklinApp.Storage) {
-                const immagini = await window.FranklinApp.Storage.listaImmagini('immagini_vetrina');
-                if (!immagini || immagini.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">Nessuna immagine presente.</td></tr>';
-                    return;
-                }
-                
-                let html = '';
-                immagini.forEach(url => {
-                    if (url.includes('.emptyFolderPlaceholder')) return;
-                    html += `
-                        <tr>
-                            <td><img src="${url}" alt="Anteprima" style="width: 100px; height: 60px; object-fit: cover; border-radius: 4px;"></td>
-                            <td style="font-family: monospace; font-size: 0.85rem; max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${url}</td>
-                            <td>
-                                <button class="btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick="eliminaImg('${url}')">Elimina</button>
-                            </td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html || '<tr><td colspan="3" style="text-align: center;">Nessuna immagine valida.</td></tr>';
-            }
-        }
-
-        async function gestisciUploadImmagine(input) {
+        async function gestisciUploadImmagineUnica(input) {
             const status = document.getElementById('upload-status');
             if (input.files && input.files[0]) {
                 status.textContent = 'Caricamento in corso...';
                 if (window.FranklinApp && window.FranklinApp.Storage) {
                     const url = await window.FranklinApp.Storage.uploadImmagine(input.files[0], 'immagini_vetrina');
                     if (url) {
-                        status.textContent = 'Caricamento completato!';
+                        status.textContent = 'Salvato!';
+                        document.getElementById('hero-immagine').value = url;
+                        document.getElementById('anteprima-hero').src = url;
+                        salvaVetrina();
                         setTimeout(() => { status.textContent = ''; }, 3000);
-                        caricaImmagini();
                     } else {
                         status.textContent = 'Errore durante il caricamento.';
                     }
                 }
             }
             input.value = '';
-        }
-
-        async function eliminaImg(url) {
-            if (confirm("Vuoi eliminare questa immagine?")) {
-                if (window.FranklinApp && window.FranklinApp.Storage) {
-                    const res = await window.FranklinApp.Storage.eliminaImmagine('immagini_vetrina', url);
-                    if (res) {
-                        if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Immagine eliminata", "successo");
-                        caricaImmagini();
-                    }
-                }
-            }
         }
     </script>
 </body>

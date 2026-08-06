@@ -20,8 +20,8 @@
 
     <div class="login-card vintage-card">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-            <h1 class="vintage-title brass-text" style="font-size: 3rem; margin-bottom: 0.5rem;">FRANKLIN</h1>
-            <div class="vintage-subtitle" style="font-family: var(--font-admin); color: var(--color-brass-base);">Area Riservata</div>
+            <h1 id="login-brand-titolo" class="vintage-title brass-text" style="font-size: 3rem; margin-bottom: 0.5rem;">FRANKLIN</h1>
+            <div id="login-brand-sottotitolo" class="vintage-subtitle" style="font-family: var(--font-admin); color: var(--color-brass-base); font-size: 0.9rem;">Area Riservata</div>
         </div>
         
         <div class="brass-divider" style="margin-bottom: 2rem;"></div>
@@ -66,6 +66,20 @@
         document.addEventListener('DOMContentLoaded', async () => {
             if (window.FranklinApp && window.FranklinApp.Storage) {
                 await window.FranklinApp.Storage.inizializza();
+                
+                // Fetch dynamic logo from vetrina
+                const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
+                if (imp) {
+                    const uiTitolo = document.getElementById('login-brand-titolo');
+                    const uiSotto = document.getElementById('login-brand-sottotitolo');
+                    if (uiTitolo && imp.logo_titolo) uiTitolo.textContent = imp.logo_titolo;
+                    if (uiSotto) {
+                        let text = 'Area Riservata';
+                        if (imp.logo_sottotitolo) text += ' • ' + imp.logo_sottotitolo;
+                        if (imp.hero_sottotitoletto) text += ' • ' + imp.hero_sottotitoletto; // "Tipo Attività"
+                        uiSotto.textContent = text;
+                    }
+                }
             }
             
             // Check if already logged in

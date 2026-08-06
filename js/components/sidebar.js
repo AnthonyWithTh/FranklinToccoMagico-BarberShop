@@ -12,14 +12,12 @@
 
         const links = [
             { id: 'nav-appointments', url: 'appointments.html', icon: '📅', text: 'Agenda', perm: 'appointments' },
-            { id: 'nav-services', url: 'services.html', icon: '✂️', text: 'Servizi', perm: 'services' },
-            { id: 'nav-schedule', url: 'schedule.html', icon: '🕒', text: 'Orario di Lavoro', perm: 'schedule' },
-            { id: 'nav-barbers', url: 'barbers.html', icon: '💈', text: 'Staff', perm: 'barbers' },
-            { id: 'nav-storico', url: 'storico.html', icon: '⏳', text: 'Storico', perm: 'storico' },
             { id: 'nav-eventi', url: 'eventi.html', icon: '📢', text: 'Eventi', perm: 'eventi' },
-            { id: 'nav-users', url: 'users.html', icon: '👤', text: 'Amministrazione', perm: 'users' },
+            { id: 'nav-storico', url: 'storico.html', icon: '⏳', text: 'Storico', perm: 'storico' },
+            { id: 'nav-barbers', url: 'barbers.html', icon: '💈', text: 'Staff', perm: 'barbers' },
+            { id: 'nav-services', url: 'services.html', icon: '✂️', text: 'Servizi', perm: 'services' },
             { id: 'nav-vetrina', url: 'vetrina.html', icon: '🌐', text: 'Vetrina', perm: 'vetrina' },
-            { id: 'nav-settings', url: 'settings.html', icon: '⚙️', text: 'Impostazioni', perm: 'settings' }
+            { id: 'nav-users', url: 'users.html', icon: '👤', text: 'Amministrazione', perm: 'users' }
         ];
 
         let navHTML = '';
@@ -36,10 +34,10 @@
         return `
             <aside class="sidebar wood-panel sidebar-open" id="admin-sidebar">
                 <div class="sidebar-header" style="display: flex; align-items: center; gap: 15px; padding: 10px 0;">
-                    <h2 class="vintage-title brass-text logo-icon" style="font-size: 2rem; margin: 0; min-width: 30px; text-align: center;">F</h2>
+                    <h2 id="sidebar-brand-icon" class="vintage-title brass-text logo-icon" style="font-size: 2rem; margin: 0; min-width: 30px; text-align: center;">F</h2>
                     <div class="logo-text" style="line-height: 1.2;">
-                        <h2 class="vintage-title brass-text" style="font-size: 1.3rem; margin: 0; white-space: nowrap;">FRANKLIN</h2>
-                        <div style="font-size: 0.6rem; letter-spacing: 2px; color: var(--color-brass-base); white-space: nowrap;">BARBER SHOP</div>
+                        <h2 id="sidebar-brand-titolo" class="vintage-title brass-text" style="font-size: 1.3rem; margin: 0; white-space: nowrap;">FRANKLIN</h2>
+                        <div id="sidebar-brand-sottotitolo" style="font-size: 0.6rem; letter-spacing: 2px; color: var(--color-brass-base); white-space: nowrap; font-family: var(--font-admin);">BARBER SHOP</div>
                     </div>
                 </div>
                 <div class="brass-divider" style="margin: 1rem 0;"></div>
@@ -163,14 +161,12 @@
                                 if (ruolo && ruolo.permessi) {
                                     const linksPerm = [
                                         { id: 'nav-appointments', perm: 'appointments' },
-                                        { id: 'nav-services', perm: 'services' },
-                                        { id: 'nav-schedule', perm: 'schedule' },
-                                        { id: 'nav-barbers', perm: 'barbers' },
-                                        { id: 'nav-storico', perm: 'storico' },
                                         { id: 'nav-eventi', perm: 'eventi' },
-                                        { id: 'nav-users', perm: 'users' },
+                                        { id: 'nav-storico', perm: 'storico' },
+                                        { id: 'nav-barbers', perm: 'barbers' },
+                                        { id: 'nav-services', perm: 'services' },
                                         { id: 'nav-vetrina', perm: 'vetrina' },
-                                        { id: 'nav-settings', perm: 'settings' }
+                                        { id: 'nav-users', perm: 'users' }
                                     ];
                                     linksPerm.forEach(l => {
                                         const el = document.getElementById(l.id);
@@ -183,6 +179,23 @@
                         }
                     } else {
                         if (span) span.textContent = 'Non loggato';
+                    }
+                    
+                    // Fetch dynamic logo from vetrina
+                    const imp = await window.FranklinApp.Storage.ottieniImpostazioni();
+                    if (imp) {
+                        const iconEl = document.getElementById('sidebar-brand-icon');
+                        const titoloEl = document.getElementById('sidebar-brand-titolo');
+                        const sottoEl = document.getElementById('sidebar-brand-sottotitolo');
+                        if (titoloEl && imp.logo_titolo) {
+                            titoloEl.textContent = imp.logo_titolo;
+                            if (iconEl) iconEl.textContent = imp.logo_titolo.charAt(0).toUpperCase();
+                        }
+                        if (sottoEl) {
+                            let text = 'BARBER SHOP'; // default
+                            if (imp.hero_sottotitoletto) text = imp.hero_sottotitoletto; // Tipo Attività
+                            sottoEl.textContent = text;
+                        }
                     }
                 }
             }

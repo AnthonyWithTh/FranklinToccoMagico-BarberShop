@@ -59,8 +59,8 @@
                                     <th style="width: 13%;">Data di nascita</th>
                                     <th style="width: 5%;">Età</th>
                                     <th style="width: 13%;">Ruolo</th>
-                                    <th style="width: 10%;">Ritratto</th>
-                                    <th style="width: 21%;">Descrizione</th>
+                                    <th style="width: 10%;">Contatto</th>
+                                    <th style="width: 11%;">Descrizione</th>
                                     <th style="width: 10%;">Stato</th>
                                     <th style="width: 10%;">Azioni</th>
                                 </tr>
@@ -215,6 +215,13 @@
                             <div style="flex: 1;">
                                 <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Data di nascita *</label>
                                 <input type="date" id="barbiere-data-nascita" class="vintage-input" required style="width: 100%;">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                            <div style="flex: 1;">
+                                <label style="display: block; margin-bottom: 0.4rem; color: var(--color-text-cream);">Contatto (Telefono)</label>
+                                <input type="text" id="barbiere-contatto" class="vintage-input" placeholder="es. 333 1234567" style="width: 100%;">
                             </div>
                         </div>
 
@@ -420,6 +427,7 @@
                         <td>${dataNascitaDisplay}</td>
                         <td>${etaDisplay}</td>
                         <td>${b.ruolo || 'Barbiere'}</td>
+                        <td><span style="font-family: var(--font-typewriter); font-size: 0.9rem;">${b.contatto || '-'}</span></td>
                         <td>
                             <div style="display: flex; align-items: center; justify-content: center;">
                                 <img src="${fotoUrl}" alt="${b.nome}" 
@@ -539,6 +547,7 @@
                     document.getElementById('barbiere-cognome').value = c;
                     document.getElementById('barbiere-data-nascita').value = b.data_nascita || '';
                     document.getElementById('barbiere-ruolo').value = b.ruolo || '';
+                    document.getElementById('barbiere-contatto').value = b.contatto || '';
                     const fotoVal = b.foto || b.ritratto || '';
                     document.getElementById('barbiere-foto').value = fotoVal;
                     document.getElementById('barbiere-descrizione').value = b.descrizione || '';
@@ -559,6 +568,7 @@
                 document.getElementById('barbiere-cognome').value = '';
                 document.getElementById('barbiere-data-nascita').value = '';
                 document.getElementById('barbiere-ruolo').value = '';
+                document.getElementById('barbiere-contatto').value = '';
                 document.getElementById('barbiere-foto').value = '';
                 document.getElementById('barbiere-descrizione').value = '';
                 if (anteprimaImg) {
@@ -581,6 +591,7 @@
             const cognome = (document.getElementById('barbiere-cognome').value || '').trim();
             const dataNascita = document.getElementById('barbiere-data-nascita').value;
             const ruolo = (document.getElementById('barbiere-ruolo').value || '').trim();
+            const contatto = (document.getElementById('barbiere-contatto').value || '').trim();
             const foto = (document.getElementById('barbiere-foto').value || '').trim();
             const descrizione = (document.getElementById('barbiere-descrizione').value || '').trim();
             
@@ -633,6 +644,7 @@
                 cognome,
                 data_nascita: dataNascita,
                 ruolo,
+                contatto,
                 foto: finalFoto,
                 descrizione
             };

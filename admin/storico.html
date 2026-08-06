@@ -18,6 +18,7 @@
     <!-- Blocco anti-fouc e Auth -->
     <style id="anti-fouc">html { display: none !important; }</style>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="../js/storage.js"></script>
     <script src="../js/auth.js"></script>
     <script>
@@ -79,6 +80,29 @@
                 </div>
             </div>
             
+            <!-- Fisarmonica per la pulizia schedulata -->
+            <div class="vintage-card" style="margin-bottom: 2rem; padding: 0;">
+                <button onclick="document.getElementById('accordion-pulizia').classList.toggle('hidden')" style="width: 100%; text-align: left; background: none; border: none; padding: 1rem 1.5rem; color: var(--color-text-cream); font-family: var(--font-vintage); font-size: 1.2rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    Impostazioni Pulizia Schedulata (Automatico)
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div id="accordion-pulizia" class="hidden" style="padding: 0 1.5rem 1.5rem 1.5rem;">
+                    <p style="color: var(--color-text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+                        La copia degli appuntamenti nello storico e la pulizia di quelli passati avviene automaticamente ogni giorno tramite <strong>pg_cron</strong>.
+                        L'orario impostato attualmente è: <strong style="color: var(--color-brass-light);" id="display-orario-pulizia">06:01</strong>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Grafico -->
+            <div class="vintage-card" style="margin-bottom: 2rem;">
+                <h3 style="font-family: var(--font-vintage); color: var(--color-text-muted); margin-bottom: 1rem;">Andamento (Ultimi 7 giorni)</h3>
+                <canvas id="storicoChart" style="max-height: 300px;"></canvas>
+            </div>
+            
+            <!-- Badges filtri attivi -->
+            <div id="badges-filtri" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;"></div>
+
             <!-- Tabella Storico -->
             <div class="vintage-card">
                 <div class="admin-tabella-container">
@@ -145,11 +169,16 @@
             aggiornaStorico();
         }
 
+        let storicoChartInstance = null;
+
         async function aggiornaStorico() {
             if(!window.FranklinApp || !window.FranklinApp.Storage) return;
 
-            const dateStr = document.getElementById('filtro-data').value || 'tutte';
-            const bId = document.getElementById('filtro-barbiere').value;
+            const dateInput = document.getElementById('filtro-data');
+            const barbiereInput = document.getElementById('filtro-barbiere');
+            
+            const dateStr = dateInput.value || 'tutte';
+            const bId = barbiereInput.value;
             
             const tbody = document.getElementById('storico-tbody');
             tbody.innerHTML = '<tr><td colspan="9" style="text-align: center;">Caricamento in corso...</td></tr>';
@@ -157,6 +186,19 @@
             // Carica Dati
             const appuntamenti = await window.FranklinApp.Storage.ottieniStoricoAppuntamenti(dateStr, bId);
             const stats = await window.FranklinApp.Storage.ottieniStatisticheStorico(dateStr, bId);
+
+            // Aggiorna Badges Filtri
+            const badgesContainer = document.getElementById('badges-filtri');
+            badgesContainer.innerHTML = '';
+            if (dateStr !== 'tutte') {
+                const dateObj = new Date(dateStr);
+                const dataFormat = dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+                badgesContainer.innerHTML += `<span class="badge" style="background: var(--color-wood-300); color: var(--color-text-cream);">Data: ${dataFormat} <button onclick="document.getElementById('filtro-data').value=''; aggiornaStorico();" style="background:none; border:none; color:inherit; cursor:pointer; margin-left:5px;">&times;</button></span>`;
+            }
+            if (bId !== 'tutti') {
+                const barbiereNome = barbiereInput.options[barbiereInput.selectedIndex].text;
+                badgesContainer.innerHTML += `<span class="badge" style="background: var(--color-wood-300); color: var(--color-text-cream);">Barbiere: ${barbiereNome} <button onclick="document.getElementById('filtro-barbiere').value='tutti'; aggiornaStorico();" style="background:none; border:none; color:inherit; cursor:pointer; margin-left:5px;">&times;</button></span>`;
+            }
 
             // Aggiorna Stats
             document.getElementById('stat-incasso').textContent = stats.incasso.toFixed(2);
@@ -166,6 +208,7 @@
             tbody.innerHTML = '';
             if(!appuntamenti || appuntamenti.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Nessun appuntamento in archivio per i filtri selezionati.</td></tr>';
+                disegnaGrafico([]);
                 return;
             }
 
@@ -174,9 +217,12 @@
                 if(app.stato === 'Completato') badgeClass = 'badge-completed';
                 else if(app.stato === 'Cancellato') badgeClass = 'badge-cancelled';
                 
+                const dataObj = new Date(app.data);
+                const dataFormat = dataObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+
                 tbody.innerHTML += `
                     <tr>
-                        <td style="font-family: var(--font-typewriter);">${app.data}</td>
+                        <td style="font-family: var(--font-admin);">${dataFormat}</td>
                         <td style="font-family: var(--font-typewriter);">${app.ora}</td>
                         <td style="font-weight: bold; color: var(--color-brass-light);">${app.clienteNome}</td>
                         <td style="font-family: var(--font-typewriter);">${app.clienteTelefono || '-'}</td>
@@ -187,6 +233,83 @@
                         <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${app.note || ''}">${app.note || '-'}</td>
                     </tr>
                 `;
+            });
+
+            disegnaGrafico(appuntamenti);
+        }
+
+        function disegnaGrafico(appuntamenti) {
+            const ctx = document.getElementById('storicoChart');
+            if (!ctx) return;
+
+            if (storicoChartInstance) {
+                storicoChartInstance.destroy();
+            }
+
+            // Raggruppa per data (ultimi 7 giorni)
+            const ultimi7Giorni = {};
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const isoDate = d.toISOString().split('T')[0];
+                ultimi7Giorni[isoDate] = 0;
+            }
+
+            appuntamenti.forEach(app => {
+                if (app.stato === 'Completato' && ultimi7Giorni[app.data] !== undefined) {
+                    ultimi7Giorni[app.data] += parseFloat(app.servizioCosto) || 0;
+                }
+            });
+
+            const labels = Object.keys(ultimi7Giorni).map(d => {
+                const dateObj = new Date(d);
+                return dateObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' });
+            });
+            const data = Object.values(ultimi7Giorni);
+
+            storicoChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Incasso Giornaliero (€)',
+                        data: data,
+                        backgroundColor: 'rgba(212, 175, 55, 0.5)', // Brass con opacità
+                        borderColor: 'rgba(212, 175, 55, 1)', // Brass solido
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#f5f5dc' // Cream
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#f5f5dc' // Cream
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#f5f5dc' // Cream
+                            }
+                        }
+                    }
+                }
             });
         }
     </script>

@@ -41,7 +41,6 @@ FranklinApp.Auth = {
       'schedule.html': 'schedule',
       'barbers.html': 'barbers',
       'users.html': 'users',
-      'settings.html': 'settings',
       'vetrina.html': 'vetrina',
       'storico.html': 'storico',
       'eventi.html': 'eventi'

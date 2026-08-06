@@ -69,7 +69,12 @@
 
             <!-- Tabella Eventi Passati -->
             <div class="vintage-card">
-                <h2 style="font-family: var(--font-vintage); color: var(--color-text-muted); margin-bottom: 1rem;">Eventi Passati / Disattivati</h2>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="font-family: var(--font-vintage); color: var(--color-text-muted); margin: 0;">Eventi Passati / Disattivati</h2>
+                    <select id="filtro-anno" class="vintage-select" style="padding: 0.3rem 0.6rem;" onchange="renderTabelle()">
+                        <option value="tutti">Tutti gli anni</option>
+                    </select>
+                </div>
                 <div class="admin-tabella-container">
                     <table class="admin-tabella">
                         <thead>
@@ -170,17 +175,32 @@
         function renderTabelle() {
             const tbodyAttivi = document.getElementById('attivi-tbody');
             const tbodyPassati = document.getElementById('passati-tbody');
+            const filtroAnno = document.getElementById('filtro-anno');
+            const annoSelezionato = filtroAnno ? filtroAnno.value : 'tutti';
             
             tbodyAttivi.innerHTML = '';
             tbodyPassati.innerHTML = '';
             
             let countAttivi = 0, countPassati = 0;
+            const anniSet = new Set();
 
             tuttiEventi.forEach(e => {
                 const attivo = isEventoAttivo(e);
                 const futuro = isEventoFuturo(e);
                 const isActiveTab = (attivo || futuro) && e.attivo;
                 
+                // Formatta Date
+                const dtInizio = new Date(e.data_inizio).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+                const dtFine = new Date(e.data_fine).toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
+                
+                if(!isActiveTab) {
+                    anniSet.add(e.data_inizio.substring(0, 4));
+                }
+
+                if(!isActiveTab && annoSelezionato !== 'tutti' && e.data_inizio.substring(0, 4) !== annoSelezionato) {
+                    return; // Filtro anno ignorato
+                }
+
                 let badgeClass = 'badge';
                 let statoStr = 'Programmato';
                 
@@ -195,17 +215,25 @@
                     statoStr = 'Terminato';
                 }
 
+                const btnEdit = `<button class="btn-primary" style="padding: 0.4rem; min-width: auto; line-height: 0;" onclick="modificaEvento('${e.id}')" title="Modifica">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                </button>`;
+                
+                const btnDelete = `<button class="btn-danger" style="padding: 0.4rem; min-width: auto; line-height: 0;" onclick="eliminaEvento('${e.id}')" title="Elimina">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                </button>`;
+
                 const riga = `
                     <tr>
                         <td style="font-weight: bold; color: var(--color-brass-light);">${e.titolo}</td>
                         <td style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${e.descrizione}">${e.descrizione}</td>
-                        <td style="font-family: var(--font-typewriter);">${e.data_inizio}</td>
-                        <td style="font-family: var(--font-typewriter);">${e.data_fine}</td>
+                        <td style="font-family: var(--font-admin);">${dtInizio}</td>
+                        <td style="font-family: var(--font-admin);">${dtFine}</td>
                         <td><span class="${badgeClass}">${statoStr}</span></td>
                         <td>
                             <div style="display: flex; gap: 0.5rem;">
-                                <button class="btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; min-width: auto;" onclick="modificaEvento('${e.id}')">Modifica</button>
-                                <button class="btn-danger" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; min-width: auto;" onclick="eliminaEvento('${e.id}')">Elimina</button>
+                                ${btnEdit}
+                                ${btnDelete}
                             </div>
                         </td>
                     </tr>
@@ -220,8 +248,20 @@
                 }
             });
 
+            // Update filtro options (solo se non ha già opzioni a parte 'tutti' oppure resetta e popola)
+            if (filtroAnno) {
+                const currentVal = filtroAnno.value;
+                let optionsHtml = '<option value="tutti">Tutti gli anni</option>';
+                const sortedAnni = Array.from(anniSet).sort().reverse();
+                sortedAnni.forEach(anno => {
+                    optionsHtml += `<option value="${anno}">${anno}</option>`;
+                });
+                filtroAnno.innerHTML = optionsHtml;
+                filtroAnno.value = currentVal && anniSet.has(currentVal) ? currentVal : 'tutti';
+            }
+
             if(countAttivi === 0) tbodyAttivi.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun evento attivo o programmato.</td></tr>';
-            if(countPassati === 0) tbodyPassati.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun evento passato.</td></tr>';
+            if(countPassati === 0) tbodyPassati.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun evento passato per l\\'anno selezionato.</td></tr>';
         }
 
         function apriModaleEvento(id = null) {
