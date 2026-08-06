@@ -265,24 +265,34 @@
         }
 
         function apriModaleEvento(id = null) {
-            document.getElementById('form-evento').reset();
-            document.getElementById('evento-id').value = '';
-            document.getElementById('modal-titolo').textContent = 'Nuovo Evento';
+            const form = document.getElementById('form-evento');
+            const eventoId = document.getElementById('evento-id');
+            const modalTitolo = document.getElementById('modal-titolo');
+            const modalEvento = document.getElementById('modal-evento');
             
-            if(id && typeof id === 'string') {
+            if (form) form.reset();
+            if (eventoId) eventoId.value = '';
+            if (modalTitolo) modalTitolo.textContent = 'Nuovo Evento';
+            
+            if (id && typeof id === 'string') {
                 const e = tuttiEventi.find(x => x.id === id);
                 if(e) {
-                    document.getElementById('modal-titolo').textContent = 'Modifica Evento';
-                    document.getElementById('evento-id').value = e.id;
-                    document.getElementById('evento-titolo').value = e.titolo;
-                    document.getElementById('evento-descrizione').value = e.descrizione;
-                    document.getElementById('evento-inizio').value = e.data_inizio;
-                    document.getElementById('evento-fine').value = e.data_fine;
-                    document.getElementById('evento-attivo').checked = e.attivo;
+                    if (modalTitolo) modalTitolo.textContent = 'Modifica Evento';
+                    if (eventoId) eventoId.value = e.id;
+                    const elTitolo = document.getElementById('evento-titolo');
+                    if (elTitolo) elTitolo.value = e.titolo;
+                    const elDesc = document.getElementById('evento-descrizione');
+                    if (elDesc) elDesc.value = e.descrizione;
+                    const elIniz = document.getElementById('evento-inizio');
+                    if (elIniz) elIniz.value = e.data_inizio;
+                    const elFine = document.getElementById('evento-fine');
+                    if (elFine) elFine.value = e.data_fine;
+                    const elAttivo = document.getElementById('evento-attivo');
+                    if (elAttivo) elAttivo.checked = e.attivo;
                 }
             }
             
-            document.getElementById('modal-evento').style.display = 'flex';
+            if (modalEvento) modalEvento.style.display = 'flex';
         }
 
         function chiudiModaleEvento() {

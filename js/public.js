@@ -594,9 +594,10 @@ FranklinApp.Pubblico = {
           <h4 style="font-family: var(--font-heading); color: var(--color-brass-light); font-size: 1.15rem; margin: 0 0 2px 0; line-height: 1.25;">
             ${nomeCompleto}
           </h4>
-          <div style="font-family: var(--font-admin); font-size: 0.82rem; text-transform: uppercase; color: var(--color-brass-base); letter-spacing: 0.08em; margin-bottom: 0.5rem; font-weight: 600;">
+          <div style="font-family: var(--font-admin); font-size: 0.82rem; text-transform: uppercase; color: var(--color-brass-base); letter-spacing: 0.08em; margin-bottom: 0.3rem; font-weight: 600;">
             ${b.ruolo || 'Barbiere'}${etaStr ? ' • <span style="text-transform: none;">' + etaStr + '</span>' : ''}
           </div>
+          ${b.contatto ? `<div style="font-family: var(--font-typewriter); font-size: 0.85rem; color: var(--color-text-cream); margin-bottom: 0.5rem; opacity: 0.9;">☎ ${b.contatto}</div>` : ''}
           <p style="font-family: var(--font-body); font-size: 0.85rem; color: var(--color-text-cream); margin: 0; line-height: 1.45; text-align: left; opacity: 0.7; font-style: italic;">
             Clicca per scoprire di più
           </p>

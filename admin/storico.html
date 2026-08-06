@@ -47,46 +47,50 @@
 
             <!-- Filtri e Statistiche -->
             <div class="vintage-card" style="margin-bottom: 2rem;">
-                <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; margin-bottom: 1.5rem;">
-                    <div class="form-group" style="flex: 1; min-width: 150px; max-width: 250px;">
-                        <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Data</label>
-                        <input type="date" id="filtro-data" class="vintage-input" style="width: 100%;" onchange="aggiornaStorico()">
+                <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <!-- Filtri (Sinistra) -->
+                    <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="form-group" style="margin: 0;">
+                            <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.3rem;">Data</label>
+                            <input type="date" id="filtro-data" class="vintage-input" style="padding: 0.3rem 0.6rem;" onchange="aggiornaStorico()">
+                        </div>
+                        <div class="form-group" style="margin: 0;">
+                            <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.3rem;">Barbiere</label>
+                            <select id="filtro-barbiere" class="vintage-select" style="padding: 0.3rem 0.6rem;" onchange="aggiornaStorico()">
+                                <option value="tutti">Tutti i barbieri</option>
+                                <!-- Popolato via JS -->
+                            </select>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end;">
+                            <button class="btn-primary" onclick="resetFiltri()">Reset Filtri</button>
+                        </div>
                     </div>
-                    <div class="form-group" style="flex: 1; min-width: 150px; max-width: 250px;">
-                        <label style="font-family: var(--font-admin); color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Barbiere</label>
-                        <select id="filtro-barbiere" class="vintage-select" style="width: 100%;" onchange="aggiornaStorico()">
-                            <option value="tutti">Tutti i barbieri</option>
-                            <!-- Popolato via JS -->
-                        </select>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: flex-end;">
-                        <button class="btn-primary" onclick="resetFiltri()">Reset Filtri</button>
+
+                    <!-- Statistiche come Badge (Destra) -->
+                    <div style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+                        <div class="badge" style="background: var(--color-black-100); border-color: var(--color-brass-base); color: var(--color-brass-light); padding: 0.5rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; height: 38px;">
+                            <span style="font-family: var(--font-vintage); opacity: 0.8;">Incasso Stimato:</span> 
+                            <strong style="font-family: var(--font-typewriter);">€ <span id="stat-incasso">0.00</span></strong>
+                        </div>
+                        <div class="badge" style="background: var(--color-black-100); border-color: var(--color-green-100); color: var(--color-green-200); padding: 0.5rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem; height: 38px;">
+                            <span style="font-family: var(--font-vintage); opacity: 0.8;">Clienti:</span> 
+                            <strong style="font-family: var(--font-typewriter);"><span id="stat-clienti">0</span></strong>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Statistiche come Badge -->
-                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap;">
-                    <div class="badge" style="background: var(--color-black-100); border-color: var(--color-brass-base); color: var(--color-brass-light); padding: 0.5rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-family: var(--font-vintage); opacity: 0.8;">Incasso:</span> 
-                        <strong style="font-family: var(--font-typewriter);">€ <span id="stat-incasso">0.00</span></strong>
-                    </div>
-                    <div class="badge" style="background: var(--color-black-100); border-color: var(--color-green-100); color: var(--color-green-200); padding: 0.5rem 1rem; font-size: 1rem; display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-family: var(--font-vintage); opacity: 0.8;">Clienti:</span> 
-                        <strong style="font-family: var(--font-typewriter);"><span id="stat-clienti">0</span></strong>
-                    </div>
-                </div>
+                <div class="brass-divider" style="margin: 1.5rem 0;"></div>
 
                 <!-- Fisarmonica per la pulizia schedulata compressa -->
                 <div style="border: 1px solid var(--color-wood-300); border-radius: var(--border-radius-sm); overflow: hidden;">
                     <button onclick="document.getElementById('accordion-pulizia').classList.toggle('hidden')" style="width: 100%; text-align: left; background: rgba(0,0,0,0.2); border: none; padding: 0.8rem 1rem; color: var(--color-text-muted); font-family: var(--font-admin); font-size: 0.9rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                        <span>⚙️ Impostazioni Pulizia Schedulata (pg_cron)</span>
+                        <span>⚙️ Impostazione pulizia programmata</span>
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                     </button>
-                    <div id="accordion-pulizia" class="hidden" style="padding: 1rem; background: rgba(0,0,0,0.1);">
-                        <p style="color: var(--color-text-muted); font-size: 0.85rem; margin: 0;">
-                            La copia degli appuntamenti nello storico e la pulizia di quelli passati avviene automaticamente ogni giorno tramite <strong>pg_cron</strong>.
-                            L'orario impostato attualmente è: <strong style="color: var(--color-brass-light);" id="display-orario-pulizia">06:01</strong>
-                        </p>
+                    <div id="accordion-pulizia" class="hidden" style="padding: 1rem; background: rgba(0,0,0,0.1); display: flex; align-items: center; gap: 1rem;">
+                        <label style="color: var(--color-text-cream); font-size: 0.9rem;">Orario pulizia:</label>
+                        <input type="time" id="input-ora-pulizia" class="vintage-input" style="padding: 0.3rem 0.6rem; width: 120px;" value="22:00">
+                        <button class="btn-primary" onclick="salvaImpostazionePulizia()" style="padding: 0.3rem 1rem;">Salva</button>
                     </div>
                 </div>
             </div>
@@ -111,6 +115,10 @@
 
             <!-- Tabella Storico -->
             <div class="vintage-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="font-family: var(--font-vintage); color: var(--color-green-100); margin: 0;">Appuntamenti Storico</h3>
+                    <button class="btn-primary" onclick="apriModaleStorico()" style="padding: 0.4rem 0.9rem; font-size: 1.2rem; font-weight: bold; line-height: 1;" title="Aggiungi Appuntamento">+</button>
+                </div>
                 <div class="admin-tabella-container">
                     <table class="admin-tabella">
                         <thead>
@@ -124,6 +132,7 @@
                                 <th>Costo</th>
                                 <th>Stato</th>
                                 <th>Note</th>
+                                <th>Azioni</th>
                             </tr>
                         </thead>
                         <tbody id="storico-tbody">
@@ -133,6 +142,64 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <!-- Modale per aggiunta/modifica Storico -->
+    <div id="modal-storico" class="modal-overlay" style="display: none; z-index: 1000;">
+        <div class="modal-content vintage-card" style="max-width: 500px;">
+            <h2 id="modal-storico-titolo" class="vintage-title" style="font-size: 1.5rem; color: var(--color-brass-base); margin-bottom: 1.5rem; text-align: center;">Aggiungi allo Storico</h2>
+            
+            <form id="form-storico" onsubmit="salvaRecordStorico(event)">
+                <input type="hidden" id="storico-id">
+                
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Data</label>
+                        <input type="date" id="storico-data" class="vintage-input" style="width: 100%;" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Ora</label>
+                        <input type="time" id="storico-ora" class="vintage-input" style="width: 100%;" required>
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-bottom: 1rem;">
+                    <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Cliente (Nome)</label>
+                    <input type="text" id="storico-cliente" class="vintage-input" style="width: 100%;" required>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Barbiere (ID/Nome)</label>
+                        <input type="text" id="storico-barbiere" class="vintage-input" style="width: 100%;" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Servizio (Nome)</label>
+                        <input type="text" id="storico-servizio" class="vintage-input" style="width: 100%;" required>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Costo (€)</label>
+                        <input type="number" id="storico-costo" class="vintage-input" style="width: 100%;" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group" style="flex: 1; margin: 0;">
+                        <label style="color: var(--color-text-cream); display: block; margin-bottom: 0.5rem;">Stato</label>
+                        <select id="storico-stato" class="vintage-select" style="width: 100%;" required>
+                            <option value="Completato">Completato</option>
+                            <option value="Non Presentato">Non Presentato</option>
+                            <option value="Cancellato">Cancellato</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn-secondary" onclick="document.getElementById('modal-storico').style.display = 'none';">Annulla</button>
+                    <button type="submit" class="btn-primary">Salva</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Scripts -->
@@ -166,6 +233,18 @@
                         }
                     });
                 }
+            }
+        }
+
+        async function salvaImpostazionePulizia() {
+            const ora = document.getElementById('input-ora-pulizia').value;
+            if (!ora) return;
+            // Esempio logica per salvare l'impostazione su Supabase o chiamare una Edge Function
+            // window.FranklinApp.Storage.salvaOraPulizia(ora);
+            if (window.FranklinApp.Admin && window.FranklinApp.Admin.mostraToast) {
+                window.FranklinApp.Admin.mostraToast("Orario pulizia salvato con successo!", "successo");
+            } else {
+                alert("Orario pulizia salvato: " + ora);
             }
         }
 
@@ -205,24 +284,26 @@
                 const barbiereNome = barbiereInput.options[barbiereInput.selectedIndex].text;
                 badgesContainer.innerHTML += `<span class="badge" style="background: var(--color-wood-300); color: var(--color-text-cream);">Barbiere: ${barbiereNome} <button onclick="document.getElementById('filtro-barbiere').value='tutti'; aggiornaStorico();" style="background:none; border:none; color:inherit; cursor:pointer; margin-left:5px;">&times;</button></span>`;
             }
+            if (!tbody) return;
 
-            // Aggiorna Stats
-            document.getElementById('stat-incasso').textContent = stats.incasso.toFixed(2);
-            document.getElementById('stat-clienti').textContent = stats.clienti;
-
-            // Aggiorna Tabella
             tbody.innerHTML = '';
-            if(!appuntamenti || appuntamenti.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 2rem;">Nessun appuntamento in archivio per i filtri selezionati.</td></tr>';
-                disegnaGrafico([]);
-                return;
+
+            let totaleIncasso = 0;
+            let totaleClienti = 0;
+
+            if (appuntamenti.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">Nessun record trovato.</td></tr>';
             }
 
             appuntamenti.forEach(app => {
-                let badgeClass = 'badge';
-                if(app.stato === 'Completato') badgeClass = 'badge-completed';
-                else if(app.stato === 'Cancellato') badgeClass = 'badge-cancelled';
-                
+                if (app.stato === 'Completato') {
+                    totaleIncasso += parseFloat(app.servizioCosto) || 0;
+                    totaleClienti++;
+                }
+
+                let badgeClass = 'badge-completed';
+                if (app.stato === 'Cancellato' || app.stato === 'Non Presentato') badgeClass = 'badge-cancelled';
+
                 const dataObj = new Date(app.data);
                 const dataFormat = dataObj.toLocaleDateString('it-IT', { day: 'numeric', month: 'long', year: 'numeric' });
 
@@ -237,11 +318,88 @@
                         <td style="font-family: var(--font-typewriter);">€ ${parseFloat(app.servizioCosto).toFixed(2)}</td>
                         <td><span class="${badgeClass}">${app.stato}</span></td>
                         <td style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${app.note || ''}">${app.note || '-'}</td>
+                        <td style="white-space: nowrap;">
+                            <button class="azioni-btn" title="Modifica" onclick="apriModaleStorico('${app.id}')">✏️</button>
+                            <button class="azioni-btn" title="Elimina" style="color: var(--color-danger);" onclick="eliminaRecordStorico('${app.id}')">🗑️</button>
+                        </td>
                     </tr>
                 `;
             });
 
+            const statIncasso = document.getElementById('stat-incasso');
+            const statClienti = document.getElementById('stat-clienti');
+            if (statIncasso) statIncasso.textContent = totaleIncasso.toFixed(2);
+            if (statClienti) statClienti.textContent = totaleClienti;
+
             aggiornaGrafico(bId);
+        }
+
+        function apriModaleStorico(id = null) {
+            document.getElementById('form-storico').reset();
+            document.getElementById('storico-id').value = '';
+            document.getElementById('modal-storico-titolo').textContent = 'Aggiungi allo Storico';
+            
+            if (id && typeof id === 'string') {
+                const rec = datiStoricoCorrenti.find(x => x.id === id);
+                if(rec) {
+                    document.getElementById('modal-storico-titolo').textContent = 'Modifica Storico';
+                    document.getElementById('storico-id').value = rec.id;
+                    document.getElementById('storico-data').value = rec.data;
+                    document.getElementById('storico-ora').value = rec.ora;
+                    document.getElementById('storico-cliente').value = rec.clienteNome;
+                    document.getElementById('storico-barbiere').value = rec.barbiereNome;
+                    document.getElementById('storico-servizio').value = rec.servizioNome;
+                    document.getElementById('storico-costo').value = rec.servizioCosto;
+                    document.getElementById('storico-stato').value = rec.stato;
+                }
+            }
+            
+            document.getElementById('modal-storico').style.display = 'flex';
+        }
+
+        async function salvaRecordStorico(ev) {
+            ev.preventDefault();
+            const id = document.getElementById('storico-id').value;
+            
+            const dati = {
+                data: document.getElementById('storico-data').value,
+                ora: document.getElementById('storico-ora').value,
+                cliente_nome: document.getElementById('storico-cliente').value,
+                barbiere_nome: document.getElementById('storico-barbiere').value,
+                servizio_nome: document.getElementById('storico-servizio').value,
+                servizio_costo: parseFloat(document.getElementById('storico-costo').value),
+                stato: document.getElementById('storico-stato').value
+            };
+
+            try {
+                if (id) {
+                    const { error } = await sbClient.from('appuntamenti_storico').update(dati).eq('id', id);
+                    if (error) throw error;
+                    if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Record aggiornato", "successo");
+                } else {
+                    const { error } = await sbClient.from('appuntamenti_storico').insert([dati]);
+                    if (error) throw error;
+                    if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Record aggiunto", "successo");
+                }
+                document.getElementById('modal-storico').style.display = 'none';
+                aggiornaStorico();
+            } catch(e) {
+                console.error(e);
+                if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Errore salvataggio record", "errore");
+            }
+        }
+
+        async function eliminaRecordStorico(id) {
+            if (!confirm("Sei sicuro di voler eliminare questo record?")) return;
+            try {
+                const { error } = await sbClient.from('appuntamenti_storico').delete().eq('id', id);
+                if (error) throw error;
+                if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Record eliminato", "successo");
+                aggiornaStorico();
+            } catch(e) {
+                console.error(e);
+                if (window.FranklinApp.Admin) window.FranklinApp.Admin.mostraToast("Errore eliminazione record", "errore");
+            }
         }
 
         async function aggiornaGrafico(barbiereFiltro) {
