@@ -189,11 +189,9 @@
                 if (window.FranklinApp.Storage.listaImmagini && selectElement) {
                     const immagini = await window.FranklinApp.Storage.listaImmagini('immagini_vetrina');
                     if (immagini && immagini.length > 0) {
-                        immagini.forEach(img => {
-                            if (img.name !== '.emptyFolderPlaceholder') {
-                                const url = `${window.FranklinApp.Storage.supabase.storageUrl}/object/public/immagini_vetrina/${img.name}`;
-                                selectElement.innerHTML += `<option value="${url}">${img.name}</option>`;
-                            }
+                        immagini.forEach(imgUrl => {
+                            const nomeFile = imgUrl.split('/').pop().split('?')[0] || imgUrl;
+                            selectElement.innerHTML += `<option value="${imgUrl}">${nomeFile}</option>`;
                         });
                     }
                 }
