@@ -260,8 +260,8 @@
                 filtroAnno.value = currentVal && anniSet.has(currentVal) ? currentVal : 'tutti';
             }
 
-            if(countAttivi === 0) tbodyAttivi.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun evento attivo o programmato.</td></tr>';
-            if(countPassati === 0) tbodyPassati.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nessun evento passato per l\\'anno selezionato.</td></tr>';
+            if(countAttivi === 0) tbodyAttivi.innerHTML = `<tr><td colspan="6" style="text-align: center;">Nessun evento attivo o programmato.</td></tr>`;
+            if(countPassati === 0) tbodyPassati.innerHTML = `<tr><td colspan="6" style="text-align: center;">Nessun evento passato per l'anno selezionato.</td></tr>`;
         }
 
         function apriModaleEvento(id = null) {
